@@ -1,0 +1,49 @@
+1. TABLA: Usuarios
+Descripción: Almacena a los administradores (creadores) y asistentes (compradores).
+- id (Primary Key)
+- nombre
+- dni (Unique)
+- fecha_nacimiento
+- email (Unique)
+- password
+- rol
+- fecha_registro
+
+2. TABLA: Locaciones
+Descripción: Lugares físicos donde se realizan los eventos.
+- id (Primary Key)
+- nombre
+- direccion
+- capacidad_max
+
+3. TABLA: Eventos
+Descripción: Las fiestas o eventos creados por los administradores.
+- id (Primary Key)
+- admin_id (Foreign Key -> Usuarios.id)
+- locacion_id (Foreign Key -> Locaciones.id)
+- titulo
+- fecha_hora
+- estado
+
+4. TABLA: Tipos_Entrada (Catálogo Reutilizable)
+Descripción: Plantillas de los tipos de entrada (ej. VIP, General, Early Bird).
+- id (Primary Key)
+- nombre
+- descripcion_base
+
+5. TABLA: Eventos_Tipos_Entrada
+Descripción: Asigna un tipo de entrada de la plantilla a un evento específico, definiendo su precio y stock.
+- id (Primary Key)
+- evento_id (Foreign Key -> Eventos.id)
+- tipo_entrada_id (Foreign Key -> Tipos_Entrada.id)
+- precio
+- cantidad_total
+
+6. TABLA: Entradas_Compradas (Tickets)
+Descripción: Los tickets individuales comprados por los asistentes.
+- id (Primary Key)
+- usuario_id (Foreign Key -> Usuarios.id)
+- evento_tipo_id (Foreign Key -> Eventos_Tipos_Entrada.id)
+- fecha_compra
+- codigo_qr (Unique)
+- estado
