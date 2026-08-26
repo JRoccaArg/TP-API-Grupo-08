@@ -9,9 +9,9 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.uade.tpo</groupId>
-    <artifactId>demo</artifactId>
+    <artifactId>zenoirprod</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>demo</name>
+    <name>Zenoirprod</name>
     <description>Mi primer proyecto en Spring</description>
     <properties>
         <java.version>17</java.version>

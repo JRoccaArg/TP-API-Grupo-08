@@ -1,13 +1,12 @@
-package com.uade.tpo.demo;
+package com.uade.tpo.Zenoirprod;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class DemoApplicationTests {
+class ZenoirprodApplicationTests {
 
 	@Test
 	void contextLoads() {
 	}
-
 }

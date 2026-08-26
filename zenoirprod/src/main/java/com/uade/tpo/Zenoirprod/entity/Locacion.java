@@ -1,27 +1,25 @@
-package com.uade.tpo.demo.entity;
+package com.uade.tpo.Zenoirprod.entity;
+
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
 
-@Entity
+
+/* SOLAMENTE CREADA CON LO MÍNIMO PARA PODER IR HACIENDO EVENTOS MIENTRAS. HAY QUE COMPLETAR ESTA CLASE */
+
 @Data
-@Table(name = "orders")
-public class Order {
+@Entity
+@Table(name = "Locaciones")
+public class Locacion {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private int id;
 
     @Column
-    private Long count;
-
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    private String nombre;
 }
