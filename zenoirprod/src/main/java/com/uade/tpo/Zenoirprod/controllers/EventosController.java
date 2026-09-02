@@ -18,6 +18,7 @@ import com.uade.tpo.Zenoirprod.service.EventosService;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -48,6 +49,20 @@ public class EventosController {
             return ResponseEntity.ok(eventosService.getEventoPorId(id));
         } catch (EventoInexistenteException e) {
             return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity patchEvento(@PathVariable Integer id, @RequestBody EventoRequest eventoRequest) {
+        try {
+            return ResponseEntity.ok(eventosService.updateEvento(id, eventoRequest.getTitulo(), eventoRequest.getDescripcion(),
+                    eventoRequest.getEstado(), eventoRequest.getLocacion_id(), eventoRequest.getFecha_hora()));
+        } catch (EventoInexistenteException e) {
+            return ResponseEntity.notFound().build();
+        } catch (LocacionInexsistenteException e) {
+            return ResponseEntity.notFound().build();
+        } catch (TituloEventoEnUsoException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build(); //Esta version de Spring no tiene ResponseEntity.conflict()
         }
     }
     

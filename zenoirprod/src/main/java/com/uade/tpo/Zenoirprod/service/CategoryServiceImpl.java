@@ -32,4 +32,5 @@ public class CategoryServiceImpl implements CategoryService {
             return categoryRepository.save(new Category(description));
         throw new CategoryDuplicateException();
     }
+    
 }

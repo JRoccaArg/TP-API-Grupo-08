@@ -62,4 +62,49 @@ public class EventosServiceImp implements EventosService {
         evento.setFecha_hora(fecha_hora);
         return eventosRepository.save(evento);
     }
+
+    public Evento updateEvento(Integer id, String titulo, String descripcion, String estado, Integer locacion_id, LocalDateTime fecha_hora) throws EventoInexistenteException, LocacionInexsistenteException, TituloEventoEnUsoException {
+        // Validaciones Previas a Updatear
+        if (!eventosRepository.existsById(id)) {
+            throw new EventoInexistenteException();
+        }
+        if (titulo != null && eventosRepository.findAll().stream().anyMatch(evento -> evento.getTitulo().equals(titulo) && !evento.getId().equals(id))) {
+            throw new TituloEventoEnUsoException();
+        }
+        if (locacion_id != null && !locacionRepository.existsById(locacion_id)) {
+            throw new LocacionInexsistenteException();
+        }
+
+        Evento ev = eventosRepository.findById(id).get();
+        boolean huboCambios = false;
+
+        // Update del Evento
+        if (titulo != null) {
+            ev.setTitulo(titulo);
+            huboCambios = true;
+        }
+        if (descripcion != null) {
+            ev.setDescripcion(descripcion);
+            huboCambios = true;
+        }
+        if (estado != null) {
+            ev.setEstado(estado);
+            huboCambios = true;
+        }
+        if (locacion_id != null) {
+            ev.setLocacion(locacionRepository.findById(locacion_id).get());
+            huboCambios = true;
+        }
+        if (fecha_hora != null) {
+            ev.setFecha_hora(fecha_hora);
+            huboCambios = true;
+        }
+        
+        // Guardo si hubo cambios, sino devuelvo el evento original
+        if (huboCambios) {
+            return eventosRepository.save(ev);
+        } else {
+            return eventosRepository.findById(id).get();
+        }
+    }
 }
