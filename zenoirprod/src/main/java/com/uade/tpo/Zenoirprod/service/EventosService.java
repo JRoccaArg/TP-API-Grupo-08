@@ -19,4 +19,6 @@ public interface EventosService {
         public Optional<Evento> getEventoPorId(Integer id) throws EventoInexistenteException;
 
         public Evento crearEvento(String titulo, String descripcion, String estado, Integer locacion_id, LocalDateTime fecha_hora) throws TituloEventoEnUsoException, LocacionInexsistenteException;
+
+        public Evento updateEvento(Integer id, String titulo, String descripcion, String estado, Integer locacion_id, LocalDateTime fecha_hora) throws EventoInexistenteException, LocacionInexsistenteException, TituloEventoEnUsoException;
 }
