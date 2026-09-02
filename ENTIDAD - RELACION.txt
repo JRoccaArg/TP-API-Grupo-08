@@ -3,9 +3,9 @@
 - id: INT
 - nombre: NVARCHAR(100)
 - apellido: NVARCHAR(100)
-- dni: NVARCHAR(20)
+- dni: NVARCHAR(20) (Unique)
 - fecha_nacimiento: DATE
-- email: NVARCHAR(255)
+- email: NVARCHAR(255) (Unique)
 - password_hash: NVARCHAR(255)
 - rol: VARCHAR(20)
 - fecha_registro: DATETIME2
@@ -74,7 +74,9 @@
 - evento_id: INT
 - tipo_entrada_id: INT
 - precio: DECIMAL(12,2)
+- porcentaje_descuento: DECIMAL(5,2)
 - cantidad_total: INT
+- cantidad_disponible: INT
 - fecha_inicio_venta: DATETIME2
 - fecha_fin_venta: DATETIME2
 - estado: VARCHAR(20)
@@ -123,7 +125,21 @@
 
 - id: INT
 - detalle_compra_id: INT
-- codigo_qr: NVARCHAR(255)
+- codigo_qr: NVARCHAR(255) (Unique)
 - estado: VARCHAR(20)
 - fecha_emision: DATETIME2
 - fecha_utilizacion: DATETIME2
+
+
+13. TABLA: Categorias
+
+- id: INT
+- nombre: NVARCHAR(100) (Unique)
+- activo: BIT
+
+
+14. TABLA: Eventos_Categorias
+
+- id: INT
+- evento_id: INT
+- categoria_id: INT
