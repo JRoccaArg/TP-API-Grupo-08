@@ -1,0 +1,13 @@
+# Herramientas locales
+
+# IDEs (cada uno usa el suyo, no va al repo)
+.idea/
+*.iml
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Configuracion local con credenciales
+.env
+**/application-local.properties
