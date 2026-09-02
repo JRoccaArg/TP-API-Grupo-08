@@ -1,6 +1,5 @@
 package com.uade.tpo.Zenoirprod.entity;
 
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -11,18 +10,19 @@ import lombok.Data;
 
 @Data
 @Entity
-@Table(name = "Locaciones")
-public class Locacion {
+@Table(name = "Tipos_Entrada")
+public class TipoEntrada {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
 
     @Column
     private String nombre;
 
-    @Column
-    private String direccion;
+    @Column(name = "descripcion_base")
+    private String descripcionBase;
 
-    @Column(name = "capacidad_max")
-    private Integer capacidadMax;
+    @Column
+    private Boolean activo;
 }
