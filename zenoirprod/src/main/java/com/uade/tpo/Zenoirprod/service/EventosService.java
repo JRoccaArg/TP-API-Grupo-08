@@ -8,6 +8,7 @@ import org.springframework.data.domain.PageRequest;
 
 import com.uade.tpo.Zenoirprod.entity.Evento;
 import com.uade.tpo.Zenoirprod.exceptions.EventoInexistenteException;
+import com.uade.tpo.Zenoirprod.exceptions.FechaEventoInvalidaException;
 import com.uade.tpo.Zenoirprod.exceptions.LocacionInexsistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.TituloEventoEnUsoException;
 
@@ -18,7 +19,12 @@ public interface EventosService {
 
         public Optional<Evento> getEventoPorId(Integer id) throws EventoInexistenteException;
 
-        public Evento crearEvento(String titulo, String descripcion, String estado, Integer locacion_id, LocalDateTime fecha_hora) throws TituloEventoEnUsoException, LocacionInexsistenteException;
+        public Evento crearEvento(String titulo, String descripcion, String estado, Integer locacion_id,
+                        LocalDateTime fechaHoraInicio, LocalDateTime fechaHoraFin)
+                        throws TituloEventoEnUsoException, LocacionInexsistenteException, FechaEventoInvalidaException;
 
-        public Evento updateEvento(Integer id, String titulo, String descripcion, String estado, Integer locacion_id, LocalDateTime fecha_hora) throws EventoInexistenteException, LocacionInexsistenteException, TituloEventoEnUsoException;
+        public Evento updateEvento(Integer id, String titulo, String descripcion, String estado, Integer locacion_id,
+                        LocalDateTime fechaHoraInicio, LocalDateTime fechaHoraFin)
+                        throws EventoInexistenteException, LocacionInexsistenteException,
+                        TituloEventoEnUsoException, FechaEventoInvalidaException;
 }

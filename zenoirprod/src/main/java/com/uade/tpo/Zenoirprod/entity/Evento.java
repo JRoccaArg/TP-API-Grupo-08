@@ -30,9 +30,6 @@ public class Evento {
     @Column(columnDefinition = "TEXT")
     private String descripcion;
 
-    
-    @Column(nullable = false)
-    private LocalDateTime fecha_hora;
 
     @Column(nullable = false)
     @Check(constraints = "estado IN ('BORRADOR', 'ACTIVO', 'FINALIZADO', 'CANCELADO', 'REPROGRAMADO')")
@@ -42,4 +39,10 @@ public class Evento {
     @JoinColumn(name = "locacion_id",nullable = false)
     private Locacion locacion;
     
+    @Column(nullable = false)
+    private LocalDateTime fechaHoraInicio;
+
+    @Column(nullable = false)
+    private LocalDateTime fechaHoraFin;
+
 }
