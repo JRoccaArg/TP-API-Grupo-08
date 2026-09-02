@@ -1,49 +1,129 @@
 1. TABLA: Usuarios
-Descripción: Almacena a los administradores (creadores) y asistentes (compradores).
-- id (Primary Key)
-- nombre
-- dni (Unique)
-- fecha_nacimiento
-- email (Unique)
-- password
-- rol
-- fecha_registro
+
+- id: INT
+- nombre: NVARCHAR(100)
+- apellido: NVARCHAR(100)
+- dni: NVARCHAR(20)
+- fecha_nacimiento: DATE
+- email: NVARCHAR(255)
+- password_hash: NVARCHAR(255)
+- rol: VARCHAR(20)
+- fecha_registro: DATETIME2
+- activo: BIT
+
 
 2. TABLA: Locaciones
-Descripción: Lugares físicos donde se realizan los eventos.
-- id (Primary Key)
-- nombre
-- direccion
-- capacidad_max
+
+- id: INT
+- nombre: NVARCHAR(150)
+- direccion: NVARCHAR(255)
+- ciudad: NVARCHAR(100)
+- provincia: NVARCHAR(100)
+- capacidad_maxima: INT
+- descripcion: NVARCHAR(MAX)
+- activo: BIT
+
 
 3. TABLA: Eventos
-Descripción: Las fiestas o eventos creados por los administradores.
-- id (Primary Key)
-- admin_id (Foreign Key -> Usuarios.id)
-- locacion_id (Foreign Key -> Locaciones.id)
-- titulo
-- fecha_hora
-- estado
 
-4. TABLA: Tipos_Entrada (Catálogo Reutilizable)
-Descripción: Plantillas de los tipos de entrada (ej. VIP, General, Early Bird).
-- id (Primary Key)
-- nombre
-- descripcion_base
+- id: INT
+- admin_id: INT
+- locacion_id: INT
+- titulo: NVARCHAR(150)
+- descripcion: NVARCHAR(MAX)
+- fecha_hora_inicio: DATETIME2
+- fecha_hora_fin: DATETIME2
+- capacidad_habilitada: INT
+- estado: VARCHAR(20)
+- fecha_creacion: DATETIME2
+- fecha_actualizacion: DATETIME2
 
-5. TABLA: Eventos_Tipos_Entrada
-Descripción: Asigna un tipo de entrada de la plantilla a un evento específico, definiendo su precio y stock.
-- id (Primary Key)
-- evento_id (Foreign Key -> Eventos.id)
-- tipo_entrada_id (Foreign Key -> Tipos_Entrada.id)
-- precio
-- cantidad_total
 
-6. TABLA: Entradas_Compradas (Tickets)
-Descripción: Los tickets individuales comprados por los asistentes.
-- id (Primary Key)
-- usuario_id (Foreign Key -> Usuarios.id)
-- evento_tipo_id (Foreign Key -> Eventos_Tipos_Entrada.id)
-- fecha_compra
-- codigo_qr (Unique)
-- estado
+4. TABLA: Imagenes_Evento
+
+- id: INT
+- evento_id: INT
+- url: NVARCHAR(500)
+- tipo: VARCHAR(20)
+- texto_alternativo: NVARCHAR(255)
+- orden: INT
+- fecha_creacion: DATETIME2
+
+
+5. TABLA: Imagenes_Locacion
+
+- id: INT
+- locacion_id: INT
+- url: NVARCHAR(500)
+- texto_alternativo: NVARCHAR(255)
+- orden: INT
+- fecha_creacion: DATETIME2
+
+
+6. TABLA: Tipos_Entrada
+
+- id: INT
+- nombre: NVARCHAR(100)
+- descripcion_base: NVARCHAR(500)
+- activo: BIT
+
+
+7. TABLA: Eventos_Tipos_Entrada
+
+- id: INT
+- evento_id: INT
+- tipo_entrada_id: INT
+- precio: DECIMAL(12,2)
+- cantidad_total: INT
+- fecha_inicio_venta: DATETIME2
+- fecha_fin_venta: DATETIME2
+- estado: VARCHAR(20)
+
+
+8. TABLA: Carritos
+
+- id: INT
+- usuario_id: INT
+- estado: VARCHAR(20)
+- fecha_creacion: DATETIME2
+- fecha_actualizacion: DATETIME2
+
+
+9. TABLA: Items_Carrito
+
+- id: INT
+- carrito_id: INT
+- evento_tipo_entrada_id: INT
+- cantidad: INT
+- fecha_agregado: DATETIME2
+
+
+10. TABLA: Compras
+
+- id: INT
+- usuario_id: INT
+- carrito_id: INT
+- estado: VARCHAR(20)
+- total: DECIMAL(12,2)
+- fecha_compra: DATETIME2
+- fecha_cancelacion: DATETIME2
+
+
+11. TABLA: Detalles_Compra
+
+- id: INT
+- compra_id: INT
+- evento_tipo_entrada_id: INT
+- cantidad: INT
+- precio_unitario: DECIMAL(12,2)
+- subtotal: DECIMAL(12,2)
+
+
+12. TABLA: Tickets
+
+- id: INT
+- detalle_compra_id: INT
+- codigo_qr: NVARCHAR(255)
+- estado: VARCHAR(20)
+- fecha_emision: DATETIME2
+- fecha_utilizacion: DATETIME2
