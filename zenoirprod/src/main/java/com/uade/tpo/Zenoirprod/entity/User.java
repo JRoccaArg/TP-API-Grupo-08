@@ -11,7 +11,7 @@ import jakarta.persistence.Table;
 import lombok.Data;
 
 @Entity
-@Table(name = "usuarios") // "user" es palabra reservada en SQL: sin esto el CREATE TABLE falla
+@Table(name = "Usuarios") // "user" es palabra reservada en SQL: sin esto el CREATE TABLE falla
 @Data
 public class User {
     @Id

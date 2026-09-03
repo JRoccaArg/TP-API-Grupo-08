@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.uade.tpo.Zenoirprod.entity.Evento;
 import com.uade.tpo.Zenoirprod.entity.dto.EventoRequest;
 import com.uade.tpo.Zenoirprod.exceptions.EventoInexistenteException;
+import com.uade.tpo.Zenoirprod.exceptions.FechaEventoInvalidaException;
 import com.uade.tpo.Zenoirprod.exceptions.LocacionInexsistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.TituloEventoEnUsoException;
 import com.uade.tpo.Zenoirprod.service.EventosService;
@@ -56,13 +57,16 @@ public class EventosController {
     public ResponseEntity patchEvento(@PathVariable Integer id, @RequestBody EventoRequest eventoRequest) {
         try {
             return ResponseEntity.ok(eventosService.updateEvento(id, eventoRequest.getTitulo(), eventoRequest.getDescripcion(),
-                    eventoRequest.getEstado(), eventoRequest.getLocacion_id(), eventoRequest.getFecha_hora()));
+                    eventoRequest.getEstado(), eventoRequest.getLocacion_id(), eventoRequest.getFechaHoraInicio(),
+                    eventoRequest.getFechaHoraFin()));
         } catch (EventoInexistenteException e) {
             return ResponseEntity.notFound().build();
         } catch (LocacionInexsistenteException e) {
             return ResponseEntity.notFound().build();
         } catch (TituloEventoEnUsoException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).build(); //Esta version de Spring no tiene ResponseEntity.conflict()
+        } catch (FechaEventoInvalidaException e) {
+            return ResponseEntity.badRequest().build();
         }
     }
     
@@ -81,13 +85,17 @@ public class EventosController {
     public ResponseEntity<Evento> postMethodName(@RequestBody EventoRequest eventoRequest) {
         try {
             return ResponseEntity.ok(eventosService.crearEvento(eventoRequest.getTitulo(), eventoRequest.getDescripcion(), 
-            eventoRequest.getEstado(), eventoRequest.getLocacion_id(), eventoRequest.getFecha_hora()));
+            eventoRequest.getEstado(), eventoRequest.getLocacion_id(), eventoRequest.getFechaHoraInicio(),
+            eventoRequest.getFechaHoraFin()));
         } 
         catch (LocacionInexsistenteException e) {
             return ResponseEntity.notFound().build();
         }
         catch (TituloEventoEnUsoException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).build(); //Esta version de Spring no tiene ResponseEntity.conflict()
+        }
+        catch (FechaEventoInvalidaException e) {
+            return ResponseEntity.badRequest().build();
         }
     }
     

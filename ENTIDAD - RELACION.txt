@@ -27,27 +27,22 @@
 3. TABLA: Eventos
 
 - id: INT
-- admin_id: INT
 - locacion_id: INT
 - titulo: NVARCHAR(150)
 - descripcion: NVARCHAR(MAX)
+- estado: VARCHAR(20)
 - fecha_hora_inicio: DATETIME2
 - fecha_hora_fin: DATETIME2
-- capacidad_habilitada: INT
-- estado: VARCHAR(20)
-- fecha_creacion: DATETIME2
-- fecha_actualizacion: DATETIME2
 
 
-4. TABLA: Imagenes_Evento
+4. TABLA: Imagenes_Eventos
 
 - id: INT
 - evento_id: INT
 - url: NVARCHAR(500)
 - tipo: VARCHAR(20)
-- texto_alternativo: NVARCHAR(255)
+- descripcion: NVARCHAR(255)
 - orden: INT
-- fecha_creacion: DATETIME2
 
 
 5. TABLA: Imagenes_Locacion

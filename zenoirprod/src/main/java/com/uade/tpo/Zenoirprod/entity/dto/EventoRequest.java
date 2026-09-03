@@ -14,7 +14,9 @@ public class EventoRequest {
 
     private String descripcion;
 
-    private LocalDateTime fecha_hora;
+    private LocalDateTime fechaHoraInicio;
+
+    private LocalDateTime fechaHoraFin;
 
     private String estado;
 
