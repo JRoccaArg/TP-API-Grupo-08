@@ -20,7 +20,6 @@ public class ImagenEvento {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column
     @ManyToOne(optional = false)
     @JoinColumn(name = "evento_id", nullable = false)
     private Evento evento;
@@ -36,4 +35,5 @@ public class ImagenEvento {
 
     @Column
     private Integer orden;
+
 }

@@ -6,6 +6,10 @@
 .DS_Store
 Thumbs.db
 
+# Archivos locales de herramientas
+.claude-flow/
+
 # Configuracion local con credenciales
 .env
 **/application-local.properties
+**/src/main/resources/application.properties
