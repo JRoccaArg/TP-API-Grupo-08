@@ -52,9 +52,7 @@ public class LocacionServiceImp implements LocacionService {
             throw new LocacionInexsistenteException();
         }
         /* Evento.locacion es obligatorio: borrar acá rompería la FK */
-        boolean enUso = eventosRepository.findAll().stream()
-                .anyMatch(evento -> evento.getLocacion() != null && id.equals(evento.getLocacion().getId()));
-        if (enUso) {
+        if (eventosRepository.existsByLocacion_Id(id)) {
             throw new LocacionEnUsoException();
         }
         locacionRepository.deleteById(id);
