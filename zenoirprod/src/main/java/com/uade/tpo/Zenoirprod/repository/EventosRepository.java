@@ -7,5 +7,7 @@ import com.uade.tpo.Zenoirprod.entity.Evento;
 
 @Repository
 public interface EventosRepository extends JpaRepository<Evento, Integer> {
-    
+
+    boolean existsByLocacion_Id(Integer locacionId);
+
 }
