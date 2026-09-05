@@ -26,10 +26,8 @@ public class LocacionServiceImp implements LocacionService {
     }
 
     public Locacion getLocacionPorId(Integer id) throws LocacionInexsistenteException {
-        if (!locacionRepository.existsById(id)) {
-            throw new LocacionInexsistenteException();
-        }
-        return locacionRepository.findById(id).get();
+        return locacionRepository.findById(id)
+                .orElseThrow(LocacionInexsistenteException::new);
     }
 
     public Locacion crearLocacion(String nombre, String direccion, Integer capacidadMax) {
@@ -55,7 +53,7 @@ public class LocacionServiceImp implements LocacionService {
         }
         /* Evento.locacion es obligatorio: borrar acá rompería la FK */
         boolean enUso = eventosRepository.findAll().stream()
-                .anyMatch(evento -> evento.getLocacion() != null && evento.getLocacion().getId() == id);
+                .anyMatch(evento -> evento.getLocacion() != null && id.equals(evento.getLocacion().getId()));
         if (enUso) {
             throw new LocacionEnUsoException();
         }

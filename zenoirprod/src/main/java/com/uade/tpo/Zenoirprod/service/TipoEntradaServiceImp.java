@@ -20,10 +20,8 @@ public class TipoEntradaServiceImp implements TipoEntradaService {
     }
 
     public TipoEntrada getTipoEntradaPorId(Integer id) throws TipoEntradaInexistenteException {
-        if (!tipoEntradaRepository.existsById(id)) {
-            throw new TipoEntradaInexistenteException();
-        }
-        return tipoEntradaRepository.findById(id).get();
+        return tipoEntradaRepository.findById(id)
+                .orElseThrow(TipoEntradaInexistenteException::new);
     }
 
     public TipoEntrada crearTipoEntrada(String nombre, String descripcionBase, Boolean activo) {

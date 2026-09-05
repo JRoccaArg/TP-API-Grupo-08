@@ -28,7 +28,7 @@ public class LocacionesController {
     private LocacionService locacionService;
 
     @GetMapping
-    public ResponseEntity getLocaciones(
+    public ResponseEntity<?> getLocaciones(
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size) {
         if (page == null || size == null)
@@ -68,7 +68,7 @@ public class LocacionesController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity deleteLocacion(@PathVariable Integer id) {
+    public ResponseEntity<?> deleteLocacion(@PathVariable Integer id) {
         try {
             locacionService.deleteLocacion(id);
             return ResponseEntity.noContent().build();

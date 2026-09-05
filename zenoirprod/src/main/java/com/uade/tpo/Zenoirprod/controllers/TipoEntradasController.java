@@ -26,7 +26,7 @@ public class TipoEntradasController {
     private TipoEntradaService tipoEntradaService;
 
     @GetMapping
-    public ResponseEntity getTiposEntrada(
+    public ResponseEntity<?> getTiposEntrada(
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size) {
         if (page == null || size == null)
@@ -66,7 +66,7 @@ public class TipoEntradasController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity deleteTipoEntrada(@PathVariable Integer id) {
+    public ResponseEntity<?> deleteTipoEntrada(@PathVariable Integer id) {
         try {
             tipoEntradaService.deleteTipoEntrada(id);
             return ResponseEntity.noContent().build();
