@@ -1,36 +1,43 @@
 package com.uade.tpo.Zenoirprod.entity;
 
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "Usuarios") // "user" es palabra reservada en SQL: sin esto el CREATE TABLE falla
+@Table(name = "Usuarios")
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class User {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
 
-    @Column
+    @Column(nullable = false, unique = true)
     private String email;
-    @Column
-    private String name;
-    @Column
-    private String surname;
-    
-    /* Dejé esto para tener de ejemplo de cómo hacer relaciones entre entidades 
-    @OneToMany(mappedBy = "user")
-    private List<Order> orders;
 
-    @ManyToMany
-    @JoinTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
-    private List<Role> roles;
-     */
-    }
+    private String name;
+
+    @Column(nullable = false)
+    private String password;
+
+    private String firstName;
+
+    private String lastName;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role;
+}
