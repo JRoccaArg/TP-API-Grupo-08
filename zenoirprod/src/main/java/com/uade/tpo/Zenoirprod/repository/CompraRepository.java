@@ -9,5 +9,5 @@ import com.uade.tpo.Zenoirprod.entity.Compra;
 
 @Repository
 public interface CompraRepository extends JpaRepository<Compra, Integer> {
-    List<Compra> findByUsuarioIdOrderByFechaCompraDesc(Integer usuarioId);
+    List<Compra> findByUsuario_IdOrderByFechaCompraDesc(Integer usuarioId);
 }

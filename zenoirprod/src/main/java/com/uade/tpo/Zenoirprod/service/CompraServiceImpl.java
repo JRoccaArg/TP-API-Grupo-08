@@ -15,47 +15,80 @@ import org.springframework.transaction.annotation.Transactional;
 import com.uade.tpo.Zenoirprod.entity.Compra;
 import com.uade.tpo.Zenoirprod.entity.Compra.EstadoCompra;
 import com.uade.tpo.Zenoirprod.entity.DetalleCompra;
+import com.uade.tpo.Zenoirprod.entity.EventoTipoEntrada;
+import com.uade.tpo.Zenoirprod.entity.EventoTipoEntrada.EstadoEventoTipoEntrada;
 import com.uade.tpo.Zenoirprod.entity.Ticket;
 import com.uade.tpo.Zenoirprod.entity.Ticket.EstadoTicket;
+import com.uade.tpo.Zenoirprod.entity.User;
 import com.uade.tpo.Zenoirprod.entity.dto.CompraRequest;
 import com.uade.tpo.Zenoirprod.entity.dto.CompraRequest.ItemCompraRequest;
 import com.uade.tpo.Zenoirprod.exceptions.CompraInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.CompraInvalidaException;
 import com.uade.tpo.Zenoirprod.exceptions.CompraNoCancelableException;
+import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaInexistenteException;
+import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaNoDisponibleException;
+import com.uade.tpo.Zenoirprod.exceptions.StockInsuficienteException;
+import com.uade.tpo.Zenoirprod.exceptions.UsuarioInexistenteException;
 import com.uade.tpo.Zenoirprod.repository.CompraRepository;
+import com.uade.tpo.Zenoirprod.repository.EventoTipoEntradaRepository;
+import com.uade.tpo.Zenoirprod.repository.UserRepository;
 
 @Service
 public class CompraServiceImpl implements CompraService {
 
+    private static final BigDecimal CIEN = BigDecimal.valueOf(100);
+
     @Autowired private CompraRepository compraRepository;
+    @Autowired private EventoTipoEntradaRepository eventoTipoEntradaRepository;
+    @Autowired private UserRepository userRepository;
 
     @Override
     @Transactional
-    public Compra crearCompra(CompraRequest request) throws CompraInvalidaException {
-        validar(request);
+    public Compra crearCompra(CompraRequest request)
+            throws CompraInvalidaException, UsuarioInexistenteException,
+            EventoTipoEntradaInexistenteException, EventoTipoEntradaNoDisponibleException,
+            StockInsuficienteException {
+
+        validarShape(request);
+
+        User usuario = userRepository.findById(request.getUsuarioId())
+                .orElseThrow(UsuarioInexistenteException::new);
 
         List<DetalleCompra> detalles = new ArrayList<>();
         BigDecimal total = BigDecimal.ZERO;
         LocalDateTime ahora = LocalDateTime.now();
 
         for (ItemCompraRequest item : request.getItems()) {
-            BigDecimal precioUnitario = item.getPrecioUnitario().setScale(2, RoundingMode.HALF_UP);
+            EventoTipoEntrada ete = eventoTipoEntradaRepository.findById(item.getEventoTipoEntradaId())
+                    .orElseThrow(EventoTipoEntradaInexistenteException::new);
+
+            if (ete.getEstado() != EstadoEventoTipoEntrada.ACTIVO) {
+                throw new EventoTipoEntradaNoDisponibleException();
+            }
+            if (ete.getCantidadDisponible() < item.getCantidad()) {
+                throw new StockInsuficienteException();
+            }
+
+            BigDecimal precioUnitario = calcularPrecioConDescuento(ete);
             BigDecimal subtotal = precioUnitario.multiply(BigDecimal.valueOf(item.getCantidad()))
                     .setScale(2, RoundingMode.HALF_UP);
 
             DetalleCompra detalle = new DetalleCompra();
-            detalle.setEventoTipoEntradaId(item.getEventoTipoEntradaId());
+            detalle.setEventoTipoEntrada(ete);
             detalle.setCantidad(item.getCantidad());
             detalle.setPrecioUnitario(precioUnitario);
             detalle.setSubtotal(subtotal);
             detalle.setTickets(generarTickets(item.getCantidad(), ahora));
             detalles.add(detalle);
 
+            ete.setCantidadDisponible(ete.getCantidadDisponible() - item.getCantidad());
+            eventoTipoEntradaRepository.save(ete);
+
             total = total.add(subtotal);
         }
 
         Compra compra = new Compra();
-        compra.setUsuarioId(request.getUsuarioId());
+        compra.setUsuario(usuario);
         compra.setCarritoId(request.getCarritoId());
         compra.setTotal(total);
         compra.setEstado(EstadoCompra.CONFIRMADA);
@@ -72,7 +105,7 @@ public class CompraServiceImpl implements CompraService {
 
     @Override
     public List<Compra> getPorUsuario(Integer usuarioId) {
-        return compraRepository.findByUsuarioIdOrderByFechaCompraDesc(usuarioId);
+        return compraRepository.findByUsuario_IdOrderByFechaCompraDesc(usuarioId);
     }
 
     @Override
@@ -85,6 +118,10 @@ public class CompraServiceImpl implements CompraService {
         }
 
         for (DetalleCompra detalle : compra.getDetalles()) {
+            EventoTipoEntrada ete = detalle.getEventoTipoEntrada();
+            ete.setCantidadDisponible(ete.getCantidadDisponible() + detalle.getCantidad());
+            eventoTipoEntradaRepository.save(ete);
+
             for (Ticket ticket : detalle.getTickets()) {
                 if (ticket.getEstado() == EstadoTicket.EMITIDO) {
                     ticket.setEstado(EstadoTicket.CANCELADO);
@@ -97,19 +134,27 @@ public class CompraServiceImpl implements CompraService {
         return compraRepository.save(compra);
     }
 
-    private void validar(CompraRequest request) throws CompraInvalidaException {
+    private void validarShape(CompraRequest request) throws CompraInvalidaException {
         if (request.getUsuarioId() == null) throw new CompraInvalidaException();
         if (request.getItems() == null || request.getItems().isEmpty()) {
             throw new CompraInvalidaException();
         }
         for (ItemCompraRequest item : request.getItems()) {
             if (item.getEventoTipoEntradaId() == null) throw new CompraInvalidaException();
-            if (item.getCantidad() == null || item.getCantidad() <= 0) throw new CompraInvalidaException();
-            if (item.getPrecioUnitario() == null
-                    || item.getPrecioUnitario().compareTo(BigDecimal.ZERO) < 0) {
+            if (item.getCantidad() == null || item.getCantidad() <= 0) {
                 throw new CompraInvalidaException();
             }
         }
+    }
+
+    private BigDecimal calcularPrecioConDescuento(EventoTipoEntrada ete) {
+        BigDecimal precio = ete.getPrecio();
+        BigDecimal descuento = ete.getPorcentajeDescuento();
+        if (descuento == null || descuento.compareTo(BigDecimal.ZERO) <= 0) {
+            return precio.setScale(2, RoundingMode.HALF_UP);
+        }
+        BigDecimal factor = BigDecimal.ONE.subtract(descuento.divide(CIEN, 4, RoundingMode.HALF_UP));
+        return precio.multiply(factor).setScale(2, RoundingMode.HALF_UP);
     }
 
     private List<Ticket> generarTickets(int cantidad, LocalDateTime fechaEmision) {

@@ -19,6 +19,10 @@ import com.uade.tpo.Zenoirprod.entity.dto.CompraRequest;
 import com.uade.tpo.Zenoirprod.exceptions.CompraInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.CompraInvalidaException;
 import com.uade.tpo.Zenoirprod.exceptions.CompraNoCancelableException;
+import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaInexistenteException;
+import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaNoDisponibleException;
+import com.uade.tpo.Zenoirprod.exceptions.StockInsuficienteException;
+import com.uade.tpo.Zenoirprod.exceptions.UsuarioInexistenteException;
 import com.uade.tpo.Zenoirprod.service.CompraService;
 
 @RestController
@@ -28,7 +32,10 @@ public class ComprasController {
     @Autowired private CompraService service;
 
     @PostMapping
-    public ResponseEntity<Compra> crear(@RequestBody CompraRequest request) throws CompraInvalidaException {
+    public ResponseEntity<Compra> crear(@RequestBody CompraRequest request)
+            throws CompraInvalidaException, UsuarioInexistenteException,
+            EventoTipoEntradaInexistenteException, EventoTipoEntradaNoDisponibleException,
+            StockInsuficienteException {
         Compra compra = service.crearCompra(request);
         return ResponseEntity.created(URI.create("/compras/" + compra.getId())).body(compra);
     }

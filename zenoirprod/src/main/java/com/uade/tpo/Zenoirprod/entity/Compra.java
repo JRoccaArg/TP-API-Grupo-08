@@ -5,6 +5,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -14,6 +16,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.Data;
@@ -27,12 +31,13 @@ public class Compra {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    // usuarioId y carritoId se guardan como columnas planas y no como relacion
-    // JPA hasta que existan Usuario y Carrito en la version que van a usar el
-    // resto del equipo. Cuando esten, se cambia a @ManyToOne sin migrar datos.
-    @Column(name = "usuario_id", nullable = false)
-    private Integer usuarioId;
+    // Se oculta el password al serializar la compra en JSON.
+    @JsonIgnoreProperties({ "password", "hibernateLazyInitializer", "handler" })
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "usuario_id", nullable = false)
+    private User usuario;
 
+    // Sigue como columna plana hasta que exista la entidad Carrito.
     @Column(name = "carrito_id")
     private Integer carritoId;
 
@@ -48,7 +53,7 @@ public class Compra {
 
     private LocalDateTime fechaCancelacion;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "compra_id", nullable = false)
     private List<DetalleCompra> detalles = new ArrayList<>();
 
