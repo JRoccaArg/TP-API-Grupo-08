@@ -20,6 +20,7 @@ import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaInvalidoException;
 import com.uade.tpo.Zenoirprod.exceptions.StockInsuficienteException;
 import com.uade.tpo.Zenoirprod.exceptions.TipoEntradaInexistenteException;
+import com.uade.tpo.Zenoirprod.util.PrecioCalculator;
 import com.uade.tpo.Zenoirprod.repository.EventoTipoEntradaRepository;
 
 @Service
@@ -75,7 +76,7 @@ public class EventoTipoEntradaServiceImp implements EventoTipoEntradaService {
         EventoTipoEntrada entrada = new EventoTipoEntrada();
         entrada.setEvento(evento);
         entrada.setTipoEntrada(tipoEntrada);
-        entrada.setPrecio(request.getPrecio().setScale(2, RoundingMode.HALF_UP));
+        entrada.setPrecio(PrecioCalculator.normalizar(request.getPrecio()));
         entrada.setPorcentajeDescuento(normalizarDescuento(request.getPorcentajeDescuento()));
         entrada.setCantidadTotal(request.getCantidadTotal());
         entrada.setCantidadDisponible(request.getCantidadTotal());
@@ -101,12 +102,12 @@ public class EventoTipoEntradaServiceImp implements EventoTipoEntradaService {
             if (request.getPrecio().compareTo(BigDecimal.ZERO) <= 0) {
                 throw new EventoTipoEntradaInvalidoException();
             }
-            entrada.setPrecio(request.getPrecio().setScale(2, RoundingMode.HALF_UP));
+            entrada.setPrecio(PrecioCalculator.normalizar(request.getPrecio()));
         }
 
         if (request.getPorcentajeDescuento() != null) {
             validarDescuento(request.getPorcentajeDescuento());
-            entrada.setPorcentajeDescuento(request.getPorcentajeDescuento().setScale(2, RoundingMode.HALF_UP));
+            entrada.setPorcentajeDescuento(PrecioCalculator.normalizar(request.getPorcentajeDescuento()));
         }
 
         if (request.getCantidadTotal() != null) {
@@ -160,13 +161,9 @@ public class EventoTipoEntradaServiceImp implements EventoTipoEntradaService {
                 ? entrada.getPorcentajeDescuento()
                 : BigDecimal.ZERO;
 
-        BigDecimal montoDescuento = entrada.getPrecio()
-                .multiply(porcentaje)
-                .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
-
-        return entrada.getPrecio()
-                .subtract(montoDescuento)
-                .setScale(2, RoundingMode.HALF_UP);
+        // Delegado en PrecioCalculator para que el catalogo y la compra usen
+        // exactamente la misma formula y el mismo redondeo.
+        return PrecioCalculator.precioConDescuento(entrada.getPrecio(), porcentaje);
     }
 
     @Override
@@ -276,7 +273,7 @@ public class EventoTipoEntradaServiceImp implements EventoTipoEntradaService {
     private BigDecimal normalizarDescuento(BigDecimal porcentaje) throws EventoTipoEntradaInvalidoException {
         validarDescuento(porcentaje);
         return porcentaje == null
-                ? BigDecimal.ZERO.setScale(2)
-                : porcentaje.setScale(2, RoundingMode.HALF_UP);
+                ? BigDecimal.ZERO.setScale(PrecioCalculator.ESCALA)
+                : PrecioCalculator.normalizar(porcentaje);
     }
 }

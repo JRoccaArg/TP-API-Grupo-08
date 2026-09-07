@@ -99,6 +99,39 @@ class ComprasControllerTest {
     }
 
     @Test
+    void crearCompra_alAgotarStock_marcaTipoEntradaComoAgotado() throws Exception {
+        crearCompra(100);
+        EventoTipoEntrada ete = fixtures.getTipoEntrada(esc.eteId);
+        Assertions.assertThat(ete.getCantidadDisponible()).isZero();
+        Assertions.assertThat(ete.getEstado()).isEqualTo(EstadoEventoTipoEntrada.AGOTADO);
+    }
+
+    @Test
+    void precioConDescuento_usaLaMismaFormulaQueElCatalogo() throws Exception {
+        // Caso real de divergencia: con la formula vieja de la compra daba 96.71
+        // y con la del catalogo 96.70. Ahora las dos pasan por PrecioCalculator.
+        Evento evento = fixtures.crearEvento("Fiesta Redondeo", "ACTIVO");
+        Integer eteId = fixtures.crearTipoEntradaParaEvento(
+                evento, "Redondeo", new BigDecimal("107.45"), new BigDecimal("10.00"), 10);
+
+        String body = json.writeValueAsString(Map.of(
+                "usuarioId", esc.usuarioId,
+                "items", List.of(Map.of("eventoTipoEntradaId", eteId, "cantidad", 1))));
+
+        String respuesta = mockMvc.perform(post("/compras")
+                        .contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+
+        BigDecimal precioCobrado = json.readTree(respuesta)
+                .get("detalles").get(0).get("precioUnitario").decimalValue();
+
+        Assertions.assertThat(precioCobrado)
+                .as("107.45 con 10 por ciento: 107.45 - round(10.745) = 96.70")
+                .isEqualByComparingTo(new BigDecimal("96.70"));
+    }
+
+    @Test
     void crearCompra_siFallaUnItem_noDescuentaStockDeLosAnteriores() throws Exception {
         Evento evento = fixtures.crearEvento("Fiesta Rollback", "ACTIVO");
         Integer conStock = fixtures.crearTipoEntradaParaEvento(

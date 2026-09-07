@@ -1,7 +1,6 @@
 package com.uade.tpo.Zenoirprod.service;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,11 +39,10 @@ import com.uade.tpo.Zenoirprod.repository.CarritoRepository;
 import com.uade.tpo.Zenoirprod.repository.CompraRepository;
 import com.uade.tpo.Zenoirprod.repository.EventoTipoEntradaRepository;
 import com.uade.tpo.Zenoirprod.repository.UserRepository;
+import com.uade.tpo.Zenoirprod.util.PrecioCalculator;
 
 @Service
 public class CompraServiceImpl implements CompraService {
-
-    private static final BigDecimal CIEN = BigDecimal.valueOf(100);
 
     /** Estado en el que tiene que estar un evento para poder venderle entradas. */
     private static final String EVENTO_ACTIVO = "ACTIVO";
@@ -88,9 +86,9 @@ public class CompraServiceImpl implements CompraService {
 
             validarDisponibilidad(ete, item.getCantidad(), ahora);
 
-            BigDecimal precioUnitario = calcularPrecioConDescuento(ete);
-            BigDecimal subtotal = precioUnitario.multiply(BigDecimal.valueOf(item.getCantidad()))
-                    .setScale(2, RoundingMode.HALF_UP);
+            BigDecimal precioUnitario =
+                    PrecioCalculator.precioConDescuento(ete.getPrecio(), ete.getPorcentajeDescuento());
+            BigDecimal subtotal = PrecioCalculator.subtotal(precioUnitario, item.getCantidad());
 
             DetalleCompra detalle = new DetalleCompra();
             detalle.setEventoTipoEntrada(ete);
@@ -100,8 +98,7 @@ public class CompraServiceImpl implements CompraService {
             detalle.setTickets(generarTickets(item.getCantidad(), ahora));
             detalles.add(detalle);
 
-            ete.setCantidadDisponible(ete.getCantidadDisponible() - item.getCantidad());
-            eventoTipoEntradaRepository.save(ete);
+            descontarStock(ete, item.getCantidad());
 
             total = total.add(subtotal);
         }
@@ -109,7 +106,7 @@ public class CompraServiceImpl implements CompraService {
         Compra compra = new Compra();
         compra.setUsuario(usuario);
         compra.setCarrito(carrito);
-        compra.setTotal(total);
+        compra.setTotal(PrecioCalculator.normalizar(total));
         compra.setEstado(EstadoCompra.CONFIRMADA);
         compra.setFechaCompra(ahora);
         compra.setDetalles(detalles);
@@ -175,8 +172,7 @@ public class CompraServiceImpl implements CompraService {
                 }
             }
             if (aDevolver > 0) {
-                ete.setCantidadDisponible(ete.getCantidadDisponible() + aDevolver);
-                eventoTipoEntradaRepository.save(ete);
+                devolverStock(ete, aDevolver);
             }
         }
 
@@ -233,14 +229,23 @@ public class CompraServiceImpl implements CompraService {
         }
     }
 
-    private BigDecimal calcularPrecioConDescuento(EventoTipoEntrada ete) {
-        BigDecimal precio = ete.getPrecio();
-        BigDecimal descuento = ete.getPorcentajeDescuento();
-        if (descuento == null || descuento.compareTo(BigDecimal.ZERO) <= 0) {
-            return precio.setScale(2, RoundingMode.HALF_UP);
+    /** Descuenta stock y marca AGOTADO cuando llega a cero. */
+    private void descontarStock(EventoTipoEntrada ete, int cantidad) {
+        int restante = ete.getCantidadDisponible() - cantidad;
+        ete.setCantidadDisponible(restante);
+        if (restante == 0) {
+            ete.setEstado(EstadoEventoTipoEntrada.AGOTADO);
         }
-        BigDecimal factor = BigDecimal.ONE.subtract(descuento.divide(CIEN, 4, RoundingMode.HALF_UP));
-        return precio.multiply(factor).setScale(2, RoundingMode.HALF_UP);
+        eventoTipoEntradaRepository.save(ete);
+    }
+
+    /** Devuelve stock y reabre el tipo de entrada si estaba AGOTADO. */
+    private void devolverStock(EventoTipoEntrada ete, int cantidad) {
+        ete.setCantidadDisponible(ete.getCantidadDisponible() + cantidad);
+        if (ete.getEstado() == EstadoEventoTipoEntrada.AGOTADO && ete.getCantidadDisponible() > 0) {
+            ete.setEstado(EstadoEventoTipoEntrada.ACTIVO);
+        }
+        eventoTipoEntradaRepository.save(ete);
     }
 
     private List<Ticket> generarTickets(int cantidad, LocalDateTime fechaEmision) {
