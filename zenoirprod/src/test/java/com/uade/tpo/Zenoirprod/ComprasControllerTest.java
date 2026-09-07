@@ -30,6 +30,7 @@ import com.uade.tpo.Zenoirprod.entity.Locacion;
 import com.uade.tpo.Zenoirprod.entity.Role;
 import com.uade.tpo.Zenoirprod.entity.TipoEntrada;
 import com.uade.tpo.Zenoirprod.entity.User;
+import com.uade.tpo.Zenoirprod.repository.CarritoRepository;
 import com.uade.tpo.Zenoirprod.repository.CompraRepository;
 import com.uade.tpo.Zenoirprod.repository.EventoTipoEntradaRepository;
 import com.uade.tpo.Zenoirprod.repository.EventosRepository;
@@ -45,6 +46,7 @@ class ComprasControllerTest {
     @Autowired private MockMvc mockMvc;
     @Autowired private ObjectMapper json;
 
+    @Autowired private CarritoRepository carritoRepository;
     @Autowired private CompraRepository compraRepository;
     @Autowired private TicketRepository ticketRepository;
     @Autowired private EventoTipoEntradaRepository eventoTipoEntradaRepository;
@@ -58,6 +60,7 @@ class ComprasControllerTest {
 
     @BeforeEach
     void seed() {
+        carritoRepository.deleteAll();
         compraRepository.deleteAll();
         ticketRepository.deleteAll();
         eventoTipoEntradaRepository.deleteAll();
