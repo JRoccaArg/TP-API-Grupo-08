@@ -222,6 +222,8 @@ public class CompraServiceImpl implements CompraService {
             throw new CompraInvalidaException();
         }
         for (ItemCompraRequest item : request.getItems()) {
+            // Un item null llega cuando el JSON manda "items": [null].
+            if (item == null) throw new CompraInvalidaException();
             if (item.getEventoTipoEntradaId() == null) throw new CompraInvalidaException();
             if (item.getCantidad() == null || item.getCantidad() <= 0) {
                 throw new CompraInvalidaException();

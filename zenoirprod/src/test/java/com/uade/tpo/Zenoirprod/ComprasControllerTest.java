@@ -168,6 +168,30 @@ class ComprasControllerTest {
     }
 
     @Test
+    void crearCompra_itemNull_devuelve400() throws Exception {
+        // {"usuarioId":N,"items":[null]} antes explotaba con NPE -> 500
+        String body = "{\"usuarioId\":" + esc.usuarioId + ",\"items\":[null]}";
+        mockMvc.perform(post("/compras").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void crearCompra_listaDeItemsConNullAlFinal_devuelve400() throws Exception {
+        String body = "{\"usuarioId\":" + esc.usuarioId + ",\"items\":["
+                + "{\"eventoTipoEntradaId\":" + esc.eteId + ",\"cantidad\":1},null]}";
+        mockMvc.perform(post("/compras").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void crearCompra_sinItems_null_devuelve400() throws Exception {
+        String body = json.writeValueAsString(
+                java.util.Collections.singletonMap("usuarioId", esc.usuarioId));
+        mockMvc.perform(post("/compras").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void crearCompra_usuarioInexistente_devuelve404() throws Exception {
         String body = json.writeValueAsString(Map.of(
                 "usuarioId", 999999,
