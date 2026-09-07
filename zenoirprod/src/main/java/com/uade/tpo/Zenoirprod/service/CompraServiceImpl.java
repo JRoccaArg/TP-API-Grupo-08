@@ -42,8 +42,14 @@ public class CompraServiceImpl implements CompraService {
     @Autowired private EventoTipoEntradaRepository eventoTipoEntradaRepository;
     @Autowired private UserRepository userRepository;
 
+    /**
+     * rollbackFor = Exception.class es obligatorio: por defecto Spring solo
+     * revierte ante RuntimeException. Como todas las excepciones de negocio de
+     * este service son checked, sin esto una compra que falla en el item N
+     * dejaba commiteado el descuento de stock de los items 1..N-1.
+     */
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public Compra crearCompra(CompraRequest request)
             throws CompraInvalidaException, UsuarioInexistenteException,
             EventoTipoEntradaInexistenteException, EventoTipoEntradaNoDisponibleException,
@@ -109,7 +115,7 @@ public class CompraServiceImpl implements CompraService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public Compra cancelar(Integer id) throws CompraInexistenteException, CompraNoCancelableException {
         Compra compra = compraRepository.findById(id)
                 .orElseThrow(CompraInexistenteException::new);

@@ -29,7 +29,7 @@ public class TicketServiceImpl implements TicketService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public Ticket utilizar(String codigoQr) throws TicketInexistenteException, TicketNoUtilizableException {
         Ticket ticket = ticketRepository.findByCodigoQr(codigoQr)
                 .orElseThrow(TicketInexistenteException::new);

@@ -26,6 +26,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.uade.tpo.Zenoirprod.entity.Evento;
 import com.uade.tpo.Zenoirprod.entity.EventoTipoEntrada;
 import com.uade.tpo.Zenoirprod.entity.EventoTipoEntrada.EstadoEventoTipoEntrada;
 
@@ -94,6 +95,28 @@ class ComprasControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.total", is(30000.00)))
                 .andExpect(jsonPath("$.detalles[0].precioUnitario", is(15000.00)));
+    }
+
+    @Test
+    void crearCompra_siFallaUnItem_noDescuentaStockDeLosAnteriores() throws Exception {
+        Evento evento = fixtures.crearEvento("Fiesta Rollback", "ACTIVO");
+        Integer conStock = fixtures.crearTipoEntradaParaEvento(
+                evento, "A", new BigDecimal("1000.00"), BigDecimal.ZERO, 50);
+        Integer sinStock = fixtures.crearTipoEntradaParaEvento(
+                evento, "B", new BigDecimal("1000.00"), BigDecimal.ZERO, 1);
+
+        String body = json.writeValueAsString(Map.of(
+                "usuarioId", esc.usuarioId,
+                "items", List.of(
+                        Map.of("eventoTipoEntradaId", conStock, "cantidad", 5),
+                        Map.of("eventoTipoEntradaId", sinStock, "cantidad", 99))));
+
+        mockMvc.perform(post("/compras").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isConflict());
+
+        Assertions.assertThat(fixtures.getTipoEntrada(conStock).getCantidadDisponible())
+                .as("el stock del primer item debe volver atras cuando falla el segundo")
+                .isEqualTo(50);
     }
 
     @Test
