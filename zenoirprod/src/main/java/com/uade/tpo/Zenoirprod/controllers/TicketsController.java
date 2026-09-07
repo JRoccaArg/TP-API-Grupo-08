@@ -4,6 +4,7 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,18 +23,21 @@ public class TicketsController {
     @Autowired private TicketService service;
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('USER') and @authorizationService.puedeAccederTicket(#id, authentication))")
     public ResponseEntity<Ticket> getPorId(@PathVariable Integer id) {
         Optional<Ticket> resultado = service.getPorId(id);
         return resultado.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping("/qr/{codigoQr}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Ticket> getPorCodigoQr(@PathVariable String codigoQr) {
         Optional<Ticket> resultado = service.getPorCodigoQr(codigoQr);
         return resultado.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping("/qr/{codigoQr}/utilizar")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Ticket> utilizar(@PathVariable String codigoQr)
             throws TicketInexistenteException, TicketNoUtilizableException {
         return ResponseEntity.ok(service.utilizar(codigoQr));

@@ -21,5 +21,7 @@ public class EventoRequest {
     private String estado;
 
     private Integer locacion_id;
+
+    private Integer categoria_id;
     
 }

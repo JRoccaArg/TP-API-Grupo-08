@@ -118,10 +118,27 @@ La contraseña no está en el repo: cada uno la define en su propia máquina.
 | `GET` | `/eventos?page=&size=` | Lista de eventos, paginada |
 | `GET` | `/eventos/{id}` | Detalle de un evento |
 | `POST` | `/eventos` | Crear evento |
+| `PATCH` | `/eventos/{id}` | Modificar evento |
 | `DELETE` | `/eventos/{id}` | Eliminar evento |
+| `GET` | `/eventos/{eventoId}/imagenes` | Lista de imagenes del evento |
+| `GET` | `/eventos/{eventoId}/imagenes/{imagenId}` | Metadatos de una imagen |
+| `GET` | `/eventos/{eventoId}/imagenes/{imagenId}/archivo` | Archivo de una imagen |
+| `POST` | `/eventos/{eventoId}/imagenes` | Subir una imagen |
+| `PATCH` | `/eventos/{eventoId}/imagenes/{imagenId}` | Modificar una imagen |
+| `DELETE` | `/eventos/{eventoId}/imagenes/{imagenId}` | Eliminar una imagen |
+| `GET` | `/locaciones/{locacionId}/imagenes` | Lista de imágenes de la locación |
+| `GET` | `/locaciones/{locacionId}/imagenes/{imagenId}` | Metadatos de una imagen de locación |
+| `GET` | `/locaciones/{locacionId}/imagenes/{imagenId}/archivo` | Archivo de una imagen de locación |
+| `POST` | `/locaciones/{locacionId}/imagenes` | Subir una imagen de locación |
+| `PATCH` | `/locaciones/{locacionId}/imagenes/{imagenId}` | Modificar una imagen de locación |
+| `DELETE` | `/locaciones/{locacionId}/imagenes/{imagenId}` | Eliminar una imagen de locación |
 | `GET` | `/categories?page=&size=` | Lista de categorías, paginada |
 | `GET` | `/categories/{id}` | Detalle de categoría |
 | `POST` | `/categories` | Crear categoría |
+| `PATCH` | `/categories/{id}` | Modificar categoría |
+| `DELETE` | `/categories/{id}` | Eliminar categoría |
+| `POST` | `/api/v1/auth/register` | Registrar usuario |
+| `POST` | `/api/v1/auth/authenticate` | Iniciar sesión |
 
 ## Estructura
 

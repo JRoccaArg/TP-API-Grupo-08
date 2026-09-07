@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -38,6 +39,7 @@ public class CarritosController {
     @Autowired private CarritoService service;
 
     @PostMapping
+    @PreAuthorize("hasRole('USER') and @authorizationService.puedeUsarUsuario(#request.usuarioId, authentication)")
     public ResponseEntity<Carrito> obtenerOCrearActivo(@RequestBody CarritoRequest request)
             throws CarritoInvalidoException, UsuarioInexistenteException {
         Carrito carrito = service.obtenerOCrearActivo(request);
@@ -45,17 +47,20 @@ public class CarritosController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('USER') and @authorizationService.puedeAccederCarrito(#id, authentication)")
     public ResponseEntity<Carrito> getPorId(@PathVariable Integer id) {
         Optional<Carrito> resultado = service.getPorId(id);
         return resultado.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('USER') and @authorizationService.puedeUsarUsuario(#usuarioId, authentication)")
     public ResponseEntity<List<Carrito>> getPorUsuario(@RequestParam Integer usuarioId) {
         return ResponseEntity.ok(service.getPorUsuario(usuarioId));
     }
 
     @PostMapping("/{id}/items")
+    @PreAuthorize("hasRole('USER') and @authorizationService.puedeAccederCarrito(#id, authentication)")
     public ResponseEntity<Carrito> agregarItem(@PathVariable Integer id, @RequestBody ItemCarritoRequest request)
             throws CarritoInexistenteException, CarritoNoModificableException, ItemCarritoInvalidoException,
             EventoTipoEntradaInexistenteException, EventoTipoEntradaNoDisponibleException,
@@ -64,6 +69,7 @@ public class CarritosController {
     }
 
     @PatchMapping("/{id}/items/{itemId}")
+    @PreAuthorize("hasRole('USER') and @authorizationService.puedeAccederCarrito(#id, authentication)")
     public ResponseEntity<Carrito> actualizarCantidad(@PathVariable Integer id, @PathVariable Integer itemId,
             @RequestBody ActualizarCantidadRequest request)
             throws CarritoInexistenteException, CarritoNoModificableException, ItemCarritoInexistenteException,
@@ -72,18 +78,21 @@ public class CarritosController {
     }
 
     @DeleteMapping("/{id}/items/{itemId}")
+    @PreAuthorize("hasRole('USER') and @authorizationService.puedeAccederCarrito(#id, authentication)")
     public ResponseEntity<Carrito> quitarItem(@PathVariable Integer id, @PathVariable Integer itemId)
             throws CarritoInexistenteException, CarritoNoModificableException, ItemCarritoInexistenteException {
         return ResponseEntity.ok(service.quitarItem(id, itemId));
     }
 
     @PostMapping("/{id}/vaciar")
+    @PreAuthorize("hasRole('USER') and @authorizationService.puedeAccederCarrito(#id, authentication)")
     public ResponseEntity<Carrito> vaciar(@PathVariable Integer id)
             throws CarritoInexistenteException, CarritoNoModificableException {
         return ResponseEntity.ok(service.vaciar(id));
     }
 
     @PostMapping("/{id}/abandonar")
+    @PreAuthorize("hasRole('USER') and @authorizationService.puedeAccederCarrito(#id, authentication)")
     public ResponseEntity<Carrito> abandonar(@PathVariable Integer id)
             throws CarritoInexistenteException, CarritoNoModificableException {
         return ResponseEntity.ok(service.abandonar(id));

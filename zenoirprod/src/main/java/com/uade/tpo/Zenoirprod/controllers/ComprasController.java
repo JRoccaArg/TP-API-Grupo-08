@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -32,6 +33,7 @@ public class ComprasController {
     @Autowired private CompraService service;
 
     @PostMapping
+    @PreAuthorize("hasRole('USER') and @authorizationService.puedeUsarUsuario(#request.usuarioId, authentication)")
     public ResponseEntity<Compra> crear(@RequestBody CompraRequest request)
             throws CompraInvalidaException, UsuarioInexistenteException,
             EventoTipoEntradaInexistenteException, EventoTipoEntradaNoDisponibleException,
@@ -41,17 +43,20 @@ public class ComprasController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or ((hasRole('USER') and @authorizationService.puedeAccederCompra(#id, authentication)))")
     public ResponseEntity<Compra> getPorId(@PathVariable Integer id) {
         Optional<Compra> resultado = service.getPorId(id);
         return resultado.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN') or ((hasRole('USER') and @authorizationService.puedeUsarUsuario(#usuarioId, authentication)))")
     public ResponseEntity<List<Compra>> getPorUsuario(@RequestParam Integer usuarioId) {
         return ResponseEntity.ok(service.getPorUsuario(usuarioId));
     }
 
     @PostMapping("/{id}/cancelar")
+    @PreAuthorize("hasRole('ADMIN') or ((hasRole('USER') and @authorizationService.puedeAccederCompra(#id, authentication)))")
     public ResponseEntity<Compra> cancelar(@PathVariable Integer id)
             throws CompraInexistenteException, CompraNoCancelableException {
         return ResponseEntity.ok(service.cancelar(id));

@@ -13,3 +13,9 @@ Thumbs.db
 .env
 **/application-local.properties
 **/src/main/resources/application.properties
+
+# Tests locales
+zenoirprod/src/test/java/com/uade/tpo/Zenoirprod/AuthenticationIntegrationTests.java
+zenoirprod/src/test/java/com/uade/tpo/Zenoirprod/EventosCategoriasIntegrationTests.java
+zenoirprod/src/test/java/com/uade/tpo/Zenoirprod/ImagenEventoIntegrationTests.java
+zenoirprod/src/test/java/com/uade/tpo/Zenoirprod/ImagenLocacionIntegrationTests.java

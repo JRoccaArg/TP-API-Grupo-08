@@ -3,6 +3,7 @@ package com.uade.tpo.Zenoirprod.controllers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -44,6 +45,7 @@ public class TipoEntradasController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<TipoEntrada> crearTipoEntrada(@RequestBody TipoEntradaRequest tipoEntradaRequest) {
         return ResponseEntity.ok(tipoEntradaService.crearTipoEntrada(
                 tipoEntradaRequest.getNombre(),
@@ -52,6 +54,7 @@ public class TipoEntradasController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<TipoEntrada> updateTipoEntrada(@PathVariable Integer id,
             @RequestBody TipoEntradaRequest tipoEntradaRequest) {
         try {
@@ -66,6 +69,7 @@ public class TipoEntradasController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> deleteTipoEntrada(@PathVariable Integer id) {
         try {
             tipoEntradaService.deleteTipoEntrada(id);

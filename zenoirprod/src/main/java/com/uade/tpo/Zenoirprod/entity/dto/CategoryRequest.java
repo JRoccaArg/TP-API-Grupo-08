@@ -4,6 +4,7 @@ import lombok.Data;
 
 @Data
 public class CategoryRequest {
-    private int id;
-    private String description;
+    private Integer id;
+    private String nombre;
+    private Boolean activo;
 }

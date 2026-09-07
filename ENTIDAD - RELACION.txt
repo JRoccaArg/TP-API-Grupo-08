@@ -28,6 +28,7 @@
 
 - id: INT
 - locacion_id: INT
+- categoria_id: INT
 - titulo: NVARCHAR(150)
 - descripcion: NVARCHAR(MAX)
 - estado: VARCHAR(20)
@@ -39,7 +40,10 @@
 
 - id: INT
 - evento_id: INT
-- url: NVARCHAR(500)
+- nombre_archivo: NVARCHAR(255)
+- tipo_contenido: NVARCHAR(255)
+- tamanio: BIGINT
+- datos: VARBINARY(MAX)
 - tipo: VARCHAR(20)
 - descripcion: NVARCHAR(255)
 - orden: INT
@@ -49,7 +53,10 @@
 
 - id: INT
 - locacion_id: INT
-- url: NVARCHAR(500)
+- nombre_archivo: NVARCHAR(255)
+- tipo_contenido: NVARCHAR(255)
+- tamanio: BIGINT
+- datos: VARBINARY(MAX)
 - texto_alternativo: NVARCHAR(255)
 - orden: INT
 - fecha_creacion: DATETIME2
@@ -131,10 +138,3 @@
 - id: INT
 - nombre: NVARCHAR(100) (Unique)
 - activo: BIT
-
-
-14. TABLA: Eventos_Categorias
-
-- id: INT
-- evento_id: INT
-- categoria_id: INT

@@ -6,12 +6,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.uade.tpo.Zenoirprod.entity.Evento;
 import com.uade.tpo.Zenoirprod.entity.dto.EventoRequest;
 import com.uade.tpo.Zenoirprod.exceptions.EventoInexistenteException;
+import com.uade.tpo.Zenoirprod.exceptions.EventoInvalidoException;
+import com.uade.tpo.Zenoirprod.exceptions.CategoryInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.FechaEventoInvalidaException;
 import com.uade.tpo.Zenoirprod.exceptions.LocacionInexsistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.TituloEventoEnUsoException;
@@ -54,10 +57,11 @@ public class EventosController {
     }
 
     @PatchMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity patchEvento(@PathVariable Integer id, @RequestBody EventoRequest eventoRequest) {
         try {
             return ResponseEntity.ok(eventosService.updateEvento(id, eventoRequest.getTitulo(), eventoRequest.getDescripcion(),
-                    eventoRequest.getEstado(), eventoRequest.getLocacion_id(), eventoRequest.getFechaHoraInicio(),
+                    eventoRequest.getEstado(), eventoRequest.getLocacion_id(), eventoRequest.getCategoria_id(), eventoRequest.getFechaHoraInicio(),
                     eventoRequest.getFechaHoraFin()));
         } catch (EventoInexistenteException e) {
             return ResponseEntity.notFound().build();
@@ -67,11 +71,16 @@ public class EventosController {
             return ResponseEntity.status(HttpStatus.CONFLICT).build(); //Esta version de Spring no tiene ResponseEntity.conflict()
         } catch (FechaEventoInvalidaException e) {
             return ResponseEntity.badRequest().build();
+        } catch (EventoInvalidoException e) {
+            return ResponseEntity.badRequest().build();
+        } catch (CategoryInexistenteException e) {
+            return ResponseEntity.notFound().build();
         }
     }
     
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity deleteEvento(@PathVariable Integer id) {
         try {
             eventosService.deleteEvento(id);
@@ -82,10 +91,11 @@ public class EventosController {
     }
     
     @PostMapping()
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Evento> postMethodName(@RequestBody EventoRequest eventoRequest) {
         try {
             return ResponseEntity.ok(eventosService.crearEvento(eventoRequest.getTitulo(), eventoRequest.getDescripcion(), 
-            eventoRequest.getEstado(), eventoRequest.getLocacion_id(), eventoRequest.getFechaHoraInicio(),
+            eventoRequest.getEstado(), eventoRequest.getLocacion_id(), eventoRequest.getCategoria_id(), eventoRequest.getFechaHoraInicio(),
             eventoRequest.getFechaHoraFin()));
         } 
         catch (LocacionInexsistenteException e) {
@@ -96,6 +106,12 @@ public class EventosController {
         }
         catch (FechaEventoInvalidaException e) {
             return ResponseEntity.badRequest().build();
+        }
+        catch (EventoInvalidoException e) {
+            return ResponseEntity.badRequest().build();
+        }
+        catch (CategoryInexistenteException e) {
+            return ResponseEntity.notFound().build();
         }
     }
     
