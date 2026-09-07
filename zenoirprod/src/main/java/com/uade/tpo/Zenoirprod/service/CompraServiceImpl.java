@@ -12,6 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.uade.tpo.Zenoirprod.entity.Carrito;
+import com.uade.tpo.Zenoirprod.entity.Carrito.EstadoCarrito;
 import com.uade.tpo.Zenoirprod.entity.Compra;
 import com.uade.tpo.Zenoirprod.entity.Compra.EstadoCompra;
 import com.uade.tpo.Zenoirprod.entity.DetalleCompra;
@@ -22,6 +24,8 @@ import com.uade.tpo.Zenoirprod.entity.Ticket.EstadoTicket;
 import com.uade.tpo.Zenoirprod.entity.User;
 import com.uade.tpo.Zenoirprod.entity.dto.CompraRequest;
 import com.uade.tpo.Zenoirprod.entity.dto.CompraRequest.ItemCompraRequest;
+import com.uade.tpo.Zenoirprod.exceptions.CarritoAjenoException;
+import com.uade.tpo.Zenoirprod.exceptions.CarritoInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.CompraInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.CompraInvalidaException;
 import com.uade.tpo.Zenoirprod.exceptions.CompraNoCancelableException;
@@ -31,6 +35,7 @@ import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaNoDisponibleException
 import com.uade.tpo.Zenoirprod.exceptions.StockInsuficienteException;
 import com.uade.tpo.Zenoirprod.exceptions.UsuarioInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.VentaNoHabilitadaException;
+import com.uade.tpo.Zenoirprod.repository.CarritoRepository;
 import com.uade.tpo.Zenoirprod.repository.CompraRepository;
 import com.uade.tpo.Zenoirprod.repository.EventoTipoEntradaRepository;
 import com.uade.tpo.Zenoirprod.repository.UserRepository;
@@ -46,6 +51,7 @@ public class CompraServiceImpl implements CompraService {
     @Autowired private CompraRepository compraRepository;
     @Autowired private EventoTipoEntradaRepository eventoTipoEntradaRepository;
     @Autowired private UserRepository userRepository;
+    @Autowired private CarritoRepository carritoRepository;
 
     /**
      * rollbackFor = Exception.class es obligatorio: por defecto Spring solo
@@ -58,12 +64,15 @@ public class CompraServiceImpl implements CompraService {
     public Compra crearCompra(CompraRequest request)
             throws CompraInvalidaException, UsuarioInexistenteException,
             EventoTipoEntradaInexistenteException, EventoTipoEntradaNoDisponibleException,
-            StockInsuficienteException, VentaNoHabilitadaException, EventoNoDisponibleException {
+            StockInsuficienteException, VentaNoHabilitadaException, EventoNoDisponibleException,
+            CarritoInexistenteException, CarritoAjenoException {
 
         validarShape(request);
 
         User usuario = userRepository.findById(request.getUsuarioId())
                 .orElseThrow(UsuarioInexistenteException::new);
+
+        Carrito carrito = resolverCarrito(request.getCarritoId(), usuario);
 
         List<DetalleCompra> detalles = new ArrayList<>();
         BigDecimal total = BigDecimal.ZERO;
@@ -95,13 +104,22 @@ public class CompraServiceImpl implements CompraService {
 
         Compra compra = new Compra();
         compra.setUsuario(usuario);
-        compra.setCarritoId(request.getCarritoId());
+        compra.setCarrito(carrito);
         compra.setTotal(total);
         compra.setEstado(EstadoCompra.CONFIRMADA);
         compra.setFechaCompra(ahora);
         compra.setDetalles(detalles);
 
-        return compraRepository.save(compra);
+        Compra guardada = compraRepository.save(compra);
+
+        // El carrito que dio origen a la compra queda cerrado.
+        if (carrito != null) {
+            carrito.setEstado(EstadoCarrito.CONVERTIDO);
+            carrito.setFechaActualizacion(ahora);
+            carritoRepository.save(carrito);
+        }
+
+        return guardada;
     }
 
     @Override
@@ -138,6 +156,20 @@ public class CompraServiceImpl implements CompraService {
         compra.setEstado(EstadoCompra.CANCELADA);
         compra.setFechaCancelacion(LocalDateTime.now());
         return compraRepository.save(compra);
+    }
+
+    /** Resuelve y valida el carrito opcional del request. */
+    private Carrito resolverCarrito(Integer carritoId, User usuario)
+            throws CarritoInexistenteException, CarritoAjenoException {
+        if (carritoId == null) {
+            return null;
+        }
+        Carrito carrito = carritoRepository.findById(carritoId)
+                .orElseThrow(CarritoInexistenteException::new);
+        if (!carrito.getUsuario().getId().equals(usuario.getId())) {
+            throw new CarritoAjenoException();
+        }
+        return carrito;
     }
 
     private void validarDisponibilidad(EventoTipoEntrada ete, int cantidad, LocalDateTime ahora)

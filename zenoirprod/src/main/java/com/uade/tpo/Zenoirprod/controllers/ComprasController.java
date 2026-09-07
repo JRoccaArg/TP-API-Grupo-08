@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.uade.tpo.Zenoirprod.entity.Compra;
 import com.uade.tpo.Zenoirprod.entity.dto.CompraRequest;
+import com.uade.tpo.Zenoirprod.exceptions.CarritoAjenoException;
+import com.uade.tpo.Zenoirprod.exceptions.CarritoInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.CompraInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.CompraInvalidaException;
 import com.uade.tpo.Zenoirprod.exceptions.CompraNoCancelableException;
@@ -39,7 +41,8 @@ public class ComprasController {
     public ResponseEntity<Compra> crear(@RequestBody CompraRequest request)
             throws CompraInvalidaException, UsuarioInexistenteException,
             EventoTipoEntradaInexistenteException, EventoTipoEntradaNoDisponibleException,
-            StockInsuficienteException, VentaNoHabilitadaException, EventoNoDisponibleException {
+            StockInsuficienteException, VentaNoHabilitadaException, EventoNoDisponibleException,
+            CarritoInexistenteException, CarritoAjenoException {
         Compra compra = service.crearCompra(request);
         return ResponseEntity.created(URI.create("/compras/" + compra.getId())).body(compra);
     }

@@ -5,6 +5,8 @@ import java.util.Optional;
 
 import com.uade.tpo.Zenoirprod.entity.Compra;
 import com.uade.tpo.Zenoirprod.entity.dto.CompraRequest;
+import com.uade.tpo.Zenoirprod.exceptions.CarritoAjenoException;
+import com.uade.tpo.Zenoirprod.exceptions.CarritoInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.CompraInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.CompraInvalidaException;
 import com.uade.tpo.Zenoirprod.exceptions.CompraNoCancelableException;
@@ -20,7 +22,8 @@ public interface CompraService {
     Compra crearCompra(CompraRequest request)
             throws CompraInvalidaException, UsuarioInexistenteException,
             EventoTipoEntradaInexistenteException, EventoTipoEntradaNoDisponibleException,
-            StockInsuficienteException, VentaNoHabilitadaException, EventoNoDisponibleException;
+            StockInsuficienteException, VentaNoHabilitadaException, EventoNoDisponibleException,
+            CarritoInexistenteException, CarritoAjenoException;
 
     Optional<Compra> getPorId(Integer id);
 

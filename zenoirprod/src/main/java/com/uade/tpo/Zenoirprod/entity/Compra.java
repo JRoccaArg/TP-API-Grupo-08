@@ -37,9 +37,12 @@ public class Compra {
     @JoinColumn(name = "usuario_id", nullable = false)
     private User usuario;
 
-    // Sigue como columna plana hasta que exista la entidad Carrito.
-    @Column(name = "carrito_id")
-    private Integer carritoId;
+    // Carrito del que se origino la compra. Es opcional: se puede comprar
+    // directo sin pasar por el carrito.
+    @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
+    @ManyToOne
+    @JoinColumn(name = "carrito_id")
+    private Carrito carrito;
 
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal total;

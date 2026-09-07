@@ -201,6 +201,29 @@ class ComprasControllerTest {
     }
 
     @Test
+    void crearCompra_carritoInexistente_devuelve404() throws Exception {
+        String body = json.writeValueAsString(Map.of(
+                "usuarioId", esc.usuarioId,
+                "carritoId", 999999,
+                "items", List.of(Map.of("eventoTipoEntradaId", esc.eteId, "cantidad", 1))));
+        mockMvc.perform(post("/compras").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void crearCompra_carritoDeOtroUsuario_devuelve403() throws Exception {
+        var otro = fixtures.crearUsuario("otro@test.com", com.uade.tpo.Zenoirprod.entity.Role.USER);
+        Integer carritoAjeno = fixtures.crearCarrito(otro).getId();
+
+        String body = json.writeValueAsString(Map.of(
+                "usuarioId", esc.usuarioId,
+                "carritoId", carritoAjeno,
+                "items", List.of(Map.of("eventoTipoEntradaId", esc.eteId, "cantidad", 1))));
+        mockMvc.perform(post("/compras").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     void getCompraPorId_existente_devuelveCompra() throws Exception {
         Integer id = crearCompra(1);
         mockMvc.perform(get("/compras/" + id))
