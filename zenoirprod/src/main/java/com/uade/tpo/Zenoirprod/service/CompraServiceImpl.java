@@ -25,10 +25,12 @@ import com.uade.tpo.Zenoirprod.entity.dto.CompraRequest.ItemCompraRequest;
 import com.uade.tpo.Zenoirprod.exceptions.CompraInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.CompraInvalidaException;
 import com.uade.tpo.Zenoirprod.exceptions.CompraNoCancelableException;
+import com.uade.tpo.Zenoirprod.exceptions.EventoNoDisponibleException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaNoDisponibleException;
 import com.uade.tpo.Zenoirprod.exceptions.StockInsuficienteException;
 import com.uade.tpo.Zenoirprod.exceptions.UsuarioInexistenteException;
+import com.uade.tpo.Zenoirprod.exceptions.VentaNoHabilitadaException;
 import com.uade.tpo.Zenoirprod.repository.CompraRepository;
 import com.uade.tpo.Zenoirprod.repository.EventoTipoEntradaRepository;
 import com.uade.tpo.Zenoirprod.repository.UserRepository;
@@ -37,6 +39,9 @@ import com.uade.tpo.Zenoirprod.repository.UserRepository;
 public class CompraServiceImpl implements CompraService {
 
     private static final BigDecimal CIEN = BigDecimal.valueOf(100);
+
+    /** Estado en el que tiene que estar un evento para poder venderle entradas. */
+    private static final String EVENTO_ACTIVO = "ACTIVO";
 
     @Autowired private CompraRepository compraRepository;
     @Autowired private EventoTipoEntradaRepository eventoTipoEntradaRepository;
@@ -53,7 +58,7 @@ public class CompraServiceImpl implements CompraService {
     public Compra crearCompra(CompraRequest request)
             throws CompraInvalidaException, UsuarioInexistenteException,
             EventoTipoEntradaInexistenteException, EventoTipoEntradaNoDisponibleException,
-            StockInsuficienteException {
+            StockInsuficienteException, VentaNoHabilitadaException, EventoNoDisponibleException {
 
         validarShape(request);
 
@@ -68,12 +73,7 @@ public class CompraServiceImpl implements CompraService {
             EventoTipoEntrada ete = eventoTipoEntradaRepository.findById(item.getEventoTipoEntradaId())
                     .orElseThrow(EventoTipoEntradaInexistenteException::new);
 
-            if (ete.getEstado() != EstadoEventoTipoEntrada.ACTIVO) {
-                throw new EventoTipoEntradaNoDisponibleException();
-            }
-            if (ete.getCantidadDisponible() < item.getCantidad()) {
-                throw new StockInsuficienteException();
-            }
+            validarDisponibilidad(ete, item.getCantidad(), ahora);
 
             BigDecimal precioUnitario = calcularPrecioConDescuento(ete);
             BigDecimal subtotal = precioUnitario.multiply(BigDecimal.valueOf(item.getCantidad()))
@@ -138,6 +138,27 @@ public class CompraServiceImpl implements CompraService {
         compra.setEstado(EstadoCompra.CANCELADA);
         compra.setFechaCancelacion(LocalDateTime.now());
         return compraRepository.save(compra);
+    }
+
+    private void validarDisponibilidad(EventoTipoEntrada ete, int cantidad, LocalDateTime ahora)
+            throws EventoTipoEntradaNoDisponibleException, VentaNoHabilitadaException,
+            EventoNoDisponibleException, StockInsuficienteException {
+
+        if (!EVENTO_ACTIVO.equalsIgnoreCase(ete.getEvento().getEstado())) {
+            throw new EventoNoDisponibleException();
+        }
+        if (ete.getEstado() != EstadoEventoTipoEntrada.ACTIVO) {
+            throw new EventoTipoEntradaNoDisponibleException();
+        }
+        if (ete.getFechaInicioVenta() != null && ahora.isBefore(ete.getFechaInicioVenta())) {
+            throw new VentaNoHabilitadaException();
+        }
+        if (ete.getFechaFinVenta() != null && ahora.isAfter(ete.getFechaFinVenta())) {
+            throw new VentaNoHabilitadaException();
+        }
+        if (ete.getCantidadDisponible() < cantidad) {
+            throw new StockInsuficienteException();
+        }
     }
 
     private void validarShape(CompraRequest request) throws CompraInvalidaException {

@@ -170,6 +170,37 @@ class ComprasControllerTest {
     }
 
     @Test
+    void crearCompra_eventoCancelado_devuelve409() throws Exception {
+        fixtures.cancelarEvento(esc.eventoId);
+
+        mockMvc.perform(post("/compras")
+                        .contentType(MediaType.APPLICATION_JSON).content(bodyCrear(1)))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void crearCompra_ventaTodaviaNoAbierta_devuelve409() throws Exception {
+        EventoTipoEntrada ete = fixtures.getTipoEntrada(esc.eteId);
+        ete.setFechaInicioVenta(java.time.LocalDateTime.now().plusDays(5));
+        fixtures.guardarTipoEntrada(ete);
+
+        mockMvc.perform(post("/compras")
+                        .contentType(MediaType.APPLICATION_JSON).content(bodyCrear(1)))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void crearCompra_ventaYaCerrada_devuelve409() throws Exception {
+        EventoTipoEntrada ete = fixtures.getTipoEntrada(esc.eteId);
+        ete.setFechaFinVenta(java.time.LocalDateTime.now().minusDays(1));
+        fixtures.guardarTipoEntrada(ete);
+
+        mockMvc.perform(post("/compras")
+                        .contentType(MediaType.APPLICATION_JSON).content(bodyCrear(1)))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
     void getCompraPorId_existente_devuelveCompra() throws Exception {
         Integer id = crearCompra(1);
         mockMvc.perform(get("/compras/" + id))
