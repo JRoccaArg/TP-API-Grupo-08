@@ -10,6 +10,7 @@ import com.uade.tpo.Zenoirprod.exceptions.CarritoInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.CompraInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.CompraInvalidaException;
 import com.uade.tpo.Zenoirprod.exceptions.CompraNoCancelableException;
+import com.uade.tpo.Zenoirprod.exceptions.DevolucionNoPermitidaException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoNoDisponibleException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaNoDisponibleException;
@@ -29,5 +30,7 @@ public interface CompraService {
 
     List<Compra> getPorUsuario(Integer usuarioId);
 
-    Compra cancelar(Integer id) throws CompraInexistenteException, CompraNoCancelableException;
+    Compra cancelar(Integer id)
+            throws CompraInexistenteException, CompraNoCancelableException,
+            DevolucionNoPermitidaException;
 }

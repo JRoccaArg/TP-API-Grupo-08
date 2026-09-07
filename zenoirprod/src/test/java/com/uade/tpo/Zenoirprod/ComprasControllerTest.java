@@ -5,6 +5,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -247,8 +248,21 @@ class ComprasControllerTest {
     }
 
     @Test
-    void cancelar_restauraStockYCancelaTickets() throws Exception {
+    void cancelar_eventoNoCancelado_devuelve409_yNoDevuelveStock() throws Exception {
         Integer id = crearCompra(3);
+
+        mockMvc.perform(post("/compras/" + id + "/cancelar"))
+                .andExpect(status().isConflict());
+
+        Assertions.assertThat(fixtures.getTipoEntrada(esc.eteId).getCantidadDisponible())
+                .as("sin cancelacion del evento no hay devolucion, el stock no vuelve")
+                .isEqualTo(97);
+    }
+
+    @Test
+    void cancelar_eventoCancelado_cancelaLaCompraYDevuelveStock() throws Exception {
+        Integer id = crearCompra(3);
+        fixtures.cancelarEvento(esc.eventoId);
 
         mockMvc.perform(post("/compras/" + id + "/cancelar"))
                 .andExpect(status().isOk())
@@ -261,8 +275,32 @@ class ComprasControllerTest {
     }
 
     @Test
+    void cancelar_conTicketYaUtilizado_noDevuelveEsaUnidadAlStock() throws Exception {
+        String body = mockMvc.perform(post("/compras")
+                        .contentType(MediaType.APPLICATION_JSON).content(bodyCrear(3)))
+                .andReturn().getResponse().getContentAsString();
+        Integer id = json.readTree(body).get("id").asInt();
+        String qrUsado = json.readTree(body)
+                .get("detalles").get(0).get("tickets").get(0).get("codigoQr").asText();
+
+        // alguien entro a la fiesta con uno de los tres tickets
+        mockMvc.perform(post("/tickets/qr/" + qrUsado + "/utilizar")
+                .with(user("admin@test.com").roles("ADMIN")))
+                .andExpect(status().isOk());
+
+        fixtures.cancelarEvento(esc.eventoId);
+        mockMvc.perform(post("/compras/" + id + "/cancelar")).andExpect(status().isOk());
+
+        Assertions.assertThat(fixtures.getTipoEntrada(esc.eteId).getCantidadDisponible())
+                .as("solo vuelven al stock los 2 tickets sin usar, no el que ya se consumio")
+                .isEqualTo(99);
+    }
+
+    @Test
     void cancelar_dosVeces_devuelve409() throws Exception {
         Integer id = crearCompra(1);
+        fixtures.cancelarEvento(esc.eventoId);
+
         mockMvc.perform(post("/compras/" + id + "/cancelar")).andExpect(status().isOk());
         mockMvc.perform(post("/compras/" + id + "/cancelar")).andExpect(status().isConflict());
     }

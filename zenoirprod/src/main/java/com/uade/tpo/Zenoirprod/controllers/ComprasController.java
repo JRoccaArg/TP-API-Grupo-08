@@ -22,6 +22,7 @@ import com.uade.tpo.Zenoirprod.exceptions.CarritoInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.CompraInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.CompraInvalidaException;
 import com.uade.tpo.Zenoirprod.exceptions.CompraNoCancelableException;
+import com.uade.tpo.Zenoirprod.exceptions.DevolucionNoPermitidaException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoNoDisponibleException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaNoDisponibleException;
@@ -63,7 +64,8 @@ public class ComprasController {
     @PostMapping("/{id}/cancelar")
     @PreAuthorize("hasRole('ADMIN') or ((hasRole('USER') and @authorizationService.puedeAccederCompra(#id, authentication)))")
     public ResponseEntity<Compra> cancelar(@PathVariable Integer id)
-            throws CompraInexistenteException, CompraNoCancelableException {
+            throws CompraInexistenteException, CompraNoCancelableException,
+            DevolucionNoPermitidaException {
         return ResponseEntity.ok(service.cancelar(id));
     }
 }

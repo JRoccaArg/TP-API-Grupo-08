@@ -29,6 +29,7 @@ import com.uade.tpo.Zenoirprod.exceptions.CarritoInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.CompraInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.CompraInvalidaException;
 import com.uade.tpo.Zenoirprod.exceptions.CompraNoCancelableException;
+import com.uade.tpo.Zenoirprod.exceptions.DevolucionNoPermitidaException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoNoDisponibleException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaNoDisponibleException;
@@ -47,6 +48,9 @@ public class CompraServiceImpl implements CompraService {
 
     /** Estado en el que tiene que estar un evento para poder venderle entradas. */
     private static final String EVENTO_ACTIVO = "ACTIVO";
+
+    /** Estado del evento que habilita la cancelacion de compras (unico caso de devolucion). */
+    private static final String EVENTO_CANCELADO = "CANCELADO";
 
     @Autowired private CompraRepository compraRepository;
     @Autowired private EventoTipoEntradaRepository eventoTipoEntradaRepository;
@@ -132,24 +136,47 @@ public class CompraServiceImpl implements CompraService {
         return compraRepository.findByUsuario_IdOrderByFechaCompraDesc(usuarioId);
     }
 
+    /**
+     * Politica del negocio: NO hay devoluciones. Una compra solo se puede
+     * cancelar si el evento entero fue cancelado; en cualquier otro caso la
+     * plata no se devuelve y esto responde 409.
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Compra cancelar(Integer id) throws CompraInexistenteException, CompraNoCancelableException {
+    public Compra cancelar(Integer id)
+            throws CompraInexistenteException, CompraNoCancelableException,
+            DevolucionNoPermitidaException {
+
         Compra compra = compraRepository.findById(id)
                 .orElseThrow(CompraInexistenteException::new);
         if (compra.getEstado() == EstadoCompra.CANCELADA) {
             throw new CompraNoCancelableException();
         }
 
+        // Todos los eventos involucrados tienen que estar cancelados.
+        for (DetalleCompra detalle : compra.getDetalles()) {
+            String estadoEvento = detalle.getEventoTipoEntrada().getEvento().getEstado();
+            if (!EVENTO_CANCELADO.equalsIgnoreCase(estadoEvento)) {
+                throw new DevolucionNoPermitidaException();
+            }
+        }
+
         for (DetalleCompra detalle : compra.getDetalles()) {
             EventoTipoEntrada ete = detalle.getEventoTipoEntrada();
-            ete.setCantidadDisponible(ete.getCantidadDisponible() + detalle.getCantidad());
-            eventoTipoEntradaRepository.save(ete);
 
+            // Solo se devuelve al stock lo que no llego a usarse. Un ticket ya
+            // UTILIZADO representa a alguien que efectivamente entro: esa unidad
+            // se consumio y no vuelve a estar disponible.
+            int aDevolver = 0;
             for (Ticket ticket : detalle.getTickets()) {
                 if (ticket.getEstado() == EstadoTicket.EMITIDO) {
+                    aDevolver++;
                     ticket.setEstado(EstadoTicket.CANCELADO);
                 }
+            }
+            if (aDevolver > 0) {
+                ete.setCantidadDisponible(ete.getCantidadDisponible() + aDevolver);
+                eventoTipoEntradaRepository.save(ete);
             }
         }
 
