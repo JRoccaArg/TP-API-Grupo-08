@@ -19,12 +19,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.uade.tpo.Zenoirprod.entity.EventoTipoEntrada;
 import com.uade.tpo.Zenoirprod.entity.dto.EventoTipoEntradaRequest;
+import com.uade.tpo.Zenoirprod.entity.dto.EventoTipoEntradaResponseDTO;
 import com.uade.tpo.Zenoirprod.exceptions.EventoInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaDuplicadoException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaInvalidoException;
 import com.uade.tpo.Zenoirprod.exceptions.TipoEntradaInexistenteException;
 import com.uade.tpo.Zenoirprod.service.EventoTipoEntradaService;
+import com.uade.tpo.Zenoirprod.util.PrecioCalculator;
 
 @RestController
 @RequestMapping("eventosTiposEntrada")
@@ -35,50 +37,134 @@ public class EventoTipoEntradaController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<EventoTipoEntrada> crear(@RequestBody EventoTipoEntradaRequest request)
-            throws EventoTipoEntradaInvalidoException, EventoTipoEntradaDuplicadoException,
-            EventoInexistenteException, TipoEntradaInexistenteException {
+    public ResponseEntity<EventoTipoEntradaResponseDTO> crear(
+            @RequestBody EventoTipoEntradaRequest request)
+            throws EventoTipoEntradaInvalidoException,
+            EventoTipoEntradaDuplicadoException,
+            EventoInexistenteException,
+            TipoEntradaInexistenteException {
+
         EventoTipoEntrada creado = eventoTipoEntradaService.crear(request);
-        return ResponseEntity.created(URI.create("/eventosTiposEntrada/" + creado.getId())).body(creado);
+
+        return ResponseEntity
+                .created(URI.create("/eventosTiposEntrada/" + creado.getId()))
+                .body(toResponseDTO(creado));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<EventoTipoEntrada> getPorId(@PathVariable Integer id)
+    public ResponseEntity<EventoTipoEntradaResponseDTO> getPorId(
+            @PathVariable Integer id)
             throws EventoTipoEntradaInexistenteException {
-        return ResponseEntity.ok(eventoTipoEntradaService.getPorId(id));
+
+        EventoTipoEntrada entrada =
+                eventoTipoEntradaService.getPorId(id);
+
+        return ResponseEntity.ok(toResponseDTO(entrada));
     }
 
     @GetMapping("/evento/{eventoId}")
-    public ResponseEntity<List<EventoTipoEntrada>> getPorEvento(@PathVariable Integer eventoId)
+    public ResponseEntity<List<EventoTipoEntradaResponseDTO>> getPorEvento(
+            @PathVariable Integer eventoId)
             throws EventoInexistenteException {
-        return ResponseEntity.ok(eventoTipoEntradaService.getPorEvento(eventoId));
+
+        List<EventoTipoEntradaResponseDTO> respuesta =
+                eventoTipoEntradaService
+                        .getPorEvento(eventoId)
+                        .stream()
+                        .map(this::toResponseDTO)
+                        .toList();
+
+        return ResponseEntity.ok(respuesta);
     }
 
     @PatchMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<EventoTipoEntrada> actualizar(@PathVariable Integer id,
+    public ResponseEntity<EventoTipoEntradaResponseDTO> actualizar(
+            @PathVariable Integer id,
             @RequestBody EventoTipoEntradaRequest request)
-            throws EventoTipoEntradaInexistenteException, EventoTipoEntradaInvalidoException {
-        return ResponseEntity.ok(eventoTipoEntradaService.actualizar(id, request));
+            throws EventoTipoEntradaInexistenteException,
+            EventoTipoEntradaInvalidoException {
+
+        EventoTipoEntrada actualizado =
+                eventoTipoEntradaService.actualizar(id, request);
+
+        return ResponseEntity.ok(toResponseDTO(actualizado));
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> eliminar(@PathVariable Integer id)
+    public ResponseEntity<Void> eliminar(
+            @PathVariable Integer id)
             throws EventoTipoEntradaInexistenteException {
+
         eventoTipoEntradaService.eliminar(id);
+
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}/precio")
-    public ResponseEntity<BigDecimal> getPrecioFinal(@PathVariable Integer id)
+    public ResponseEntity<BigDecimal> getPrecioFinal(
+            @PathVariable Integer id)
             throws EventoTipoEntradaInexistenteException {
-        return ResponseEntity.ok(eventoTipoEntradaService.getPrecioFinal(id));
+
+        return ResponseEntity.ok(
+                eventoTipoEntradaService.getPrecioFinal(id)
+        );
     }
 
     @GetMapping("/{id}/disponibilidad")
-    public ResponseEntity<Boolean> hayDisponibilidad(@PathVariable Integer id,
-            @RequestParam Integer cantidad) throws EventoTipoEntradaInexistenteException {
-        return ResponseEntity.ok(eventoTipoEntradaService.hayDisponibilidad(id, cantidad));
+    public ResponseEntity<Boolean> hayDisponibilidad(
+            @PathVariable Integer id,
+            @RequestParam Integer cantidad)
+            throws EventoTipoEntradaInexistenteException {
+
+        return ResponseEntity.ok(
+                eventoTipoEntradaService.hayDisponibilidad(id, cantidad)
+        );
+    }
+
+    /*
+     * Convierte la entidad interna en el DTO que se expone por la API.
+     * De esta manera no devolvemos Evento y TipoEntrada completos.
+     */
+    private EventoTipoEntradaResponseDTO toResponseDTO(
+            EventoTipoEntrada entrada) {
+
+        BigDecimal precioFinal =
+                PrecioCalculator.precioConDescuento(
+                        entrada.getPrecio(),
+                        entrada.getPorcentajeDescuento()
+                );
+
+        return EventoTipoEntradaResponseDTO.builder()
+                .id(entrada.getId())
+
+                .eventoId(entrada.getEvento().getId())
+                .eventoTitulo(entrada.getEvento().getTitulo())
+
+                .tipoEntradaId(entrada.getTipoEntrada().getId())
+                .tipoEntradaNombre(entrada.getTipoEntrada().getNombre())
+
+                .precio(entrada.getPrecio())
+                .porcentajeDescuento(
+                        entrada.getPorcentajeDescuento()
+                )
+                .precioFinal(precioFinal)
+
+                .cantidadTotal(entrada.getCantidadTotal())
+                .cantidadDisponible(
+                        entrada.getCantidadDisponible()
+                )
+
+                .fechaInicioVenta(
+                        entrada.getFechaInicioVenta()
+                )
+                .fechaFinVenta(
+                        entrada.getFechaFinVenta()
+                )
+
+                .estado(entrada.getEstado())
+
+                .build();
     }
 }
