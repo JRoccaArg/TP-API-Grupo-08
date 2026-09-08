@@ -31,14 +31,11 @@ public class Compra {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    // Se oculta el password al serializar la compra en JSON.
     @JsonIgnoreProperties({ "password", "hibernateLazyInitializer", "handler" })
     @ManyToOne(optional = false)
     @JoinColumn(name = "usuario_id", nullable = false)
     private User usuario;
 
-    // Carrito del que se origino la compra. Es opcional: se puede comprar
-    // directo sin pasar por el carrito.
     @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
     @ManyToOne
     @JoinColumn(name = "carrito_id")

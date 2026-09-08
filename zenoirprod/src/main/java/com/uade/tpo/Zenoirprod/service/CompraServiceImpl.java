@@ -44,10 +44,8 @@ import com.uade.tpo.Zenoirprod.util.PrecioCalculator;
 @Service
 public class CompraServiceImpl implements CompraService {
 
-    /** Estado en el que tiene que estar un evento para poder venderle entradas. */
     private static final String EVENTO_ACTIVO = "ACTIVO";
 
-    /** Estado del evento que habilita la cancelacion de compras (unico caso de devolucion). */
     private static final String EVENTO_CANCELADO = "CANCELADO";
 
     @Autowired private CompraRepository compraRepository;
@@ -55,12 +53,6 @@ public class CompraServiceImpl implements CompraService {
     @Autowired private UserRepository userRepository;
     @Autowired private CarritoRepository carritoRepository;
 
-    /**
-     * rollbackFor = Exception.class es obligatorio: por defecto Spring solo
-     * revierte ante RuntimeException. Como todas las excepciones de negocio de
-     * este service son checked, sin esto una compra que falla en el item N
-     * dejaba commiteado el descuento de stock de los items 1..N-1.
-     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Compra crearCompra(CompraRequest request)
@@ -113,7 +105,6 @@ public class CompraServiceImpl implements CompraService {
 
         Compra guardada = compraRepository.save(compra);
 
-        // El carrito que dio origen a la compra queda cerrado.
         if (carrito != null) {
             carrito.setEstado(EstadoCarrito.CONVERTIDO);
             carrito.setFechaActualizacion(ahora);
@@ -133,11 +124,6 @@ public class CompraServiceImpl implements CompraService {
         return compraRepository.findByUsuario_IdOrderByFechaCompraDesc(usuarioId);
     }
 
-    /**
-     * Politica del negocio: NO hay devoluciones. Una compra solo se puede
-     * cancelar si el evento entero fue cancelado; en cualquier otro caso la
-     * plata no se devuelve y esto responde 409.
-     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Compra cancelar(Integer id)
@@ -150,7 +136,6 @@ public class CompraServiceImpl implements CompraService {
             throw new CompraNoCancelableException();
         }
 
-        // Todos los eventos involucrados tienen que estar cancelados.
         for (DetalleCompra detalle : compra.getDetalles()) {
             String estadoEvento = detalle.getEventoTipoEntrada().getEvento().getEstado();
             if (!EVENTO_CANCELADO.equalsIgnoreCase(estadoEvento)) {
@@ -161,9 +146,6 @@ public class CompraServiceImpl implements CompraService {
         for (DetalleCompra detalle : compra.getDetalles()) {
             EventoTipoEntrada ete = detalle.getEventoTipoEntrada();
 
-            // Solo se devuelve al stock lo que no llego a usarse. Un ticket ya
-            // UTILIZADO representa a alguien que efectivamente entro: esa unidad
-            // se consumio y no vuelve a estar disponible.
             int aDevolver = 0;
             for (Ticket ticket : detalle.getTickets()) {
                 if (ticket.getEstado() == EstadoTicket.EMITIDO) {
@@ -181,7 +163,6 @@ public class CompraServiceImpl implements CompraService {
         return compraRepository.save(compra);
     }
 
-    /** Resuelve y valida el carrito opcional del request. */
     private Carrito resolverCarrito(Integer carritoId, User usuario)
             throws CarritoInexistenteException, CarritoAjenoException {
         if (carritoId == null) {
@@ -222,7 +203,7 @@ public class CompraServiceImpl implements CompraService {
             throw new CompraInvalidaException();
         }
         for (ItemCompraRequest item : request.getItems()) {
-            // Un item null llega cuando el JSON manda "items": [null].
+
             if (item == null) throw new CompraInvalidaException();
             if (item.getEventoTipoEntradaId() == null) throw new CompraInvalidaException();
             if (item.getCantidad() == null || item.getCantidad() <= 0) {
@@ -231,7 +212,6 @@ public class CompraServiceImpl implements CompraService {
         }
     }
 
-    /** Descuenta stock y marca AGOTADO cuando llega a cero. */
     private void descontarStock(EventoTipoEntrada ete, int cantidad) {
         int restante = ete.getCantidadDisponible() - cantidad;
         ete.setCantidadDisponible(restante);
@@ -241,7 +221,6 @@ public class CompraServiceImpl implements CompraService {
         eventoTipoEntradaRepository.save(ete);
     }
 
-    /** Devuelve stock y reabre el tipo de entrada si estaba AGOTADO. */
     private void devolverStock(EventoTipoEntrada ete, int cantidad) {
         ete.setCantidadDisponible(ete.getCantidadDisponible() + cantidad);
         if (ete.getEstado() == EstadoEventoTipoEntrada.AGOTADO && ete.getCantidadDisponible() > 0) {

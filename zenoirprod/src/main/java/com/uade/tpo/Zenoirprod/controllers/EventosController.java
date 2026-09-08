@@ -3,7 +3,6 @@ package com.uade.tpo.Zenoirprod.controllers;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -17,8 +16,10 @@ import com.uade.tpo.Zenoirprod.exceptions.EventoInvalidoException;
 import com.uade.tpo.Zenoirprod.exceptions.CategoryInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.FechaEventoInvalidaException;
 import com.uade.tpo.Zenoirprod.exceptions.LocacionInexsistenteException;
+import com.uade.tpo.Zenoirprod.exceptions.PaginacionInvalidaException;
 import com.uade.tpo.Zenoirprod.exceptions.TituloEventoEnUsoException;
 import com.uade.tpo.Zenoirprod.service.EventosService;
+import com.uade.tpo.Zenoirprod.util.PageableFactory;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -41,10 +42,8 @@ public class EventosController {
     public ResponseEntity getEventos(
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size
-    ) {
-        if (page == null || size == null) 
-            return ResponseEntity.ok(eventosService.getEventos(PageRequest.of(0, Integer.MAX_VALUE)));
-        return ResponseEntity.ok(eventosService.getEventos(PageRequest.of(page, size)));
+    ) throws PaginacionInvalidaException {
+        return ResponseEntity.ok(eventosService.getEventos(PageableFactory.crear(page, size)));
     }
 
     @GetMapping("/{id}")

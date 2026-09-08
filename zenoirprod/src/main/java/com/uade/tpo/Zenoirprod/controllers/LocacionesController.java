@@ -1,7 +1,6 @@
 package com.uade.tpo.Zenoirprod.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,7 +18,9 @@ import com.uade.tpo.Zenoirprod.entity.Locacion;
 import com.uade.tpo.Zenoirprod.entity.dto.LocacionRequest;
 import com.uade.tpo.Zenoirprod.exceptions.LocacionEnUsoException;
 import com.uade.tpo.Zenoirprod.exceptions.LocacionInexsistenteException;
+import com.uade.tpo.Zenoirprod.exceptions.PaginacionInvalidaException;
 import com.uade.tpo.Zenoirprod.service.LocacionService;
+import com.uade.tpo.Zenoirprod.util.PageableFactory;
 
 @RestController
 @RequestMapping("locaciones")
@@ -31,10 +32,8 @@ public class LocacionesController {
     @GetMapping
     public ResponseEntity<?> getLocaciones(
             @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer size) {
-        if (page == null || size == null)
-            return ResponseEntity.ok(locacionService.getLocaciones(PageRequest.of(0, Integer.MAX_VALUE)));
-        return ResponseEntity.ok(locacionService.getLocaciones(PageRequest.of(page, size)));
+            @RequestParam(required = false) Integer size) throws PaginacionInvalidaException {
+        return ResponseEntity.ok(locacionService.getLocaciones(PageableFactory.crear(page, size)));
     }
 
     @GetMapping("/{id}")

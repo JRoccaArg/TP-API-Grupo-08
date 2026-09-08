@@ -36,9 +36,6 @@ public class DetalleCompra {
     @Column(nullable = false)
     private Integer cantidad;
 
-    // Snapshot del precio al momento de la compra: si el precio o el descuento
-    // del EventoTipoEntrada cambian despues, la compra vieja mantiene lo que
-    // pago el usuario.
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal precioUnitario;
 

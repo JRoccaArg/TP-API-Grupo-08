@@ -1,7 +1,6 @@
 package com.uade.tpo.Zenoirprod.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -16,8 +15,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.uade.tpo.Zenoirprod.entity.TipoEntrada;
 import com.uade.tpo.Zenoirprod.entity.dto.TipoEntradaRequest;
+import com.uade.tpo.Zenoirprod.exceptions.PaginacionInvalidaException;
 import com.uade.tpo.Zenoirprod.exceptions.TipoEntradaInexistenteException;
 import com.uade.tpo.Zenoirprod.service.TipoEntradaService;
+import com.uade.tpo.Zenoirprod.util.PageableFactory;
 
 @RestController
 @RequestMapping("tiposEntrada")
@@ -29,10 +30,8 @@ public class TipoEntradasController {
     @GetMapping
     public ResponseEntity<?> getTiposEntrada(
             @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer size) {
-        if (page == null || size == null)
-            return ResponseEntity.ok(tipoEntradaService.getTiposEntrada(PageRequest.of(0, Integer.MAX_VALUE)));
-        return ResponseEntity.ok(tipoEntradaService.getTiposEntrada(PageRequest.of(page, size)));
+            @RequestParam(required = false) Integer size) throws PaginacionInvalidaException {
+        return ResponseEntity.ok(tipoEntradaService.getTiposEntrada(PageableFactory.crear(page, size)));
     }
 
     @GetMapping("/{id}")

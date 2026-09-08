@@ -26,13 +26,6 @@ import com.uade.tpo.Zenoirprod.repository.LocationRepository;
 import com.uade.tpo.Zenoirprod.repository.TipoEntradaRepository;
 import com.uade.tpo.Zenoirprod.repository.UserRepository;
 
-/**
- * Datos de prueba compartidos por las clases de test.
- *
- * Existe para que cuando alguien le agregue un campo obligatorio a una entidad
- * (paso con User.dni y con Evento.categoria) haya UN solo lugar que arreglar en
- * vez de repetir el mismo bloque de seed en cada test.
- */
 @Component
 public class TestFixtures {
 
@@ -47,7 +40,6 @@ public class TestFixtures {
     @Autowired private CategoryRepository categoryRepository;
     @Autowired private UserRepository userRepository;
 
-    /** Ids del escenario base, para que los tests no tengan que recordarlos. */
     public static class Escenario {
         public Integer usuarioId;
         public String usuarioEmail;
@@ -55,10 +47,9 @@ public class TestFixtures {
         public Integer eteId;
     }
 
-    /** Borra todo en orden seguro respecto de las foreign keys. */
     public void limpiar() {
-        compraRepository.deleteAll();      // arrastra detalles y tickets
-        carritoRepository.deleteAll();     // arrastra items_carrito
+        compraRepository.deleteAll();
+        carritoRepository.deleteAll();
         eventoTipoEntradaRepository.deleteAll();
         eventosRepository.deleteAll();
         tipoEntradaRepository.deleteAll();
@@ -67,11 +58,6 @@ public class TestFixtures {
         userRepository.deleteAll();
     }
 
-    /**
-     * Escenario minimo para poder comprar: un usuario, un evento ACTIVO con
-     * ventana de venta abierta, y un tipo de entrada a 15000 con 10% off y
-     * 100 unidades disponibles.
-     */
     public Escenario crearEscenarioBase() {
         Escenario e = new Escenario();
 
@@ -143,14 +129,12 @@ public class TestFixtures {
         return eventoTipoEntradaRepository.save(ete).getId();
     }
 
-    /** Pone el evento en CANCELADO: unico caso en que se permite cancelar compras. */
     public void cancelarEvento(Integer eventoId) {
         Evento evento = eventosRepository.findById(eventoId).orElseThrow();
         evento.setEstado("CANCELADO");
         eventosRepository.save(evento);
     }
 
-    /** Carrito ACTIVO para un usuario, creado directo por repositorio. */
     public Carrito crearCarrito(User usuario) {
         Carrito carrito = new Carrito();
         carrito.setUsuario(usuario);

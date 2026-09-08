@@ -108,8 +108,7 @@ class ComprasControllerTest {
 
     @Test
     void precioConDescuento_usaLaMismaFormulaQueElCatalogo() throws Exception {
-        // Caso real de divergencia: con la formula vieja de la compra daba 96.71
-        // y con la del catalogo 96.70. Ahora las dos pasan por PrecioCalculator.
+
         Evento evento = fixtures.crearEvento("Fiesta Redondeo", "ACTIVO");
         Integer eteId = fixtures.crearTipoEntradaParaEvento(
                 evento, "Redondeo", new BigDecimal("107.45"), new BigDecimal("10.00"), 10);
@@ -169,7 +168,7 @@ class ComprasControllerTest {
 
     @Test
     void crearCompra_itemNull_devuelve400() throws Exception {
-        // {"usuarioId":N,"items":[null]} antes explotaba con NPE -> 500
+
         String body = "{\"usuarioId\":" + esc.usuarioId + ",\"items\":[null]}";
         mockMvc.perform(post("/compras").contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isBadRequest());
@@ -340,7 +339,6 @@ class ComprasControllerTest {
         String qrUsado = json.readTree(body)
                 .get("detalles").get(0).get("tickets").get(0).get("codigoQr").asText();
 
-        // alguien entro a la fiesta con uno de los tres tickets
         mockMvc.perform(post("/tickets/qr/" + qrUsado + "/utilizar")
                 .with(user("admin@test.com").roles("ADMIN")))
                 .andExpect(status().isOk());

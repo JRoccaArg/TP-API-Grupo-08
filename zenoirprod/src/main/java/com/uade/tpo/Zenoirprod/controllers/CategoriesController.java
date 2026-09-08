@@ -10,7 +10,9 @@ import com.uade.tpo.Zenoirprod.exceptions.CategoryDuplicateException;
 import com.uade.tpo.Zenoirprod.exceptions.CategoryEnUsoException;
 import com.uade.tpo.Zenoirprod.exceptions.CategoryInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.CategoryInvalidaException;
+import com.uade.tpo.Zenoirprod.exceptions.PaginacionInvalidaException;
 import com.uade.tpo.Zenoirprod.service.CategoryService;
+import com.uade.tpo.Zenoirprod.util.PageableFactory;
 
 import java.net.URI;
 
@@ -18,7 +20,6 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -38,10 +39,8 @@ public class CategoriesController {
     @GetMapping
     public ResponseEntity<Page<Category>> getCategories(
             @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer size) {
-        if (page == null || size == null)
-            return ResponseEntity.ok(categoryService.getCategories(PageRequest.of(0, Integer.MAX_VALUE)));
-        return ResponseEntity.ok(categoryService.getCategories(PageRequest.of(page, size)));
+            @RequestParam(required = false) Integer size) throws PaginacionInvalidaException {
+        return ResponseEntity.ok(categoryService.getCategories(PageableFactory.crear(page, size)));
     }
 
     @GetMapping("/{categoryId}")
