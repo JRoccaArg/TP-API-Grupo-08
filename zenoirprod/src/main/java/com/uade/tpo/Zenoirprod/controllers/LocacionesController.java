@@ -1,6 +1,7 @@
 package com.uade.tpo.Zenoirprod.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.uade.tpo.Zenoirprod.entity.Locacion;
 import com.uade.tpo.Zenoirprod.entity.dto.LocacionRequest;
+import com.uade.tpo.Zenoirprod.entity.dto.LocacionResponse;
 import com.uade.tpo.Zenoirprod.exceptions.LocacionDuplicadaException;
 import com.uade.tpo.Zenoirprod.exceptions.LocacionEnUsoException;
 import com.uade.tpo.Zenoirprod.exceptions.LocacionInexsistenteException;
@@ -32,16 +34,17 @@ public class LocacionesController {
     private LocacionService locacionService;
 
     @GetMapping
-    public ResponseEntity<?> getLocaciones(
+    public ResponseEntity<Page<LocacionResponse>> getLocaciones(
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size) throws PaginacionInvalidaException {
-        return ResponseEntity.ok(locacionService.getLocaciones(PageableFactory.crear(page, size)));
+        Page<Locacion> pagina = locacionService.getLocaciones(PageableFactory.crear(page, size));
+        return ResponseEntity.ok(pagina.map(LocacionResponse::fromEntity));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Locacion> getLocacionPorId(@PathVariable Integer id) {
+    public ResponseEntity<LocacionResponse> getLocacionPorId(@PathVariable Integer id) {
         try {
-            return ResponseEntity.ok(locacionService.getLocacionPorId(id));
+            return ResponseEntity.ok(LocacionResponse.fromEntity(locacionService.getLocacionPorId(id)));
         } catch (LocacionInexsistenteException e) {
             return ResponseEntity.notFound().build();
         }
@@ -49,25 +52,27 @@ public class LocacionesController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Locacion> crearLocacion(@RequestBody LocacionRequest locacionRequest)
+    public ResponseEntity<LocacionResponse> crearLocacion(@RequestBody LocacionRequest locacionRequest)
             throws LocacionInvalidaException, LocacionDuplicadaException {
-        return ResponseEntity.ok(locacionService.crearLocacion(
+        Locacion creada = locacionService.crearLocacion(
                 locacionRequest.getNombre(),
                 locacionRequest.getDireccion(),
-                locacionRequest.getCapacidadMax()));
+                locacionRequest.getCapacidadMax());
+        return ResponseEntity.ok(LocacionResponse.fromEntity(creada));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Locacion> updateLocacion(@PathVariable Integer id,
+    public ResponseEntity<LocacionResponse> updateLocacion(@PathVariable Integer id,
             @RequestBody LocacionRequest locacionRequest)
             throws LocacionInvalidaException, LocacionDuplicadaException {
         try {
-            return ResponseEntity.ok(locacionService.updateLocacion(
+            Locacion actualizada = locacionService.updateLocacion(
                     id,
                     locacionRequest.getNombre(),
                     locacionRequest.getDireccion(),
-                    locacionRequest.getCapacidadMax()));
+                    locacionRequest.getCapacidadMax());
+            return ResponseEntity.ok(LocacionResponse.fromEntity(actualizada));
         } catch (LocacionInexsistenteException e) {
             return ResponseEntity.notFound().build();
         }

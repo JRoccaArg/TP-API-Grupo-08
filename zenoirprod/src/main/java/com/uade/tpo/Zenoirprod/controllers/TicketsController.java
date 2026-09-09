@@ -1,7 +1,5 @@
 package com.uade.tpo.Zenoirprod.controllers;
 
-import java.util.Optional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -11,7 +9,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.uade.tpo.Zenoirprod.entity.Ticket;
+import com.uade.tpo.Zenoirprod.entity.dto.TicketResponse;
 import com.uade.tpo.Zenoirprod.exceptions.TicketInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.TicketNoUtilizableException;
 import com.uade.tpo.Zenoirprod.service.TicketService;
@@ -24,22 +22,26 @@ public class TicketsController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or (hasRole('USER') and @authorizationService.puedeAccederTicket(#id, authentication))")
-    public ResponseEntity<Ticket> getPorId(@PathVariable Integer id) {
-        Optional<Ticket> resultado = service.getPorId(id);
-        return resultado.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<TicketResponse> getPorId(@PathVariable Integer id) {
+        return service.getPorId(id)
+                .map(TicketResponse::fromEntity)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping("/qr/{codigoQr}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Ticket> getPorCodigoQr(@PathVariable String codigoQr) {
-        Optional<Ticket> resultado = service.getPorCodigoQr(codigoQr);
-        return resultado.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<TicketResponse> getPorCodigoQr(@PathVariable String codigoQr) {
+        return service.getPorCodigoQr(codigoQr)
+                .map(TicketResponse::fromEntity)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping("/qr/{codigoQr}/utilizar")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Ticket> utilizar(@PathVariable String codigoQr)
+    public ResponseEntity<TicketResponse> utilizar(@PathVariable String codigoQr)
             throws TicketInexistenteException, TicketNoUtilizableException {
-        return ResponseEntity.ok(service.utilizar(codigoQr));
+        return ResponseEntity.ok(TicketResponse.fromEntity(service.utilizar(codigoQr)));
     }
 }

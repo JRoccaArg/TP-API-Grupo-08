@@ -1,7 +1,6 @@
 package com.uade.tpo.Zenoirprod.controllers;
 
 import java.net.URI;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -20,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.uade.tpo.Zenoirprod.entity.Carrito;
 import com.uade.tpo.Zenoirprod.entity.dto.ActualizarCantidadRequest;
 import com.uade.tpo.Zenoirprod.entity.dto.CarritoRequest;
+import com.uade.tpo.Zenoirprod.entity.dto.CarritoResponse;
 import com.uade.tpo.Zenoirprod.entity.dto.ItemCarritoRequest;
 import com.uade.tpo.Zenoirprod.exceptions.CarritoInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.CarritoInvalidoException;
@@ -42,63 +42,69 @@ public class CarritosController {
 
     @PostMapping
     @PreAuthorize("hasRole('USER') and @authorizationService.puedeUsarUsuario(#request.usuarioId, authentication)")
-    public ResponseEntity<Carrito> obtenerOCrearActivo(@RequestBody CarritoRequest request)
+    public ResponseEntity<CarritoResponse> obtenerOCrearActivo(@RequestBody CarritoRequest request)
             throws CarritoInvalidoException, UsuarioInexistenteException {
         Carrito carrito = service.obtenerOCrearActivo(request);
-        return ResponseEntity.created(URI.create("/carritos/" + carrito.getId())).body(carrito);
+        return ResponseEntity
+                .created(URI.create("/carritos/" + carrito.getId()))
+                .body(CarritoResponse.fromEntity(carrito));
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('USER') and @authorizationService.puedeAccederCarrito(#id, authentication)")
-    public ResponseEntity<Carrito> getPorId(@PathVariable Integer id) {
-        Optional<Carrito> resultado = service.getPorId(id);
-        return resultado.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<CarritoResponse> getPorId(@PathVariable Integer id) {
+        return service.getPorId(id)
+                .map(CarritoResponse::fromEntity)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping
     @PreAuthorize("hasRole('USER') and @authorizationService.puedeUsarUsuario(#usuarioId, authentication)")
-    public ResponseEntity<Page<Carrito>> getPorUsuario(@RequestParam Integer usuarioId,
+    public ResponseEntity<Page<CarritoResponse>> getPorUsuario(@RequestParam Integer usuarioId,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size) throws PaginacionInvalidaException {
-        return ResponseEntity.ok(service.getPorUsuario(usuarioId, PageableFactory.crear(page, size)));
+        Page<CarritoResponse> respuesta = service.getPorUsuario(usuarioId, PageableFactory.crear(page, size))
+                .map(CarritoResponse::fromEntity);
+        return ResponseEntity.ok(respuesta);
     }
 
     @PostMapping("/{id}/items")
     @PreAuthorize("hasRole('USER') and @authorizationService.puedeAccederCarrito(#id, authentication)")
-    public ResponseEntity<Carrito> agregarItem(@PathVariable Integer id, @RequestBody ItemCarritoRequest request)
+    public ResponseEntity<CarritoResponse> agregarItem(@PathVariable Integer id, @RequestBody ItemCarritoRequest request)
             throws CarritoInexistenteException, CarritoNoModificableException, ItemCarritoInvalidoException,
             EventoTipoEntradaInexistenteException, EventoTipoEntradaNoDisponibleException,
             StockInsuficienteException {
-        return ResponseEntity.ok(service.agregarItem(id, request));
+        return ResponseEntity.ok(CarritoResponse.fromEntity(service.agregarItem(id, request)));
     }
 
     @PatchMapping("/{id}/items/{itemId}")
     @PreAuthorize("hasRole('USER') and @authorizationService.puedeAccederCarrito(#id, authentication)")
-    public ResponseEntity<Carrito> actualizarCantidad(@PathVariable Integer id, @PathVariable Integer itemId,
+    public ResponseEntity<CarritoResponse> actualizarCantidad(@PathVariable Integer id, @PathVariable Integer itemId,
             @RequestBody ActualizarCantidadRequest request)
             throws CarritoInexistenteException, CarritoNoModificableException, ItemCarritoInexistenteException,
             ItemCarritoInvalidoException, StockInsuficienteException {
-        return ResponseEntity.ok(service.actualizarCantidad(id, itemId, request.getCantidad()));
+        return ResponseEntity.ok(CarritoResponse.fromEntity(service.actualizarCantidad(id, itemId, request.getCantidad())));
     }
 
     @DeleteMapping("/{id}/items/{itemId}")
     @PreAuthorize("hasRole('USER') and @authorizationService.puedeAccederCarrito(#id, authentication)")
-    public ResponseEntity<Carrito> quitarItem(@PathVariable Integer id, @PathVariable Integer itemId)
+    public ResponseEntity<CarritoResponse> quitarItem(@PathVariable Integer id, @PathVariable Integer itemId)
             throws CarritoInexistenteException, CarritoNoModificableException, ItemCarritoInexistenteException {
-        return ResponseEntity.ok(service.quitarItem(id, itemId));
+        return ResponseEntity.ok(CarritoResponse.fromEntity(service.quitarItem(id, itemId)));
     }
 
     @PostMapping("/{id}/vaciar")
     @PreAuthorize("hasRole('USER') and @authorizationService.puedeAccederCarrito(#id, authentication)")
-    public ResponseEntity<Carrito> vaciar(@PathVariable Integer id)
+    public ResponseEntity<CarritoResponse> vaciar(@PathVariable Integer id)
             throws CarritoInexistenteException, CarritoNoModificableException {
-        return ResponseEntity.ok(service.vaciar(id));
+        return ResponseEntity.ok(CarritoResponse.fromEntity(service.vaciar(id)));
     }
 
     @PostMapping("/{id}/abandonar")
     @PreAuthorize("hasRole('USER') and @authorizationService.puedeAccederCarrito(#id, authentication)")
-    public ResponseEntity<Carrito> abandonar(@PathVariable Integer id)
+    public ResponseEntity<CarritoResponse> abandonar(@PathVariable Integer id)
             throws CarritoInexistenteException, CarritoNoModificableException {
-        return ResponseEntity.ok(service.abandonar(id));
+        return ResponseEntity.ok(CarritoResponse.fromEntity(service.abandonar(id)));
     }
 }

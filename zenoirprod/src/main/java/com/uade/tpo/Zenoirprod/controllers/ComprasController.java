@@ -1,7 +1,6 @@
 package com.uade.tpo.Zenoirprod.controllers;
 
 import java.net.URI;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -17,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.uade.tpo.Zenoirprod.entity.Compra;
 import com.uade.tpo.Zenoirprod.entity.dto.CompraRequest;
+import com.uade.tpo.Zenoirprod.entity.dto.CompraResponse;
 import com.uade.tpo.Zenoirprod.exceptions.CarritoAjenoException;
 import com.uade.tpo.Zenoirprod.exceptions.CarritoInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.CarritoNoModificableException;
@@ -42,35 +42,41 @@ public class ComprasController {
 
     @PostMapping
     @PreAuthorize("hasRole('USER') and @authorizationService.puedeUsarUsuario(#request.usuarioId, authentication)")
-    public ResponseEntity<Compra> crear(@RequestBody CompraRequest request)
+    public ResponseEntity<CompraResponse> crear(@RequestBody CompraRequest request)
             throws CompraInvalidaException, UsuarioInexistenteException,
             EventoTipoEntradaInexistenteException, EventoTipoEntradaNoDisponibleException,
             StockInsuficienteException, VentaNoHabilitadaException, EventoNoDisponibleException,
             CarritoInexistenteException, CarritoAjenoException, CarritoNoModificableException {
         Compra compra = service.crearCompra(request);
-        return ResponseEntity.created(URI.create("/compras/" + compra.getId())).body(compra);
+        return ResponseEntity
+                .created(URI.create("/compras/" + compra.getId()))
+                .body(CompraResponse.fromEntity(compra));
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or ((hasRole('USER') and @authorizationService.puedeAccederCompra(#id, authentication)))")
-    public ResponseEntity<Compra> getPorId(@PathVariable Integer id) {
-        Optional<Compra> resultado = service.getPorId(id);
-        return resultado.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<CompraResponse> getPorId(@PathVariable Integer id) {
+        return service.getPorId(id)
+                .map(CompraResponse::fromEntity)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN') or ((hasRole('USER') and @authorizationService.puedeUsarUsuario(#usuarioId, authentication)))")
-    public ResponseEntity<Page<Compra>> getPorUsuario(@RequestParam Integer usuarioId,
+    public ResponseEntity<Page<CompraResponse>> getPorUsuario(@RequestParam Integer usuarioId,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size) throws PaginacionInvalidaException {
-        return ResponseEntity.ok(service.getPorUsuario(usuarioId, PageableFactory.crear(page, size)));
+        Page<CompraResponse> respuesta = service.getPorUsuario(usuarioId, PageableFactory.crear(page, size))
+                .map(CompraResponse::fromEntity);
+        return ResponseEntity.ok(respuesta);
     }
 
     @PostMapping("/{id}/cancelar")
     @PreAuthorize("hasRole('ADMIN') or ((hasRole('USER') and @authorizationService.puedeAccederCompra(#id, authentication)))")
-    public ResponseEntity<Compra> cancelar(@PathVariable Integer id)
+    public ResponseEntity<CompraResponse> cancelar(@PathVariable Integer id)
             throws CompraInexistenteException, CompraNoCancelableException,
             DevolucionNoPermitidaException {
-        return ResponseEntity.ok(service.cancelar(id));
+        return ResponseEntity.ok(CompraResponse.fromEntity(service.cancelar(id)));
     }
 }

@@ -1,8 +1,7 @@
 package com.uade.tpo.Zenoirprod.controllers;
 
-import java.net.URI;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -11,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.uade.tpo.Zenoirprod.entity.Evento;
 import com.uade.tpo.Zenoirprod.entity.dto.EventoRequest;
+import com.uade.tpo.Zenoirprod.entity.dto.EventoResponse;
 import com.uade.tpo.Zenoirprod.exceptions.EventoInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoEnUsoException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoInvalidoException;
@@ -30,9 +30,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-
-
-
 @RestController
 @RequestMapping("eventos")
 public class EventosController {
@@ -40,18 +37,21 @@ public class EventosController {
     private EventosService eventosService;
 
     @GetMapping
-    public ResponseEntity getEventos(
+    public ResponseEntity<Page<EventoResponse>> getEventos(
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size
     ) throws PaginacionInvalidaException {
-        return ResponseEntity.ok(eventosService.getEventos(PageableFactory.crear(page, size)));
+        Page<Evento> pagina = eventosService.getEventos(PageableFactory.crear(page, size));
+        return ResponseEntity.ok(pagina.map(EventoResponse::fromEntity));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Evento> getEventoPorId(@PathVariable Integer id) {
+    public ResponseEntity<EventoResponse> getEventoPorId(@PathVariable Integer id) {
         try {
-            return ResponseEntity.ok(eventosService.getEventoPorId(id)
-                    .orElseThrow(EventoInexistenteException::new));
+            return eventosService.getEventoPorId(id)
+                    .map(EventoResponse::fromEntity)
+                    .map(ResponseEntity::ok)
+                    .orElseGet(() -> ResponseEntity.notFound().build());
         } catch (EventoInexistenteException e) {
             return ResponseEntity.notFound().build();
         }
@@ -59,17 +59,18 @@ public class EventosController {
 
     @PatchMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity patchEvento(@PathVariable Integer id, @RequestBody EventoRequest eventoRequest) {
+    public ResponseEntity<EventoResponse> patchEvento(@PathVariable Integer id, @RequestBody EventoRequest eventoRequest) {
         try {
-            return ResponseEntity.ok(eventosService.updateEvento(id, eventoRequest.getTitulo(), eventoRequest.getDescripcion(),
+            Evento actualizado = eventosService.updateEvento(id, eventoRequest.getTitulo(), eventoRequest.getDescripcion(),
                     eventoRequest.getEstado(), eventoRequest.getLocacion_id(), eventoRequest.getCategoria_id(), eventoRequest.getFechaHoraInicio(),
-                    eventoRequest.getFechaHoraFin()));
+                    eventoRequest.getFechaHoraFin());
+            return ResponseEntity.ok(EventoResponse.fromEntity(actualizado));
         } catch (EventoInexistenteException e) {
             return ResponseEntity.notFound().build();
         } catch (LocacionInexsistenteException e) {
             return ResponseEntity.notFound().build();
         } catch (TituloEventoEnUsoException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).build(); //Esta version de Spring no tiene ResponseEntity.conflict()
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
         } catch (FechaEventoInvalidaException e) {
             return ResponseEntity.badRequest().build();
         } catch (EventoInvalidoException e) {
@@ -78,11 +79,10 @@ public class EventosController {
             return ResponseEntity.notFound().build();
         }
     }
-    
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity deleteEvento(@PathVariable Integer id) {
+    public ResponseEntity<Void> deleteEvento(@PathVariable Integer id) {
         try {
             eventosService.deleteEvento(id);
             return ResponseEntity.noContent().build();
@@ -92,31 +92,26 @@ public class EventosController {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
     }
-    
-    @PostMapping()
+
+    @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Evento> crearEvento(@RequestBody EventoRequest eventoRequest) {
+    public ResponseEntity<EventoResponse> postEvento(@RequestBody EventoRequest eventoRequest) {
         try {
             Evento creado = eventosService.crearEvento(eventoRequest.getTitulo(), eventoRequest.getDescripcion(),
-            eventoRequest.getEstado(), eventoRequest.getLocacion_id(), eventoRequest.getCategoria_id(), eventoRequest.getFechaHoraInicio(),
-            eventoRequest.getFechaHoraFin());
-            return ResponseEntity.created(URI.create("/eventos/" + creado.getId())).body(creado);
-        }
-        catch (LocacionInexsistenteException e) {
+                    eventoRequest.getEstado(), eventoRequest.getLocacion_id(), eventoRequest.getCategoria_id(), eventoRequest.getFechaHoraInicio(),
+                    eventoRequest.getFechaHoraFin());
+            return ResponseEntity.ok(EventoResponse.fromEntity(creado));
+        } catch (LocacionInexsistenteException e) {
             return ResponseEntity.notFound().build();
-        }
-        catch (TituloEventoEnUsoException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).build(); //Esta version de Spring no tiene ResponseEntity.conflict()
-        }
-        catch (FechaEventoInvalidaException e) {
+        } catch (TituloEventoEnUsoException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        } catch (FechaEventoInvalidaException e) {
             return ResponseEntity.badRequest().build();
-        }
-        catch (EventoInvalidoException e) {
+        } catch (EventoInvalidoException e) {
             return ResponseEntity.badRequest().build();
-        }
-        catch (CategoryInexistenteException e) {
+        } catch (CategoryInexistenteException e) {
             return ResponseEntity.notFound().build();
         }
     }
-    
+
 }
