@@ -12,6 +12,7 @@ import com.uade.tpo.Zenoirprod.entity.Evento;
 import com.uade.tpo.Zenoirprod.entity.dto.EventoRequest;
 import com.uade.tpo.Zenoirprod.entity.dto.EventoResponse;
 import com.uade.tpo.Zenoirprod.exceptions.EventoInexistenteException;
+import com.uade.tpo.Zenoirprod.exceptions.EventoEnUsoException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoInvalidoException;
 import com.uade.tpo.Zenoirprod.exceptions.CategoryInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.FechaEventoInvalidaException;
@@ -87,6 +88,8 @@ public class EventosController {
             return ResponseEntity.noContent().build();
         } catch (EventoInexistenteException e) {
             return ResponseEntity.notFound().build();
+        } catch (EventoEnUsoException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
     }
 

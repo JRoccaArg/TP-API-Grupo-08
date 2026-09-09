@@ -1,5 +1,38 @@
 # Decisiones
 
+## 2026-09-08 - Endurecimiento de auditoria (endpoints y reglas de negocio)
+
+`AuthorizationService` pasa a fallar cerrado: si falta el id o la autenticacion,
+o si el recurso (usuario, carrito, compra, ticket) no existe, no autoriza. Antes
+devolvia `true` por defecto (`orElse(true)`), lo que autorizaba ante recursos
+inexistentes o ids nulos.
+
+Toda compra debe nacer de un carrito propio y activo del usuario: `crearCompra`
+rechaza `carritoId == null` con `CompraInvalidaException`. Se elimina la compra
+directa sin carrito.
+
+La devolucion (cancelar compra) mantiene la politica actual: solo se reembolsa si
+el evento fue cancelado por el organizador. El usuario no cancela su compra por
+decision propia.
+
+Otros ajustes de consistencia: el estado de `EventoTipoEntrada` no puede
+contradecir el stock (`ACTIVO` con 0 disponible o `AGOTADO` con stock se
+rechazan); las fechas de venta nulas se interpretan como "sin restriccion" para
+evitar NPE; `utilizar` ticket usa bloqueo pesimista para evitar el doble uso; la
+unicidad de titulo de evento se valida con query (`existsByTitulo`) en lugar de
+`findAll().stream()`; y los endpoints devuelven `404` (no `400`) cuando la imagen
+no existe y `201 Created` al crear un evento.
+
+Ver [[contexto]] y [[arquitectura]].
+
+## 2026-09-08 - Consistencia de compras y datos relacionados
+
+Las operaciones que modifican carrito, compra o stock revierten todos sus cambios ante cualquier excepcion controlada. La compra bloquea el carrito y cada fila de stock mientras los procesa, valida que el carrito este activo y compara sus items con los solicitados.
+
+Los borrados de eventos, tipos de entrada y asociaciones evento-tipo se rechazan con `409 Conflict` cuando existen relaciones que deben conservarse. Las locaciones y tipos de entrada rechazan datos incompletos, capacidades no positivas y nombres duplicados.
+
+Ver [[contexto]] y [[arquitectura]].
+
 ## 2026-09-05 - Autenticacion sin estado mediante JWT
 
 Se adopta Spring Security con tokens JWT y sesiones `STATELESS`, siguiendo el flujo trabajado en clase. Esto permite que cada integrante agregue reglas por rol a sus endpoints sin volver a implementar el inicio de sesion.

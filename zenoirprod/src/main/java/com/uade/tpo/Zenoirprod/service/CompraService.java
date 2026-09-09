@@ -1,12 +1,15 @@
 package com.uade.tpo.Zenoirprod.service;
 
-import java.util.List;
 import java.util.Optional;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 
 import com.uade.tpo.Zenoirprod.entity.Compra;
 import com.uade.tpo.Zenoirprod.entity.dto.CompraRequest;
 import com.uade.tpo.Zenoirprod.exceptions.CarritoAjenoException;
 import com.uade.tpo.Zenoirprod.exceptions.CarritoInexistenteException;
+import com.uade.tpo.Zenoirprod.exceptions.CarritoNoModificableException;
 import com.uade.tpo.Zenoirprod.exceptions.CompraInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.CompraInvalidaException;
 import com.uade.tpo.Zenoirprod.exceptions.CompraNoCancelableException;
@@ -24,11 +27,11 @@ public interface CompraService {
             throws CompraInvalidaException, UsuarioInexistenteException,
             EventoTipoEntradaInexistenteException, EventoTipoEntradaNoDisponibleException,
             StockInsuficienteException, VentaNoHabilitadaException, EventoNoDisponibleException,
-            CarritoInexistenteException, CarritoAjenoException;
+            CarritoInexistenteException, CarritoAjenoException, CarritoNoModificableException;
 
     Optional<Compra> getPorId(Integer id);
 
-    List<Compra> getPorUsuario(Integer usuarioId);
+    Page<Compra> getPorUsuario(Integer usuarioId, PageRequest pageRequest);
 
     Compra cancelar(Integer id)
             throws CompraInexistenteException, CompraNoCancelableException,

@@ -4,8 +4,6 @@ API REST de venta de entradas para eventos. TPO de Aplicaciones Interactivas (UA
 
 ## Cómo levantarlo
 
-Único requisito: **JDK 17 o superior**. No hace falta instalar Maven (viene el wrapper) ni SQL Server.
-
 ```bash
 cd zenoirprod
 ./mvnw spring-boot:run
@@ -15,8 +13,20 @@ En Windows con CMD o PowerShell, usar `mvnw.cmd spring-boot:run`.
 
 La API queda en `http://localhost:8080`.
 
-Por defecto arranca con el perfil **`dev`**, que usa una base **H2 en memoria**: no hay que
-configurar nada y funciona en cualquier máquina. Los datos se pierden al apagar la aplicación.
+Por defecto arranca con el perfil **`sqlsrv`**, que se conecta al **SQL Server local**
+(`localhost:1433`, base `Zenoir_Prod`, usuario `sa`). Requiere tener SQL Server corriendo y la
+base `Zenoir_Prod` creada (ver más abajo). Cada valor se puede pisar con variables de entorno
+(`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`).
+
+### Alternativa sin instalar nada: H2 en memoria
+
+Si querés levantarlo en una máquina sin SQL Server, está el perfil **`dev`** (base H2 en
+memoria). Los datos se pierden al apagar la aplicación.
+
+```bash
+cd zenoirprod
+./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
+```
 
 Para inspeccionar la base: `http://localhost:8080/h2-console`
 (JDBC URL `jdbc:h2:mem:zenoir`, usuario `sa`, contraseña vacía).
@@ -163,3 +173,20 @@ Ya está resuelto en el `pom.xml` (Lombok fijado en 1.18.46 y declarado como
 
 **IntelliJ no reconoce los getters pero Maven compila** — habilitar
 `Settings > Build > Compiler > Annotation Processors > Enable annotation processing`.
+# Ejecutar con SQL Server
+
+El perfil por defecto es `sqlsrv` y conecta con SQL Server. La base indicada por
+`DB_NAME` debe existir antes de iniciar. Los valores por defecto apuntan a
+`localhost:1433`, base `Zenoir_Prod`, usuario `sa` y password vacia. Se pueden
+reemplazar sin editar archivos:
+
+```powershell
+$env:DB_NAME="Zenoir_Prod"
+$env:DB_USER="sa"
+$env:DB_PASSWORD="tu_password"
+cd zenoirprod
+.\mvnw.cmd spring-boot:run
+```
+
+Tambien esta disponible el perfil `dev` (base H2 en memoria) para levantar sin
+instalar SQL Server: `-Dspring-boot.run.profiles=dev`.

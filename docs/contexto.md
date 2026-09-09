@@ -4,7 +4,8 @@ Zenoir es una API para publicar eventos, administrar locaciones, tipos de entrad
 
 ## Estado actual
 
-- El proyecto levanta con el perfil `dev` y una base H2 en memoria.
+- El proyecto conecta con SQL Server mediante el perfil `sqlsrv` (por defecto).
+- Tambien levanta con el perfil `dev` y una base H2 en memoria.
 - Existe registro e inicio de sesion mediante JWT.
 - Los usuarios nuevos se registran con el rol `USER`.
 - Los endpoints de autenticacion y las consultas del catalogo son publicos.
@@ -24,6 +25,10 @@ Zenoir es una API para publicar eventos, administrar locaciones, tipos de entrad
 - Cada evento puede ofrecer distintos tipos de entrada con precio, descuento, stock y periodo de venta.
 - Las compras validan disponibilidad, descuentan stock y generan tickets; al cancelarse reponen el stock correspondiente.
 - Cada usuario puede tener un carrito activo con sus propios items de entrada.
+- Una compra asociada a un carrito solo se confirma si el carrito esta activo, pertenece al usuario y sus items coinciden con la solicitud.
+- La compra y la reposicion de entradas bloquean temporalmente el stock involucrado para evitar sobreventa por operaciones simultaneas.
+- Los eventos, tipos de entrada y asociaciones evento-tipo no se eliminan cuando tienen datos relacionados.
+- Las locaciones y tipos de entrada validan campos obligatorios, valores positivos y nombres duplicados.
 
 ## Decisiones clave
 

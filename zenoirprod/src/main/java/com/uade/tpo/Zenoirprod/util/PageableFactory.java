@@ -7,13 +7,15 @@ import com.uade.tpo.Zenoirprod.exceptions.PaginacionInvalidaException;
 public final class PageableFactory {
 
     public static final int SIZE_MAXIMO = 100;
+    public static final int PAGE_POR_DEFECTO = 0;
+    public static final int SIZE_POR_DEFECTO = 20;
 
     private PageableFactory() {
     }
 
     public static PageRequest crear(Integer page, Integer size) throws PaginacionInvalidaException {
         if (page == null && size == null) {
-            return PageRequest.of(0, Integer.MAX_VALUE);
+            return PageRequest.of(PAGE_POR_DEFECTO, SIZE_POR_DEFECTO);
         }
         if (page == null || size == null) {
             throw new PaginacionInvalidaException("Se deben enviar page y size juntos, o ninguno.");

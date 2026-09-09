@@ -6,6 +6,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,12 +18,15 @@ import com.uade.tpo.Zenoirprod.entity.TipoEntrada;
 import com.uade.tpo.Zenoirprod.entity.dto.EventoTipoEntradaRequest;
 import com.uade.tpo.Zenoirprod.exceptions.EventoInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaDuplicadoException;
+import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaEnUsoException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaInvalidoException;
 import com.uade.tpo.Zenoirprod.exceptions.StockInsuficienteException;
 import com.uade.tpo.Zenoirprod.exceptions.TipoEntradaInexistenteException;
 import com.uade.tpo.Zenoirprod.util.PrecioCalculator;
 import com.uade.tpo.Zenoirprod.repository.EventoTipoEntradaRepository;
+import com.uade.tpo.Zenoirprod.repository.CarritoRepository;
+import com.uade.tpo.Zenoirprod.repository.CompraRepository;
 
 @Service
 public class EventoTipoEntradaServiceImp implements EventoTipoEntradaService {
@@ -35,25 +40,33 @@ public class EventoTipoEntradaServiceImp implements EventoTipoEntradaService {
     @Autowired
     private TipoEntradaService tipoEntradaService;
 
+    @Autowired
+    private CarritoRepository carritoRepository;
+
+    @Autowired
+    private CompraRepository compraRepository;
+
     @Override
     public EventoTipoEntrada getPorId(Integer id) throws EventoTipoEntradaInexistenteException {
-        if (id == null || !eventoTipoEntradaRepository.existsById(id)) {
+        if (id == null) {
             throw new EventoTipoEntradaInexistenteException();
         }
-        return eventoTipoEntradaRepository.findById(id).get();
+        return eventoTipoEntradaRepository.findById(id)
+                .orElseThrow(EventoTipoEntradaInexistenteException::new);
     }
 
     @Override
-    public List<EventoTipoEntrada> getPorEvento(Integer eventoId) throws EventoInexistenteException {
+    public Page<EventoTipoEntrada> getPorEvento(Integer eventoId, PageRequest pageRequest)
+            throws EventoInexistenteException {
         if (eventoId == null) {
             throw new EventoInexistenteException();
         }
         eventosService.getEventoPorId(eventoId);
-        return eventoTipoEntradaRepository.findByEvento_Id(eventoId);
+        return eventoTipoEntradaRepository.findByEvento_Id(eventoId, pageRequest);
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public EventoTipoEntrada crear(EventoTipoEntradaRequest request)
             throws EventoTipoEntradaInvalidoException, EventoTipoEntradaDuplicadoException,
             EventoInexistenteException, TipoEntradaInexistenteException {
@@ -88,7 +101,7 @@ public class EventoTipoEntradaServiceImp implements EventoTipoEntradaService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public EventoTipoEntrada actualizar(Integer id, EventoTipoEntradaRequest request)
             throws EventoTipoEntradaInexistenteException, EventoTipoEntradaInvalidoException {
 
@@ -142,6 +155,15 @@ public class EventoTipoEntradaServiceImp implements EventoTipoEntradaService {
         }
 
         if (request.getEstado() != null) {
+            // El estado no puede contradecir el stock real de la entrada.
+            if (request.getEstado() == EstadoEventoTipoEntrada.ACTIVO
+                    && entrada.getCantidadDisponible() == 0) {
+                throw new EventoTipoEntradaInvalidoException();
+            }
+            if (request.getEstado() == EstadoEventoTipoEntrada.AGOTADO
+                    && entrada.getCantidadDisponible() > 0) {
+                throw new EventoTipoEntradaInvalidoException();
+            }
             entrada.setEstado(request.getEstado());
         }
 
@@ -149,8 +171,13 @@ public class EventoTipoEntradaServiceImp implements EventoTipoEntradaService {
     }
 
     @Override
-    public void eliminar(Integer id) throws EventoTipoEntradaInexistenteException {
+    public void eliminar(Integer id)
+            throws EventoTipoEntradaInexistenteException, EventoTipoEntradaEnUsoException {
         EventoTipoEntrada entrada = getPorId(id);
+        if (carritoRepository.existsByItems_EventoTipoEntrada_Id(id)
+                || compraRepository.existsByDetalles_EventoTipoEntrada_Id(id)) {
+            throw new EventoTipoEntradaEnUsoException();
+        }
         eventoTipoEntradaRepository.delete(entrada);
     }
 
@@ -175,17 +202,15 @@ public class EventoTipoEntradaServiceImp implements EventoTipoEntradaService {
         EventoTipoEntrada entrada = getPorId(id);
         LocalDateTime ahora = LocalDateTime.now();
 
-        boolean ventaEnFecha = !ahora.isBefore(entrada.getFechaInicioVenta())
-                && !ahora.isAfter(entrada.getFechaFinVenta());
         boolean entradaActiva = entrada.getEstado() == EstadoEventoTipoEntrada.ACTIVO;
         boolean eventoActivo = "ACTIVO".equalsIgnoreCase(entrada.getEvento().getEstado());
         boolean hayStock = entrada.getCantidadDisponible() >= cantidad;
 
-        return ventaEnFecha && entradaActiva && eventoActivo && hayStock;
+        return ventaEnFecha(entrada, ahora) && entradaActiva && eventoActivo && hayStock;
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void descontarStock(Integer id, Integer cantidad)
             throws EventoTipoEntradaInexistenteException, EventoTipoEntradaInvalidoException, StockInsuficienteException {
 
@@ -193,15 +218,14 @@ public class EventoTipoEntradaServiceImp implements EventoTipoEntradaService {
             throw new EventoTipoEntradaInvalidoException();
         }
 
-        EventoTipoEntrada entrada = getPorId(id);
+        EventoTipoEntrada entrada = eventoTipoEntradaRepository.findByIdForUpdate(id)
+                .orElseThrow(EventoTipoEntradaInexistenteException::new);
         LocalDateTime ahora = LocalDateTime.now();
 
-        boolean ventaEnFecha = !ahora.isBefore(entrada.getFechaInicioVenta())
-                && !ahora.isAfter(entrada.getFechaFinVenta());
         boolean entradaActiva = entrada.getEstado() == EstadoEventoTipoEntrada.ACTIVO;
         boolean eventoActivo = "ACTIVO".equalsIgnoreCase(entrada.getEvento().getEstado());
 
-        if (!ventaEnFecha || !entradaActiva || !eventoActivo) {
+        if (!ventaEnFecha(entrada, ahora) || !entradaActiva || !eventoActivo) {
             throw new EventoTipoEntradaInvalidoException();
         }
 
@@ -217,7 +241,7 @@ public class EventoTipoEntradaServiceImp implements EventoTipoEntradaService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void reponerStock(Integer id, Integer cantidad)
             throws EventoTipoEntradaInexistenteException, EventoTipoEntradaInvalidoException {
 
@@ -225,7 +249,8 @@ public class EventoTipoEntradaServiceImp implements EventoTipoEntradaService {
             throw new EventoTipoEntradaInvalidoException();
         }
 
-        EventoTipoEntrada entrada = getPorId(id);
+        EventoTipoEntrada entrada = eventoTipoEntradaRepository.findByIdForUpdate(id)
+                .orElseThrow(EventoTipoEntradaInexistenteException::new);
         int nuevoDisponible = entrada.getCantidadDisponible() + cantidad;
 
         if (nuevoDisponible > entrada.getCantidadTotal()) {
@@ -237,6 +262,16 @@ public class EventoTipoEntradaServiceImp implements EventoTipoEntradaService {
             entrada.setEstado(EstadoEventoTipoEntrada.ACTIVO);
         }
         eventoTipoEntradaRepository.save(entrada);
+    }
+
+    // Una fecha de inicio/fin nula significa "sin restricción" en ese extremo,
+    // igual que en CompraServiceImpl. Evita NPE si la entrada quedara sin fechas.
+    private boolean ventaEnFecha(EventoTipoEntrada entrada, LocalDateTime ahora) {
+        boolean inicioOk = entrada.getFechaInicioVenta() == null
+                || !ahora.isBefore(entrada.getFechaInicioVenta());
+        boolean finOk = entrada.getFechaFinVenta() == null
+                || !ahora.isAfter(entrada.getFechaFinVenta());
+        return inicioOk && finOk;
     }
 
     private void validarRequestCreacion(EventoTipoEntradaRequest request)

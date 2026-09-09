@@ -1,9 +1,9 @@
 package com.uade.tpo.Zenoirprod.controllers;
 
 import java.net.URI;
-import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,6 +19,7 @@ import com.uade.tpo.Zenoirprod.entity.dto.CompraRequest;
 import com.uade.tpo.Zenoirprod.entity.dto.CompraResponse;
 import com.uade.tpo.Zenoirprod.exceptions.CarritoAjenoException;
 import com.uade.tpo.Zenoirprod.exceptions.CarritoInexistenteException;
+import com.uade.tpo.Zenoirprod.exceptions.CarritoNoModificableException;
 import com.uade.tpo.Zenoirprod.exceptions.CompraInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.CompraInvalidaException;
 import com.uade.tpo.Zenoirprod.exceptions.CompraNoCancelableException;
@@ -26,10 +27,12 @@ import com.uade.tpo.Zenoirprod.exceptions.DevolucionNoPermitidaException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoNoDisponibleException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaNoDisponibleException;
+import com.uade.tpo.Zenoirprod.exceptions.PaginacionInvalidaException;
 import com.uade.tpo.Zenoirprod.exceptions.StockInsuficienteException;
 import com.uade.tpo.Zenoirprod.exceptions.UsuarioInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.VentaNoHabilitadaException;
 import com.uade.tpo.Zenoirprod.service.CompraService;
+import com.uade.tpo.Zenoirprod.util.PageableFactory;
 
 @RestController
 @RequestMapping("compras")
@@ -43,7 +46,7 @@ public class ComprasController {
             throws CompraInvalidaException, UsuarioInexistenteException,
             EventoTipoEntradaInexistenteException, EventoTipoEntradaNoDisponibleException,
             StockInsuficienteException, VentaNoHabilitadaException, EventoNoDisponibleException,
-            CarritoInexistenteException, CarritoAjenoException {
+            CarritoInexistenteException, CarritoAjenoException, CarritoNoModificableException {
         Compra compra = service.crearCompra(request);
         return ResponseEntity
                 .created(URI.create("/compras/" + compra.getId()))
@@ -61,11 +64,11 @@ public class ComprasController {
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN') or ((hasRole('USER') and @authorizationService.puedeUsarUsuario(#usuarioId, authentication)))")
-    public ResponseEntity<List<CompraResponse>> getPorUsuario(@RequestParam Integer usuarioId) {
-        List<CompraResponse> respuesta = service.getPorUsuario(usuarioId)
-                .stream()
-                .map(CompraResponse::fromEntity)
-                .toList();
+    public ResponseEntity<Page<CompraResponse>> getPorUsuario(@RequestParam Integer usuarioId,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size) throws PaginacionInvalidaException {
+        Page<CompraResponse> respuesta = service.getPorUsuario(usuarioId, PageableFactory.crear(page, size))
+                .map(CompraResponse::fromEntity);
         return ResponseEntity.ok(respuesta);
     }
 

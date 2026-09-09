@@ -7,5 +7,8 @@ import com.uade.tpo.Zenoirprod.entity.Locacion;
 
 @Repository
 public interface LocationRepository extends JpaRepository<Locacion, Integer> {
-    
+
+    boolean existsByNombreIgnoreCase(String nombre);
+
+    boolean existsByNombreIgnoreCaseAndIdNot(String nombre, Integer id);
 }

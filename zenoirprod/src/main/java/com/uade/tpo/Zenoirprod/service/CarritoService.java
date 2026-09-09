@@ -1,7 +1,9 @@
 package com.uade.tpo.Zenoirprod.service;
 
-import java.util.List;
 import java.util.Optional;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 
 import com.uade.tpo.Zenoirprod.entity.Carrito;
 import com.uade.tpo.Zenoirprod.entity.dto.CarritoRequest;
@@ -24,7 +26,7 @@ public interface CarritoService {
 
     Optional<Carrito> getPorId(Integer id);
 
-    List<Carrito> getPorUsuario(Integer usuarioId);
+    Page<Carrito> getPorUsuario(Integer usuarioId, PageRequest pageRequest);
 
     Carrito agregarItem(Integer carritoId, ItemCarritoRequest request)
             throws CarritoInexistenteException, CarritoNoModificableException, ItemCarritoInvalidoException,

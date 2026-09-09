@@ -12,11 +12,13 @@ import org.springframework.stereotype.Service;
 import com.uade.tpo.Zenoirprod.entity.Evento;
 import com.uade.tpo.Zenoirprod.exceptions.CategoryInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoInexistenteException;
+import com.uade.tpo.Zenoirprod.exceptions.EventoEnUsoException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoInvalidoException;
 import com.uade.tpo.Zenoirprod.exceptions.FechaEventoInvalidaException;
 import com.uade.tpo.Zenoirprod.exceptions.LocacionInexsistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.TituloEventoEnUsoException;
 import com.uade.tpo.Zenoirprod.repository.EventosRepository;
+import com.uade.tpo.Zenoirprod.repository.EventoTipoEntradaRepository;
 import com.uade.tpo.Zenoirprod.repository.LocationRepository;
 import com.uade.tpo.Zenoirprod.repository.CategoryRepository;
 
@@ -32,6 +34,8 @@ public class EventosServiceImp implements EventosService {
     private LocationRepository locacionRepository;
     @Autowired
     private CategoryRepository categoryRepository;
+    @Autowired
+    private EventoTipoEntradaRepository eventoTipoEntradaRepository;
 
 
     public Page<Evento> getEventos(PageRequest pageRequest) {
@@ -40,17 +44,18 @@ public class EventosServiceImp implements EventosService {
 
 
     public Optional<Evento> getEventoPorId(Integer id) throws EventoInexistenteException {
-        if (!eventosRepository.existsById(id)) {
-            throw new EventoInexistenteException();
-        }
-        return eventosRepository.findById(id);
+        return Optional.of(eventosRepository.findById(id)
+                .orElseThrow(EventoInexistenteException::new));
     }
 
 
 
-    public void deleteEvento(Integer id) throws EventoInexistenteException {
+    public void deleteEvento(Integer id) throws EventoInexistenteException, EventoEnUsoException {
         if (!eventosRepository.existsById(id)) {
             throw new EventoInexistenteException();
+        }
+        if (eventoTipoEntradaRepository.existsByEvento_Id(id)) {
+            throw new EventoEnUsoException();
         }
         eventosRepository.deleteById(id);
     }
@@ -66,7 +71,7 @@ public class EventosServiceImp implements EventosService {
         if (!categoryRepository.existsById(categoria_id)) {
             throw new CategoryInexistenteException();
         }
-        if (eventosRepository.findAll().stream().anyMatch(evento -> evento.getTitulo().equals(titulo))) {
+        if (eventosRepository.existsByTitulo(titulo)) {
             throw new TituloEventoEnUsoException();
         }
         validarFechas(fechaHoraInicio, fechaHoraFin, true);
@@ -97,7 +102,7 @@ public class EventosServiceImp implements EventosService {
         if (estado != null && !ESTADOS_VALIDOS.contains(estado)) {
             throw new EventoInvalidoException();
         }
-        if (titulo != null && eventosRepository.findAll().stream().anyMatch(evento -> evento.getTitulo().equals(titulo) && !evento.getId().equals(id))) {
+        if (titulo != null && eventosRepository.existsByTituloAndIdNot(titulo, id)) {
             throw new TituloEventoEnUsoException();
         }
         if (locacion_id != null && !locacionRepository.existsById(locacion_id)) {

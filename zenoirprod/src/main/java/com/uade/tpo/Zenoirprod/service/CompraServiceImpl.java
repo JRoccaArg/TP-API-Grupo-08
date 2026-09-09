@@ -3,11 +3,16 @@ package com.uade.tpo.Zenoirprod.service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +30,7 @@ import com.uade.tpo.Zenoirprod.entity.dto.CompraRequest;
 import com.uade.tpo.Zenoirprod.entity.dto.CompraRequest.ItemCompraRequest;
 import com.uade.tpo.Zenoirprod.exceptions.CarritoAjenoException;
 import com.uade.tpo.Zenoirprod.exceptions.CarritoInexistenteException;
+import com.uade.tpo.Zenoirprod.exceptions.CarritoNoModificableException;
 import com.uade.tpo.Zenoirprod.exceptions.CompraInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.CompraInvalidaException;
 import com.uade.tpo.Zenoirprod.exceptions.CompraNoCancelableException;
@@ -59,21 +65,26 @@ public class CompraServiceImpl implements CompraService {
             throws CompraInvalidaException, UsuarioInexistenteException,
             EventoTipoEntradaInexistenteException, EventoTipoEntradaNoDisponibleException,
             StockInsuficienteException, VentaNoHabilitadaException, EventoNoDisponibleException,
-            CarritoInexistenteException, CarritoAjenoException {
+            CarritoInexistenteException, CarritoAjenoException, CarritoNoModificableException {
 
         validarShape(request);
 
         User usuario = userRepository.findById(request.getUsuarioId())
                 .orElseThrow(UsuarioInexistenteException::new);
 
+        // Toda compra debe nacer de un carrito propio y activo del usuario.
         Carrito carrito = resolverCarrito(request.getCarritoId(), usuario);
+        validarItemsCarrito(carrito, request.getItems());
 
         List<DetalleCompra> detalles = new ArrayList<>();
         BigDecimal total = BigDecimal.ZERO;
         LocalDateTime ahora = LocalDateTime.now();
 
-        for (ItemCompraRequest item : request.getItems()) {
-            EventoTipoEntrada ete = eventoTipoEntradaRepository.findById(item.getEventoTipoEntradaId())
+        List<ItemCompraRequest> itemsOrdenados = new ArrayList<>(request.getItems());
+        itemsOrdenados.sort(Comparator.comparing(ItemCompraRequest::getEventoTipoEntradaId));
+
+        for (ItemCompraRequest item : itemsOrdenados) {
+            EventoTipoEntrada ete = eventoTipoEntradaRepository.findByIdForUpdate(item.getEventoTipoEntradaId())
                     .orElseThrow(EventoTipoEntradaInexistenteException::new);
 
             validarDisponibilidad(ete, item.getCantidad(), ahora);
@@ -105,11 +116,9 @@ public class CompraServiceImpl implements CompraService {
 
         Compra guardada = compraRepository.save(compra);
 
-        if (carrito != null) {
-            carrito.setEstado(EstadoCarrito.CONVERTIDO);
-            carrito.setFechaActualizacion(ahora);
-            carritoRepository.save(carrito);
-        }
+        carrito.setEstado(EstadoCarrito.CONVERTIDO);
+        carrito.setFechaActualizacion(ahora);
+        carritoRepository.save(carrito);
 
         return guardada;
     }
@@ -120,8 +129,8 @@ public class CompraServiceImpl implements CompraService {
     }
 
     @Override
-    public List<Compra> getPorUsuario(Integer usuarioId) {
-        return compraRepository.findByUsuario_IdOrderByFechaCompraDesc(usuarioId);
+    public Page<Compra> getPorUsuario(Integer usuarioId, PageRequest pageRequest) {
+        return compraRepository.findByUsuario_IdOrderByFechaCompraDesc(usuarioId, pageRequest);
     }
 
     @Override
@@ -144,7 +153,9 @@ public class CompraServiceImpl implements CompraService {
         }
 
         for (DetalleCompra detalle : compra.getDetalles()) {
-            EventoTipoEntrada ete = detalle.getEventoTipoEntrada();
+            EventoTipoEntrada ete = eventoTipoEntradaRepository
+                    .findByIdForUpdate(detalle.getEventoTipoEntrada().getId())
+                    .orElseThrow(CompraNoCancelableException::new);
 
             int aDevolver = 0;
             for (Ticket ticket : detalle.getTickets()) {
@@ -164,16 +175,35 @@ public class CompraServiceImpl implements CompraService {
     }
 
     private Carrito resolverCarrito(Integer carritoId, User usuario)
-            throws CarritoInexistenteException, CarritoAjenoException {
+            throws CompraInvalidaException, CarritoInexistenteException, CarritoAjenoException,
+            CarritoNoModificableException {
         if (carritoId == null) {
-            return null;
+            throw new CompraInvalidaException();
         }
-        Carrito carrito = carritoRepository.findById(carritoId)
+        Carrito carrito = carritoRepository.findByIdForUpdate(carritoId)
                 .orElseThrow(CarritoInexistenteException::new);
         if (!carrito.getUsuario().getId().equals(usuario.getId())) {
             throw new CarritoAjenoException();
         }
+        if (carrito.getEstado() != EstadoCarrito.ACTIVO) {
+            throw new CarritoNoModificableException();
+        }
         return carrito;
+    }
+
+    private void validarItemsCarrito(Carrito carrito, List<ItemCompraRequest> itemsCompra)
+            throws CompraInvalidaException {
+        Map<Integer, Integer> cantidadesCarrito = new HashMap<>();
+        carrito.getItems().forEach(item -> cantidadesCarrito.merge(
+                item.getEventoTipoEntrada().getId(), item.getCantidad(), Integer::sum));
+
+        Map<Integer, Integer> cantidadesCompra = new HashMap<>();
+        itemsCompra.forEach(item -> cantidadesCompra.merge(
+                item.getEventoTipoEntradaId(), item.getCantidad(), Integer::sum));
+
+        if (cantidadesCarrito.isEmpty() || !cantidadesCarrito.equals(cantidadesCompra)) {
+            throw new CompraInvalidaException();
+        }
     }
 
     private void validarDisponibilidad(EventoTipoEntrada ete, int cantidad, LocalDateTime ahora)

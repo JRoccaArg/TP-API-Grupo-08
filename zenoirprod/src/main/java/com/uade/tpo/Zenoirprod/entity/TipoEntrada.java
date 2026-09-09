@@ -17,12 +17,12 @@ public class TipoEntrada {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column
+    @Column(nullable = false, unique = true, length = 100)
     private String nombre;
 
-    @Column(name = "descripcion_base")
+    @Column(name = "descripcion_base", nullable = false, length = 500)
     private String descripcionBase;
 
-    @Column
+    @Column(nullable = false)
     private Boolean activo;
 }
