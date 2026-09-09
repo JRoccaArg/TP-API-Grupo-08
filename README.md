@@ -4,7 +4,8 @@ API REST de venta de entradas para eventos. TPO de Aplicaciones Interactivas (UA
 
 ## Cómo levantarlo
 
-Único requisito: **JDK 17 o superior**. No hace falta instalar Maven (viene el wrapper) ni SQL Server.
+> **Rama de la exposición oral.** Por defecto usa **SQL Server** con la base cargada
+> (usuarios, eventos, entradas, carritos, compra con tickets e imágenes del oral).
 
 ```bash
 cd zenoirprod
@@ -15,8 +16,29 @@ En Windows con CMD o PowerShell, usar `mvnw.cmd spring-boot:run`.
 
 La API queda en `http://localhost:8080`.
 
-Por defecto arranca con el perfil **`dev`**, que usa una base **H2 en memoria**: no hay que
-configurar nada y funciona en cualquier máquina. Los datos se pierden al apagar la aplicación.
+Por defecto arranca con el perfil **`demo-sqlsrv`**, que se conecta al **SQL Server local**
+(`localhost:1433`, base `Zenoir_Prod`, usuario `sa`) y ejecuta la **precarga del oral** en el
+primer arranque. La conexión ya viene configurada, no hay que pasar nada a mano. Requiere tener
+SQL Server corriendo y la base `Zenoir_Prod` creada (ver más abajo). Cada valor se puede pisar
+con variables de entorno (`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`).
+
+Los datos de acceso que imprime la precarga en consola al arrancar:
+
+| Rol | Email | Password |
+|---|---|---|
+| ADMIN | `admin@zenoir.demo` | `Admin123` |
+| USER | `sofia@zenoir.demo` | `Sofia123` |
+| USER (limpio) | `lucas@zenoir.demo` | `Lucas123` |
+
+### Alternativa sin instalar nada: H2 en memoria
+
+Si querés levantarlo en una máquina sin SQL Server, está el perfil **`dev`** (base H2 en
+memoria, sin precarga del oral). Los datos se pierden al apagar la aplicación.
+
+```bash
+cd zenoirprod
+./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
+```
 
 Para inspeccionar la base: `http://localhost:8080/h2-console`
 (JDBC URL `jdbc:h2:mem:zenoir`, usuario `sa`, contraseña vacía).
