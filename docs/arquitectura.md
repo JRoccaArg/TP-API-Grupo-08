@@ -15,6 +15,16 @@ Las operaciones administrativas usan `hasRole('ADMIN')`. Los recursos propios co
 
 Ver [[contexto]] y [[decisiones]].
 
+## Consistencia de compra
+
+1. Se bloquea el carrito indicado y se valida propietario, estado e items.
+2. Los tipos de entrada se ordenan por id para adquirir sus bloqueos siempre en el mismo orden.
+3. Cada stock se vuelve a leer bloqueado antes de validarlo y descontarlo.
+4. Si cualquier paso falla, `@Transactional(rollbackFor = Exception.class)` revierte la operacion completa.
+5. Al confirmar, la compra queda vinculada y el carrito pasa a `CONVERTIDO`.
+
+Los servicios consultan las relaciones antes de borrar entidades referenciadas y devuelven un conflicto controlado en lugar de delegar el error a la base de datos.
+
 ## Imagenes de eventos
 
 Los datos binarios se guardan como `byte[]` mediante `@Lob`. Las respuestas JSON muestran los metadatos y omiten los bytes. El contenido se descarga desde el endpoint terminado en `/archivo`, que conserva el tipo de contenido original.

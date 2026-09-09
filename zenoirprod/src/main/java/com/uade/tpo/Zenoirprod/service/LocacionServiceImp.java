@@ -6,8 +6,10 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import com.uade.tpo.Zenoirprod.entity.Locacion;
+import com.uade.tpo.Zenoirprod.exceptions.LocacionDuplicadaException;
 import com.uade.tpo.Zenoirprod.exceptions.LocacionEnUsoException;
 import com.uade.tpo.Zenoirprod.exceptions.LocacionInexsistenteException;
+import com.uade.tpo.Zenoirprod.exceptions.LocacionInvalidaException;
 import com.uade.tpo.Zenoirprod.repository.EventosRepository;
 import com.uade.tpo.Zenoirprod.repository.LocationRepository;
 
@@ -30,19 +32,28 @@ public class LocacionServiceImp implements LocacionService {
                 .orElseThrow(LocacionInexsistenteException::new);
     }
 
-    public Locacion crearLocacion(String nombre, String direccion, Integer capacidadMax) {
+    public Locacion crearLocacion(String nombre, String direccion, Integer capacidadMax)
+            throws LocacionInvalidaException, LocacionDuplicadaException {
+        validarDatos(nombre, direccion, capacidadMax);
+        if (locacionRepository.existsByNombreIgnoreCase(nombre.trim())) {
+            throw new LocacionDuplicadaException();
+        }
         Locacion locacion = new Locacion();
-        locacion.setNombre(nombre);
-        locacion.setDireccion(direccion);
+        locacion.setNombre(nombre.trim());
+        locacion.setDireccion(direccion.trim());
         locacion.setCapacidadMax(capacidadMax);
         return locacionRepository.save(locacion);
     }
 
     public Locacion updateLocacion(Integer id, String nombre, String direccion, Integer capacidadMax)
-            throws LocacionInexsistenteException {
+            throws LocacionInexsistenteException, LocacionInvalidaException, LocacionDuplicadaException {
         Locacion locacion = getLocacionPorId(id);
-        locacion.setNombre(nombre);
-        locacion.setDireccion(direccion);
+        validarDatos(nombre, direccion, capacidadMax);
+        if (locacionRepository.existsByNombreIgnoreCaseAndIdNot(nombre.trim(), id)) {
+            throw new LocacionDuplicadaException();
+        }
+        locacion.setNombre(nombre.trim());
+        locacion.setDireccion(direccion.trim());
         locacion.setCapacidadMax(capacidadMax);
         return locacionRepository.save(locacion);
     }
@@ -56,5 +67,14 @@ public class LocacionServiceImp implements LocacionService {
             throw new LocacionEnUsoException();
         }
         locacionRepository.deleteById(id);
+    }
+
+    private void validarDatos(String nombre, String direccion, Integer capacidadMax)
+            throws LocacionInvalidaException {
+        if (nombre == null || nombre.isBlank()
+                || direccion == null || direccion.isBlank()
+                || capacidadMax == null || capacidadMax <= 0) {
+            throw new LocacionInvalidaException();
+        }
     }
 }

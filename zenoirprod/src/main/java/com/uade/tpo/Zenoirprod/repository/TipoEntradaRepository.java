@@ -8,4 +8,7 @@ import com.uade.tpo.Zenoirprod.entity.TipoEntrada;
 @Repository
 public interface TipoEntradaRepository extends JpaRepository<TipoEntrada, Integer> {
 
+    boolean existsByNombreIgnoreCase(String nombre);
+
+    boolean existsByNombreIgnoreCaseAndIdNot(String nombre, Integer id);
 }

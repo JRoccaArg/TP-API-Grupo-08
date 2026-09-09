@@ -1,10 +1,10 @@
 package com.uade.tpo.Zenoirprod.controllers;
 
 import java.net.URI;
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.uade.tpo.Zenoirprod.entity.ImagenLocacion;
@@ -23,7 +24,9 @@ import com.uade.tpo.Zenoirprod.entity.dto.ImagenLocacionRequest;
 import com.uade.tpo.Zenoirprod.exceptions.ImagenLocacionInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.ImagenLocacionInvalidaException;
 import com.uade.tpo.Zenoirprod.exceptions.LocacionInexsistenteException;
+import com.uade.tpo.Zenoirprod.exceptions.PaginacionInvalidaException;
 import com.uade.tpo.Zenoirprod.service.ImagenLocacionService;
+import com.uade.tpo.Zenoirprod.util.PageableFactory;
 
 @RestController
 @RequestMapping
@@ -33,16 +36,19 @@ public class ImagenLocacionController {
     private ImagenLocacionService imagenLocacionService;
 
     @GetMapping("locaciones/{locacionId}/imagenes")
-    public ResponseEntity<List<ImagenLocacion>> getImagenesPorLocacionId(@PathVariable Integer locacionId) {
+    public ResponseEntity<Page<ImagenLocacion>> getImagenesPorLocacionId(@PathVariable Integer locacionId,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size) {
         try {
-            List<ImagenLocacion> imagenes = imagenLocacionService.getImagenesPorLocacionId(locacionId);
-            if (imagenes.isEmpty()) {
-                return ResponseEntity.noContent().build();
-            }
+            Page<ImagenLocacion> imagenes = imagenLocacionService.getImagenesPorLocacionId(
+                    locacionId, PageableFactory.crear(page, size));
             return ResponseEntity.ok(imagenes);
         }
         catch (LocacionInexsistenteException e) {
             return ResponseEntity.notFound().build();
+        }
+        catch (PaginacionInvalidaException e) {
+            return ResponseEntity.badRequest().build();
         }
         catch (Exception e) {
             return ResponseEntity.status(500).build();
@@ -58,7 +64,7 @@ public class ImagenLocacionController {
             if (imagen.isPresent()) {
                 return ResponseEntity.ok(imagen.get());
             }
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.notFound().build();
         }
         catch (LocacionInexsistenteException e) {
             return ResponseEntity.notFound().build();
@@ -75,7 +81,7 @@ public class ImagenLocacionController {
             Optional<ImagenLocacion> imagen = imagenLocacionService
                     .getImagenPorLocacionIdYImagenId(locacionId, imagenId);
             if (imagen.isEmpty()) {
-                return ResponseEntity.badRequest().build();
+                return ResponseEntity.notFound().build();
             }
             return ResponseEntity.ok()
                     .contentType(MediaType.parseMediaType(imagen.get().getTipoContenido()))
@@ -134,7 +140,7 @@ public class ImagenLocacionController {
             return ResponseEntity.notFound().build();
         }
         catch (ImagenLocacionInexistenteException e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.notFound().build();
         }
         catch (ImagenLocacionInvalidaException e) {
             return ResponseEntity.badRequest().build();
@@ -156,7 +162,7 @@ public class ImagenLocacionController {
             return ResponseEntity.notFound().build();
         }
         catch (ImagenLocacionInexistenteException e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.notFound().build();
         }
         catch (Exception e) {
             return ResponseEntity.status(500).build();

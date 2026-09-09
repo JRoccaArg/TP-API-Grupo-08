@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -23,6 +25,14 @@ public class ImagenLocacionServiceImpl implements ImagenLocacionService {
 
     @Autowired
     private LocationRepository locacionRepository;
+
+    public Page<ImagenLocacion> getImagenesPorLocacionId(Integer locacionId, PageRequest pageRequest)
+            throws LocacionInexsistenteException {
+        if (locacionRepository.findById(locacionId).isEmpty()) {
+            throw new LocacionInexsistenteException();
+        }
+        return imagenLocacionRepository.findByLocacionIdOrderByOrdenAsc(locacionId, pageRequest);
+    }
 
     public List<ImagenLocacion> getImagenesPorLocacionId(Integer locacionId)
             throws LocacionInexsistenteException {

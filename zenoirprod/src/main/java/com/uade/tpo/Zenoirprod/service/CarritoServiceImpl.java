@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,7 +39,7 @@ public class CarritoServiceImpl implements CarritoService {
     @Autowired private UserRepository userRepository;
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public Carrito obtenerOCrearActivo(CarritoRequest request)
             throws CarritoInvalidoException, UsuarioInexistenteException {
         if (request.getUsuarioId() == null) {
@@ -67,12 +69,12 @@ public class CarritoServiceImpl implements CarritoService {
     }
 
     @Override
-    public List<Carrito> getPorUsuario(Integer usuarioId) {
-        return carritoRepository.findByUsuario_IdOrderByFechaCreacionDesc(usuarioId);
+    public Page<Carrito> getPorUsuario(Integer usuarioId, PageRequest pageRequest) {
+        return carritoRepository.findByUsuario_IdOrderByFechaCreacionDesc(usuarioId, pageRequest);
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public Carrito agregarItem(Integer carritoId, ItemCarritoRequest request)
             throws CarritoInexistenteException, CarritoNoModificableException, ItemCarritoInvalidoException,
             EventoTipoEntradaInexistenteException, EventoTipoEntradaNoDisponibleException,
@@ -120,7 +122,7 @@ public class CarritoServiceImpl implements CarritoService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public Carrito actualizarCantidad(Integer carritoId, Integer itemId, Integer cantidad)
             throws CarritoInexistenteException, CarritoNoModificableException, ItemCarritoInexistenteException,
             ItemCarritoInvalidoException, StockInsuficienteException {
@@ -144,7 +146,7 @@ public class CarritoServiceImpl implements CarritoService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public Carrito quitarItem(Integer carritoId, Integer itemId)
             throws CarritoInexistenteException, CarritoNoModificableException, ItemCarritoInexistenteException {
         Carrito carrito = carritoRepository.findById(carritoId)
@@ -158,7 +160,7 @@ public class CarritoServiceImpl implements CarritoService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public Carrito vaciar(Integer carritoId) throws CarritoInexistenteException, CarritoNoModificableException {
         Carrito carrito = carritoRepository.findById(carritoId)
                 .orElseThrow(CarritoInexistenteException::new);
@@ -170,7 +172,7 @@ public class CarritoServiceImpl implements CarritoService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public Carrito abandonar(Integer carritoId) throws CarritoInexistenteException, CarritoNoModificableException {
         Carrito carrito = carritoRepository.findById(carritoId)
                 .orElseThrow(CarritoInexistenteException::new);

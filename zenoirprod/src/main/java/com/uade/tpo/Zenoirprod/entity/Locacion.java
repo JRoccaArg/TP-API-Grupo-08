@@ -26,13 +26,13 @@ public class Locacion {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column
+    @Column(nullable = false, unique = true, length = 150)
     private String nombre;
 
-    @Column
+    @Column(nullable = false, length = 255)
     private String direccion;
 
-    @Column(name = "capacidad_max")
+    @Column(name = "capacidad_max", nullable = false)
     private Integer capacidadMax;
 
     @OneToMany(mappedBy = "locacion", cascade = CascadeType.ALL, orphanRemoval = true)

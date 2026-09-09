@@ -3,6 +3,8 @@ package com.uade.tpo.Zenoirprod.service;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.uade.tpo.Zenoirprod.entity.ImagenLocacion;
@@ -11,6 +13,8 @@ import com.uade.tpo.Zenoirprod.exceptions.ImagenLocacionInvalidaException;
 import com.uade.tpo.Zenoirprod.exceptions.LocacionInexsistenteException;
 
 public interface ImagenLocacionService {
+    public Page<ImagenLocacion> getImagenesPorLocacionId(Integer locacionId, PageRequest pageRequest)
+            throws LocacionInexsistenteException;
     public List<ImagenLocacion> getImagenesPorLocacionId(Integer locacionId)
             throws LocacionInexsistenteException;
 

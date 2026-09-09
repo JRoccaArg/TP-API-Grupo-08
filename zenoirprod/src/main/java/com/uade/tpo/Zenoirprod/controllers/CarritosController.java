@@ -1,10 +1,10 @@
 package com.uade.tpo.Zenoirprod.controllers;
 
 import java.net.URI;
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -28,9 +28,11 @@ import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaNoDisponibleException;
 import com.uade.tpo.Zenoirprod.exceptions.ItemCarritoInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.ItemCarritoInvalidoException;
+import com.uade.tpo.Zenoirprod.exceptions.PaginacionInvalidaException;
 import com.uade.tpo.Zenoirprod.exceptions.StockInsuficienteException;
 import com.uade.tpo.Zenoirprod.exceptions.UsuarioInexistenteException;
 import com.uade.tpo.Zenoirprod.service.CarritoService;
+import com.uade.tpo.Zenoirprod.util.PageableFactory;
 
 @RestController
 @RequestMapping("carritos")
@@ -55,8 +57,10 @@ public class CarritosController {
 
     @GetMapping
     @PreAuthorize("hasRole('USER') and @authorizationService.puedeUsarUsuario(#usuarioId, authentication)")
-    public ResponseEntity<List<Carrito>> getPorUsuario(@RequestParam Integer usuarioId) {
-        return ResponseEntity.ok(service.getPorUsuario(usuarioId));
+    public ResponseEntity<Page<Carrito>> getPorUsuario(@RequestParam Integer usuarioId,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size) throws PaginacionInvalidaException {
+        return ResponseEntity.ok(service.getPorUsuario(usuarioId, PageableFactory.crear(page, size)));
     }
 
     @PostMapping("/{id}/items")

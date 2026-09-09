@@ -16,7 +16,10 @@ import org.springframework.web.bind.annotation.RestController;
 import com.uade.tpo.Zenoirprod.entity.TipoEntrada;
 import com.uade.tpo.Zenoirprod.entity.dto.TipoEntradaRequest;
 import com.uade.tpo.Zenoirprod.exceptions.PaginacionInvalidaException;
+import com.uade.tpo.Zenoirprod.exceptions.TipoEntradaDuplicadoException;
+import com.uade.tpo.Zenoirprod.exceptions.TipoEntradaEnUsoException;
 import com.uade.tpo.Zenoirprod.exceptions.TipoEntradaInexistenteException;
+import com.uade.tpo.Zenoirprod.exceptions.TipoEntradaInvalidoException;
 import com.uade.tpo.Zenoirprod.service.TipoEntradaService;
 import com.uade.tpo.Zenoirprod.util.PageableFactory;
 
@@ -45,7 +48,8 @@ public class TipoEntradasController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<TipoEntrada> crearTipoEntrada(@RequestBody TipoEntradaRequest tipoEntradaRequest) {
+    public ResponseEntity<TipoEntrada> crearTipoEntrada(@RequestBody TipoEntradaRequest tipoEntradaRequest)
+            throws TipoEntradaInvalidoException, TipoEntradaDuplicadoException {
         return ResponseEntity.ok(tipoEntradaService.crearTipoEntrada(
                 tipoEntradaRequest.getNombre(),
                 tipoEntradaRequest.getDescripcionBase(),
@@ -55,7 +59,8 @@ public class TipoEntradasController {
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<TipoEntrada> updateTipoEntrada(@PathVariable Integer id,
-            @RequestBody TipoEntradaRequest tipoEntradaRequest) {
+            @RequestBody TipoEntradaRequest tipoEntradaRequest)
+            throws TipoEntradaInvalidoException, TipoEntradaDuplicadoException {
         try {
             return ResponseEntity.ok(tipoEntradaService.updateTipoEntrada(
                     id,
@@ -69,7 +74,8 @@ public class TipoEntradasController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> deleteTipoEntrada(@PathVariable Integer id) {
+    public ResponseEntity<?> deleteTipoEntrada(@PathVariable Integer id)
+            throws TipoEntradaEnUsoException {
         try {
             tipoEntradaService.deleteTipoEntrada(id);
             return ResponseEntity.noContent().build();

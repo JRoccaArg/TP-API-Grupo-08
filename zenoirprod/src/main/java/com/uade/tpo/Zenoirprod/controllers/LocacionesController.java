@@ -16,8 +16,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.uade.tpo.Zenoirprod.entity.Locacion;
 import com.uade.tpo.Zenoirprod.entity.dto.LocacionRequest;
+import com.uade.tpo.Zenoirprod.exceptions.LocacionDuplicadaException;
 import com.uade.tpo.Zenoirprod.exceptions.LocacionEnUsoException;
 import com.uade.tpo.Zenoirprod.exceptions.LocacionInexsistenteException;
+import com.uade.tpo.Zenoirprod.exceptions.LocacionInvalidaException;
 import com.uade.tpo.Zenoirprod.exceptions.PaginacionInvalidaException;
 import com.uade.tpo.Zenoirprod.service.LocacionService;
 import com.uade.tpo.Zenoirprod.util.PageableFactory;
@@ -47,7 +49,8 @@ public class LocacionesController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Locacion> crearLocacion(@RequestBody LocacionRequest locacionRequest) {
+    public ResponseEntity<Locacion> crearLocacion(@RequestBody LocacionRequest locacionRequest)
+            throws LocacionInvalidaException, LocacionDuplicadaException {
         return ResponseEntity.ok(locacionService.crearLocacion(
                 locacionRequest.getNombre(),
                 locacionRequest.getDireccion(),
@@ -57,7 +60,8 @@ public class LocacionesController {
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Locacion> updateLocacion(@PathVariable Integer id,
-            @RequestBody LocacionRequest locacionRequest) {
+            @RequestBody LocacionRequest locacionRequest)
+            throws LocacionInvalidaException, LocacionDuplicadaException {
         try {
             return ResponseEntity.ok(locacionService.updateLocacion(
                     id,

@@ -12,4 +12,8 @@ public interface EventosRepository extends JpaRepository<Evento, Integer> {
 
     boolean existsByCategoria_Id(Integer categoriaId);
 
+    boolean existsByTitulo(String titulo);
+
+    boolean existsByTituloAndIdNot(String titulo, Integer id);
+
 }

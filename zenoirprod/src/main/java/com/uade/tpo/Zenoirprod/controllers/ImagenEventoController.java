@@ -11,10 +11,10 @@ import com.uade.tpo.Zenoirprod.exceptions.ImagenEventoInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.ImagenInvalidaException;
 import com.uade.tpo.Zenoirprod.service.ImagenEventoService;
 
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +26,10 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import com.uade.tpo.Zenoirprod.exceptions.PaginacionInvalidaException;
+import com.uade.tpo.Zenoirprod.util.PageableFactory;
 
 
 
@@ -39,18 +43,19 @@ public class ImagenEventoController {
 
     
     @GetMapping("eventos/{eventoId}/imagenes")
-    public ResponseEntity<List<ImagenEvento>> getImagenesPorEventoId(@PathVariable Integer eventoId) {
+    public ResponseEntity<Page<ImagenEvento>> getImagenesPorEventoId(@PathVariable Integer eventoId,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size) {
         try {
-            List<ImagenEvento> imagenes = imagenEventoService.getImagenesPorEventoId(eventoId);
-            if (imagenes.isEmpty()) {
-                return ResponseEntity.noContent().build();
-            } 
-            else {
-                return ResponseEntity.ok(imagenes);
-            }
+            Page<ImagenEvento> imagenes = imagenEventoService.getImagenesPorEventoId(
+                    eventoId, PageableFactory.crear(page, size));
+            return ResponseEntity.ok(imagenes);
         }
         catch (EventoInexistenteException e) {
             return ResponseEntity.notFound().build();
+        }
+        catch (PaginacionInvalidaException e) {
+            return ResponseEntity.badRequest().build();
         }
         catch (Exception e) {
             return ResponseEntity.status(500).build();
@@ -65,7 +70,7 @@ public class ImagenEventoController {
             if (imagen.isPresent()) {
                 return ResponseEntity.ok(imagen.get());
             } else {
-                return ResponseEntity.badRequest().build();
+                return ResponseEntity.notFound().build();
             }
         }
         catch (EventoInexistenteException e) {
@@ -81,7 +86,7 @@ public class ImagenEventoController {
         try {
             Optional<ImagenEvento> imagen = imagenEventoService.getImagenPorEventoIdYImagenId(eventoId, imagenId);
             if (imagen.isEmpty()) {
-                return ResponseEntity.badRequest().build();
+                return ResponseEntity.notFound().build();
             }
             return ResponseEntity.ok()
                     .contentType(MediaType.parseMediaType(imagen.get().getTipoContenido()))
@@ -126,7 +131,7 @@ public class ImagenEventoController {
             return ResponseEntity.notFound().build();
         }
         catch (ImagenEventoInexistenteException e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.notFound().build();
         }
         catch (ImagenInvalidaException e) {
             return ResponseEntity.badRequest().build();
@@ -147,7 +152,7 @@ public class ImagenEventoController {
             return ResponseEntity.notFound().build();
         }
         catch (ImagenEventoInexistenteException e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.notFound().build();
         }
         catch (Exception e) {
             return ResponseEntity.status(500).build();

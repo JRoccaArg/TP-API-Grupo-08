@@ -8,6 +8,7 @@ import org.springframework.data.domain.PageRequest;
 
 import com.uade.tpo.Zenoirprod.entity.Evento;
 import com.uade.tpo.Zenoirprod.exceptions.EventoInexistenteException;
+import com.uade.tpo.Zenoirprod.exceptions.EventoEnUsoException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoInvalidoException;
 import com.uade.tpo.Zenoirprod.exceptions.CategoryInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.FechaEventoInvalidaException;
@@ -17,7 +18,7 @@ import com.uade.tpo.Zenoirprod.exceptions.TituloEventoEnUsoException;
 public interface EventosService {
         public Page<Evento> getEventos(PageRequest pageRequest);
 
-        public void deleteEvento(Integer id) throws EventoInexistenteException;
+        public void deleteEvento(Integer id) throws EventoInexistenteException, EventoEnUsoException;
 
         public Optional<Evento> getEventoPorId(Integer id) throws EventoInexistenteException;
 

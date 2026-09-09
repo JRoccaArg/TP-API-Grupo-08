@@ -2,9 +2,9 @@ package com.uade.tpo.Zenoirprod.controllers;
 
 import java.math.BigDecimal;
 import java.net.URI;
-import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -22,11 +22,14 @@ import com.uade.tpo.Zenoirprod.entity.dto.EventoTipoEntradaRequest;
 import com.uade.tpo.Zenoirprod.entity.dto.EventoTipoEntradaResponseDTO;
 import com.uade.tpo.Zenoirprod.exceptions.EventoInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaDuplicadoException;
+import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaEnUsoException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaInvalidoException;
+import com.uade.tpo.Zenoirprod.exceptions.PaginacionInvalidaException;
 import com.uade.tpo.Zenoirprod.exceptions.TipoEntradaInexistenteException;
 import com.uade.tpo.Zenoirprod.service.EventoTipoEntradaService;
 import com.uade.tpo.Zenoirprod.util.PrecioCalculator;
+import com.uade.tpo.Zenoirprod.util.PageableFactory;
 
 @RestController
 @RequestMapping("eventosTiposEntrada")
@@ -63,16 +66,16 @@ public class EventoTipoEntradaController {
     }
 
     @GetMapping("/evento/{eventoId}")
-    public ResponseEntity<List<EventoTipoEntradaResponseDTO>> getPorEvento(
-            @PathVariable Integer eventoId)
-            throws EventoInexistenteException {
+    public ResponseEntity<Page<EventoTipoEntradaResponseDTO>> getPorEvento(
+            @PathVariable Integer eventoId,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size)
+            throws EventoInexistenteException, PaginacionInvalidaException {
 
-        List<EventoTipoEntradaResponseDTO> respuesta =
+        Page<EventoTipoEntradaResponseDTO> respuesta =
                 eventoTipoEntradaService
-                        .getPorEvento(eventoId)
-                        .stream()
-                        .map(this::toResponseDTO)
-                        .toList();
+                        .getPorEvento(eventoId, PageableFactory.crear(page, size))
+                        .map(this::toResponseDTO);
 
         return ResponseEntity.ok(respuesta);
     }
@@ -95,7 +98,7 @@ public class EventoTipoEntradaController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> eliminar(
             @PathVariable Integer id)
-            throws EventoTipoEntradaInexistenteException {
+            throws EventoTipoEntradaInexistenteException, EventoTipoEntradaEnUsoException {
 
         eventoTipoEntradaService.eliminar(id);
 

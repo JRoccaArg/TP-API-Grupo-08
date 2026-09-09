@@ -1,6 +1,6 @@
 package com.uade.tpo.Zenoirprod.controllers;
 
-import java.util.Optional;
+import java.net.URI;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.uade.tpo.Zenoirprod.entity.Evento;
 import com.uade.tpo.Zenoirprod.entity.dto.EventoRequest;
 import com.uade.tpo.Zenoirprod.exceptions.EventoInexistenteException;
+import com.uade.tpo.Zenoirprod.exceptions.EventoEnUsoException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoInvalidoException;
 import com.uade.tpo.Zenoirprod.exceptions.CategoryInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.FechaEventoInvalidaException;
@@ -47,9 +48,10 @@ public class EventosController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Optional<Evento>> getEventoPorId(@PathVariable Integer id) {
+    public ResponseEntity<Evento> getEventoPorId(@PathVariable Integer id) {
         try {
-            return ResponseEntity.ok(eventosService.getEventoPorId(id));
+            return ResponseEntity.ok(eventosService.getEventoPorId(id)
+                    .orElseThrow(EventoInexistenteException::new));
         } catch (EventoInexistenteException e) {
             return ResponseEntity.notFound().build();
         }
@@ -86,17 +88,20 @@ public class EventosController {
             return ResponseEntity.noContent().build();
         } catch (EventoInexistenteException e) {
             return ResponseEntity.notFound().build();
+        } catch (EventoEnUsoException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
     }
     
     @PostMapping()
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Evento> postMethodName(@RequestBody EventoRequest eventoRequest) {
+    public ResponseEntity<Evento> crearEvento(@RequestBody EventoRequest eventoRequest) {
         try {
-            return ResponseEntity.ok(eventosService.crearEvento(eventoRequest.getTitulo(), eventoRequest.getDescripcion(), 
+            Evento creado = eventosService.crearEvento(eventoRequest.getTitulo(), eventoRequest.getDescripcion(),
             eventoRequest.getEstado(), eventoRequest.getLocacion_id(), eventoRequest.getCategoria_id(), eventoRequest.getFechaHoraInicio(),
-            eventoRequest.getFechaHoraFin()));
-        } 
+            eventoRequest.getFechaHoraFin());
+            return ResponseEntity.created(URI.create("/eventos/" + creado.getId())).body(creado);
+        }
         catch (LocacionInexsistenteException e) {
             return ResponseEntity.notFound().build();
         }
