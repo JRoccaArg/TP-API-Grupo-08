@@ -163,3 +163,29 @@ Ya está resuelto en el `pom.xml` (Lombok fijado en 1.18.46 y declarado como
 
 **IntelliJ no reconoce los getters pero Maven compila** — habilitar
 `Settings > Build > Compiler > Annotation Processors > Enable annotation processing`.
+# Demo oral con SQL Server
+
+La rama `codex/oral-demo-sqlserver` arranca por defecto con el perfil
+`demo-sqlsrv`. Usa SQL Server y carga una sola vez un escenario completo para
+la exposicion.
+
+Antes de iniciar, la base indicada por `DB_NAME` debe existir en SQL Server.
+Los valores por defecto apuntan a `localhost:1433`, base `Zenoir_Prod`, usuario
+`sa` y password vacia. Se pueden reemplazar sin editar archivos:
+
+```powershell
+$env:DB_NAME="Zenoir_Prod"
+$env:DB_USER="sa"
+$env:DB_PASSWORD="tu_password"
+cd zenoirprod
+.\mvnw.cmd spring-boot:run
+```
+
+Credenciales de la demo:
+
+- Administrador: `admin@zenoir.demo` / `Admin123`
+- Usuario con compra e historial: `sofia@zenoir.demo` / `Sofia123`
+- Usuario limpio para mostrar el flujo: `lucas@zenoir.demo` / `Lucas123`
+
+La precarga no borra datos. Si detecta `admin@zenoir.demo`, asume que el
+escenario ya fue cargado y no vuelve a insertar registros.

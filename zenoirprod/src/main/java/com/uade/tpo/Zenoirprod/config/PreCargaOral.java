@@ -3,11 +3,11 @@ package com.uade.tpo.Zenoirprod.config;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Base64;
 import java.util.List;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,7 +45,7 @@ import com.uade.tpo.Zenoirprod.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 
 @Component
-@Profile("dev")
+@Profile("demo-sqlsrv")
 @RequiredArgsConstructor
 public class PreCargaOral implements CommandLineRunner {
 
@@ -68,9 +68,9 @@ public class PreCargaOral implements CommandLineRunner {
 
         /*
          * Evita duplicar la precarga si Spring reinicia el contexto
-         * mientras H2 sigue vivo.
+         * si la aplicacion se reinicia contra la misma base SQL Server.
          */
-        if (userRepository.findByEmail("admin@zenoir.com").isPresent()) {
+        if (userRepository.findByEmail("admin@zenoir.demo").isPresent()) {
             System.out.println("=== PRECARGA ORAL YA EXISTENTE ===");
             return;
         }
@@ -86,7 +86,7 @@ public class PreCargaOral implements CommandLineRunner {
                 .lastName("Zenoir")
                 .dni("30111222")
                 .fechaNacimiento(LocalDate.of(1990, 5, 15))
-                .email("admin@zenoir.com")
+                .email("admin@zenoir.demo")
                 .password(passwordEncoder.encode("Admin123"))
                 .role(Role.ADMIN)
                 .fechaRegistro(ahora.minusDays(30))
@@ -98,14 +98,26 @@ public class PreCargaOral implements CommandLineRunner {
                 .lastName("Gomez")
                 .dni("40123456")
                 .fechaNacimiento(LocalDate.of(2001, 8, 20))
-                .email("sofia@zenoir.com")
+                .email("sofia@zenoir.demo")
                 .password(passwordEncoder.encode("Sofia123"))
                 .role(Role.USER)
                 .fechaRegistro(ahora.minusDays(20))
                 .activo(true)
                 .build();
 
-        userRepository.saveAll(List.of(admin, sofia));
+        User lucas = User.builder()
+                .firstName("Lucas")
+                .lastName("Demo")
+                .dni("42987654")
+                .fechaNacimiento(LocalDate.of(2002, 3, 12))
+                .email("lucas@zenoir.demo")
+                .password(passwordEncoder.encode("Lucas123"))
+                .role(Role.USER)
+                .fechaRegistro(ahora.minusDays(5))
+                .activo(true)
+                .build();
+
+        userRepository.saveAll(List.of(admin, sofia, lucas));
 
         // ============================================================
         // CATEGORIAS
@@ -113,8 +125,9 @@ public class PreCargaOral implements CommandLineRunner {
 
         Category musica = new Category("Musica", true);
         Category comedia = new Category("Comedia", true);
+        Category experiencias = new Category("Experiencias", true);
 
-        categoryRepository.saveAll(List.of(musica, comedia));
+        categoryRepository.saveAll(List.of(musica, comedia, experiencias));
 
         // ============================================================
         // LOCACIONES
@@ -130,7 +143,12 @@ public class PreCargaOral implements CommandLineRunner {
         teatro.setDireccion("Av. Corrientes 1200");
         teatro.setCapacidadMax(3000);
 
-        locationRepository.saveAll(List.of(arena, teatro));
+        Locacion palacio = new Locacion();
+        palacio.setNombre("Palacio Zenoir");
+        palacio.setDireccion("Ayacucho 1245, Recoleta");
+        palacio.setCapacidadMax(850);
+
+        locationRepository.saveAll(List.of(arena, teatro, palacio));
 
         // ============================================================
         // TIPOS DE ENTRADA
@@ -181,50 +199,43 @@ public class PreCargaOral implements CommandLineRunner {
         standUp.setFechaHoraFin(
                 LocalDateTime.of(2026, 11, 7, 22, 30));
 
+        Evento galaZenoir = new Evento();
+        galaZenoir.setTitulo("Zenoir: Noche en el Palacio");
+        galaZenoir.setDescripcion(
+                "Experiencia inmersiva de musica, arte y gastronomia en un palacio historico");
+        galaZenoir.setEstado("ACTIVO");
+        galaZenoir.setLocacion(palacio);
+        galaZenoir.setCategoria(experiencias);
+        galaZenoir.setFechaHoraInicio(
+                LocalDateTime.of(2026, 10, 3, 20, 0));
+        galaZenoir.setFechaHoraFin(
+                LocalDateTime.of(2026, 10, 4, 1, 30));
+
         eventosRepository.saveAll(
-                List.of(electronicNight, standUp));
+                List.of(electronicNight, standUp, galaZenoir));
 
         // ============================================================
         // IMAGEN DE EVENTO + IMAGEN DE LOCACION
         // ============================================================
 
-        /*
-         * PNG minimo de 1x1.
-         * Solo existe para poder demostrar el modulo de imagenes
-         * sin depender de archivos externos.
-         */
-        byte[] pngDemo = Base64.getDecoder().decode(
-                "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwC"
-              + "AAAAC0lEQVR42mP8/x8AAusB9Y9ZJqQAAAAASUVORK5CYII="
-        );
+        byte[] portada = leerRecurso("demo/zenoir-portada.jpg");
+        byte[] galeria = leerRecurso("demo/zenoir-galeria.jpg");
+        byte[] exterior = leerRecurso("demo/palacio-exterior.webp");
+        byte[] interior = leerRecurso("demo/palacio-interior.jpg");
 
-        ImagenEvento imagenEvento = new ImagenEvento();
-        imagenEvento.setEvento(electronicNight);
-        imagenEvento.setNombreArchivo("electronic-night.png");
-        imagenEvento.setTipoContenido("image/png");
-        imagenEvento.setTamanio((long) pngDemo.length);
-        imagenEvento.setDatos(pngDemo);
-        imagenEvento.setTipoImagenEvento(
-                TipoImagenEvento.PORTADA);
-        imagenEvento.setDescripcion(
-                "Portada oficial del evento");
-        imagenEvento.setOrden(1);
+        imagenEventoRepository.saveAll(List.of(
+                crearImagenEvento(galaZenoir, "zenoir-portada.jpg", "image/jpeg",
+                        portada, TipoImagenEvento.PORTADA, "Flyer oficial de Zenoir", 1),
+                crearImagenEvento(galaZenoir, "zenoir-galeria.jpg", "image/jpeg",
+                        galeria, TipoImagenEvento.GALERIA, "Flyer alternativo de Zenoir", 2)
+        ));
 
-        imagenEventoRepository.save(imagenEvento);
-
-        ImagenLocacion imagenLocacion = new ImagenLocacion();
-        imagenLocacion.setLocacion(arena);
-        imagenLocacion.setNombreArchivo("arena-zenoir.png");
-        imagenLocacion.setTipoContenido("image/png");
-        imagenLocacion.setTamanio((long) pngDemo.length);
-        imagenLocacion.setDatos(pngDemo);
-        imagenLocacion.setTextoAlternativo(
-                "Vista de Arena Zenoir");
-        imagenLocacion.setOrden(1);
-        imagenLocacion.setFechaCreacion(
-                ahora.minusDays(10));
-
-        imagenLocacionRepository.save(imagenLocacion);
+        imagenLocacionRepository.saveAll(List.of(
+                crearImagenLocacion(palacio, "palacio-exterior.webp", "image/webp",
+                        exterior, "Fachada del Palacio Zenoir", 1, ahora),
+                crearImagenLocacion(palacio, "palacio-interior.jpg", "image/jpeg",
+                        interior, "Salon interior del Palacio Zenoir", 2, ahora)
+        ));
 
         // ============================================================
         // EVENTO TIPO ENTRADA - SANTI
@@ -285,13 +296,51 @@ public class PreCargaOral implements CommandLineRunner {
                         LocalDateTime.of(2026, 11, 7, 19, 30)
                 );
 
+        EventoTipoEntrada eteGeneralGala =
+                crearETE(
+                        galaZenoir,
+                        general,
+                        "45000",
+                        "0",
+                        300,
+                        LocalDateTime.of(2026, 9, 1, 0, 0),
+                        LocalDateTime.of(2026, 10, 3, 19, 30)
+                );
+
+        EventoTipoEntrada eteVipGala =
+                crearETE(
+                        galaZenoir,
+                        vip,
+                        "85000",
+                        "10",
+                        50,
+                        LocalDateTime.of(2026, 9, 1, 0, 0),
+                        LocalDateTime.of(2026, 10, 3, 19, 30)
+                );
+
+        EventoTipoEntrada eteMeetGalaAgotada =
+                crearETE(
+                        galaZenoir,
+                        meet,
+                        "120000",
+                        "0",
+                        0,
+                        LocalDateTime.of(2026, 9, 1, 0, 0),
+                        LocalDateTime.of(2026, 10, 3, 19, 30)
+                );
+        eteMeetGalaAgotada.setCantidadTotal(20);
+        eteMeetGalaAgotada.setEstado(EstadoEventoTipoEntrada.AGOTADO);
+
         eventoTipoEntradaRepository.saveAll(
                 List.of(
                         eteGeneralElectronic,
                         eteVipElectronic,
                         eteMeetElectronic,
                         eteGeneralStandUp,
-                        eteVipStandUp
+                        eteVipStandUp,
+                        eteGeneralGala,
+                        eteVipGala,
+                        eteMeetGalaAgotada
                 )
         );
 
@@ -396,16 +445,23 @@ public class PreCargaOral implements CommandLineRunner {
         System.out.println("==============================================");
 
         System.out.println("ADMIN");
-        System.out.println("  email: admin@zenoir.com");
+        System.out.println("  email: admin@zenoir.demo");
         System.out.println("  password: Admin123");
         System.out.println("  id: " + admin.getId());
 
         System.out.println();
 
         System.out.println("USER");
-        System.out.println("  email: sofia@zenoir.com");
+        System.out.println("  email: sofia@zenoir.demo");
         System.out.println("  password: Sofia123");
         System.out.println("  id: " + sofia.getId());
+
+        System.out.println();
+
+        System.out.println("USER LIMPIO");
+        System.out.println("  email: lucas@zenoir.demo");
+        System.out.println("  password: Lucas123");
+        System.out.println("  id: " + lucas.getId());
 
         System.out.println();
 
@@ -416,6 +472,9 @@ public class PreCargaOral implements CommandLineRunner {
         System.out.println(
                 "  " + standUp.getId()
                 + " -> Noche de Stand Up");
+        System.out.println(
+                "  " + galaZenoir.getId()
+                + " -> Zenoir: Noche en el Palacio");
 
         System.out.println();
 
@@ -435,6 +494,15 @@ public class PreCargaOral implements CommandLineRunner {
         System.out.println(
                 "  " + eteVipStandUp.getId()
                 + " -> StandUp / VIP");
+        System.out.println(
+                "  " + eteGeneralGala.getId()
+                + " -> Gala / General");
+        System.out.println(
+                "  " + eteVipGala.getId()
+                + " -> Gala / VIP");
+        System.out.println(
+                "  " + eteMeetGalaAgotada.getId()
+                + " -> Gala / Meet & Greet (AGOTADA)");
 
         System.out.println();
 
@@ -458,6 +526,56 @@ public class PreCargaOral implements CommandLineRunner {
 
         System.out.println("==============================================");
         System.out.println();
+    }
+
+    private byte[] leerRecurso(String ruta) {
+        try (var input = new ClassPathResource(ruta).getInputStream()) {
+            return input.readAllBytes();
+        } catch (java.io.IOException ex) {
+            throw new IllegalStateException("No se pudo leer la imagen demo: " + ruta, ex);
+        }
+    }
+
+    private ImagenEvento crearImagenEvento(
+            Evento evento,
+            String nombre,
+            String tipoContenido,
+            byte[] datos,
+            TipoImagenEvento tipo,
+            String descripcion,
+            int orden) {
+
+        ImagenEvento imagen = new ImagenEvento();
+        imagen.setEvento(evento);
+        imagen.setNombreArchivo(nombre);
+        imagen.setTipoContenido(tipoContenido);
+        imagen.setTamanio((long) datos.length);
+        imagen.setDatos(datos);
+        imagen.setTipoImagenEvento(tipo);
+        imagen.setDescripcion(descripcion);
+        imagen.setOrden(orden);
+        return imagen;
+    }
+
+    private ImagenLocacion crearImagenLocacion(
+            Locacion locacion,
+            String nombre,
+            String tipoContenido,
+            byte[] datos,
+            String textoAlternativo,
+            int orden,
+            LocalDateTime fechaCreacion) {
+
+        ImagenLocacion imagen = new ImagenLocacion();
+        imagen.setLocacion(locacion);
+        imagen.setNombreArchivo(nombre);
+        imagen.setTipoContenido(tipoContenido);
+        imagen.setTamanio((long) datos.length);
+        imagen.setDatos(datos);
+        imagen.setTextoAlternativo(textoAlternativo);
+        imagen.setOrden(orden);
+        imagen.setFechaCreacion(fechaCreacion);
+        return imagen;
     }
 
     private EventoTipoEntrada crearETE(

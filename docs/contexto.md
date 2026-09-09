@@ -4,6 +4,11 @@ Zenoir es una API para publicar eventos, administrar locaciones, tipos de entrad
 
 ## Estado actual
 
+- La rama `codex/oral-demo-sqlserver` usa por defecto el perfil `demo-sqlsrv`,
+  conecta con SQL Server y precarga un escenario idempotente para la exposicion.
+- La demo incluye tres usuarios, tres categorias, tres locaciones, tres eventos,
+  ocho configuraciones de entrada, carritos, una compra, tickets y cuatro
+  imagenes reales incluidas en el classpath.
 - El proyecto levanta con el perfil `dev` y una base H2 en memoria.
 - Existe registro e inicio de sesion mediante JWT.
 - Los usuarios nuevos se registran con el rol `USER`.

@@ -1,5 +1,19 @@
 # Decisiones
 
+## 2026-09-08 - Rama de exposicion con SQL Server y datos precargados
+
+La exposicion se ejecuta desde `codex/oral-demo-sqlserver`, cuyo perfil por
+defecto es `demo-sqlsrv`. La precarga se mantiene aislada mediante
+`@Profile("demo-sqlsrv")`, usa los repositorios JPA y conserva las imagenes de
+demostracion como recursos del classpath para poder guardarlas en SQL Server.
+
+Se usan emails con dominio `.demo` como marcador idempotente y para evitar
+colisiones con usuarios reales. El escenario incluye un usuario con historial,
+otro usuario limpio para ejecutar operaciones en vivo y una entrada agotada
+para demostrar estados distintos sin multiplicar registros equivalentes.
+
+Ver [[contexto]] y [[arquitectura]].
+
 ## 2026-09-05 - Autenticacion sin estado mediante JWT
 
 Se adopta Spring Security con tokens JWT y sesiones `STATELESS`, siguiendo el flujo trabajado en clase. Esto permite que cada integrante agregue reglas por rol a sus endpoints sin volver a implementar el inicio de sesion.
