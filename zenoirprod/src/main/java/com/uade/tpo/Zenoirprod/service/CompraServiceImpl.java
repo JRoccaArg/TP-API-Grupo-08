@@ -18,6 +18,7 @@ import com.uade.tpo.Zenoirprod.entity.Compra.EstadoCompra;
 import com.uade.tpo.Zenoirprod.entity.DetalleCompra;
 import com.uade.tpo.Zenoirprod.entity.EventoTipoEntrada;
 import com.uade.tpo.Zenoirprod.entity.EventoTipoEntrada.EstadoEventoTipoEntrada;
+import com.uade.tpo.Zenoirprod.entity.ItemCarrito;
 import com.uade.tpo.Zenoirprod.entity.Ticket;
 import com.uade.tpo.Zenoirprod.entity.Ticket.EstadoTicket;
 import com.uade.tpo.Zenoirprod.entity.User;
@@ -61,12 +62,18 @@ public class CompraServiceImpl implements CompraService {
             StockInsuficienteException, VentaNoHabilitadaException, EventoNoDisponibleException,
             CarritoInexistenteException, CarritoAjenoException {
 
-        validarShape(request);
+        if (request.getUsuarioId() == null) throw new CompraInvalidaException();
 
         User usuario = userRepository.findById(request.getUsuarioId())
                 .orElseThrow(UsuarioInexistenteException::new);
 
         Carrito carrito = resolverCarrito(request.getCarritoId(), usuario);
+
+        if ((request.getItems() == null || request.getItems().isEmpty()) && carrito != null) {
+            request.setItems(itemsDesdeCarrito(carrito));
+        }
+
+        validarShape(request);
 
         List<DetalleCompra> detalles = new ArrayList<>();
         BigDecimal total = BigDecimal.ZERO;
@@ -195,6 +202,17 @@ public class CompraServiceImpl implements CompraService {
         if (ete.getCantidadDisponible() < cantidad) {
             throw new StockInsuficienteException();
         }
+    }
+
+    private List<ItemCompraRequest> itemsDesdeCarrito(Carrito carrito) {
+        List<ItemCompraRequest> items = new ArrayList<>();
+        for (ItemCarrito ic : carrito.getItems()) {
+            ItemCompraRequest icr = new ItemCompraRequest();
+            icr.setEventoTipoEntradaId(ic.getEventoTipoEntrada().getId());
+            icr.setCantidad(ic.getCantidad());
+            items.add(icr);
+        }
+        return items;
     }
 
     private void validarShape(CompraRequest request) throws CompraInvalidaException {
