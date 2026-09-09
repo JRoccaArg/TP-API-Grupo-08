@@ -1,6 +1,7 @@
 package com.uade.tpo.Zenoirprod.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.uade.tpo.Zenoirprod.entity.TipoEntrada;
 import com.uade.tpo.Zenoirprod.entity.dto.TipoEntradaRequest;
+import com.uade.tpo.Zenoirprod.entity.dto.TipoEntradaResponse;
 import com.uade.tpo.Zenoirprod.exceptions.PaginacionInvalidaException;
 import com.uade.tpo.Zenoirprod.exceptions.TipoEntradaInexistenteException;
 import com.uade.tpo.Zenoirprod.service.TipoEntradaService;
@@ -28,16 +30,17 @@ public class TipoEntradasController {
     private TipoEntradaService tipoEntradaService;
 
     @GetMapping
-    public ResponseEntity<?> getTiposEntrada(
+    public ResponseEntity<Page<TipoEntradaResponse>> getTiposEntrada(
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size) throws PaginacionInvalidaException {
-        return ResponseEntity.ok(tipoEntradaService.getTiposEntrada(PageableFactory.crear(page, size)));
+        Page<TipoEntrada> pagina = tipoEntradaService.getTiposEntrada(PageableFactory.crear(page, size));
+        return ResponseEntity.ok(pagina.map(TipoEntradaResponse::fromEntity));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<TipoEntrada> getTipoEntradaPorId(@PathVariable Integer id) {
+    public ResponseEntity<TipoEntradaResponse> getTipoEntradaPorId(@PathVariable Integer id) {
         try {
-            return ResponseEntity.ok(tipoEntradaService.getTipoEntradaPorId(id));
+            return ResponseEntity.ok(TipoEntradaResponse.fromEntity(tipoEntradaService.getTipoEntradaPorId(id)));
         } catch (TipoEntradaInexistenteException e) {
             return ResponseEntity.notFound().build();
         }
@@ -45,23 +48,25 @@ public class TipoEntradasController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<TipoEntrada> crearTipoEntrada(@RequestBody TipoEntradaRequest tipoEntradaRequest) {
-        return ResponseEntity.ok(tipoEntradaService.crearTipoEntrada(
+    public ResponseEntity<TipoEntradaResponse> crearTipoEntrada(@RequestBody TipoEntradaRequest tipoEntradaRequest) {
+        TipoEntrada creado = tipoEntradaService.crearTipoEntrada(
                 tipoEntradaRequest.getNombre(),
                 tipoEntradaRequest.getDescripcionBase(),
-                tipoEntradaRequest.getActivo()));
+                tipoEntradaRequest.getActivo());
+        return ResponseEntity.ok(TipoEntradaResponse.fromEntity(creado));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<TipoEntrada> updateTipoEntrada(@PathVariable Integer id,
+    public ResponseEntity<TipoEntradaResponse> updateTipoEntrada(@PathVariable Integer id,
             @RequestBody TipoEntradaRequest tipoEntradaRequest) {
         try {
-            return ResponseEntity.ok(tipoEntradaService.updateTipoEntrada(
+            TipoEntrada actualizado = tipoEntradaService.updateTipoEntrada(
                     id,
                     tipoEntradaRequest.getNombre(),
                     tipoEntradaRequest.getDescripcionBase(),
-                    tipoEntradaRequest.getActivo()));
+                    tipoEntradaRequest.getActivo());
+            return ResponseEntity.ok(TipoEntradaResponse.fromEntity(actualizado));
         } catch (TipoEntradaInexistenteException e) {
             return ResponseEntity.notFound().build();
         }

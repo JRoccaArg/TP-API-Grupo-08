@@ -111,7 +111,7 @@ class CarritosControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items", hasSize(1)))
                 .andExpect(jsonPath("$.items[0].cantidad", is(2)))
-                .andExpect(jsonPath("$.items[0].eventoTipoEntrada.id", is(eteId)));
+                .andExpect(jsonPath("$.items[0].eventoTipoEntradaId", is(eteId)));
     }
 
     @Test

@@ -151,7 +151,6 @@ public class EventoTipoEntradaController {
                 )
                 .precioFinal(precioFinal)
 
-                .cantidadTotal(entrada.getCantidadTotal())
                 .cantidadDisponible(
                         entrada.getCantidadDisponible()
                 )
