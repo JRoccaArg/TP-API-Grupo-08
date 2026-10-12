@@ -16,38 +16,26 @@ import com.uade.tpo.Zenoirprod.entity.EventoTipoEntrada;
 import com.uade.tpo.Zenoirprod.entity.EventoTipoEntrada.EstadoEventoTipoEntrada;
 import com.uade.tpo.Zenoirprod.entity.ItemCarrito;
 import com.uade.tpo.Zenoirprod.entity.User;
-import com.uade.tpo.Zenoirprod.entity.dto.CarritoRequest;
 import com.uade.tpo.Zenoirprod.entity.dto.ItemCarritoRequest;
 import com.uade.tpo.Zenoirprod.exceptions.CarritoInexistenteException;
-import com.uade.tpo.Zenoirprod.exceptions.CarritoInvalidoException;
 import com.uade.tpo.Zenoirprod.exceptions.CarritoNoModificableException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaNoDisponibleException;
 import com.uade.tpo.Zenoirprod.exceptions.ItemCarritoInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.ItemCarritoInvalidoException;
 import com.uade.tpo.Zenoirprod.exceptions.StockInsuficienteException;
-import com.uade.tpo.Zenoirprod.exceptions.UsuarioInexistenteException;
 import com.uade.tpo.Zenoirprod.repository.CarritoRepository;
 import com.uade.tpo.Zenoirprod.repository.EventoTipoEntradaRepository;
-import com.uade.tpo.Zenoirprod.repository.UserRepository;
 
 @Service
 public class CarritoServiceImpl implements CarritoService {
 
     @Autowired private CarritoRepository carritoRepository;
     @Autowired private EventoTipoEntradaRepository eventoTipoEntradaRepository;
-    @Autowired private UserRepository userRepository;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Carrito obtenerOCrearActivo(CarritoRequest request)
-            throws CarritoInvalidoException, UsuarioInexistenteException {
-        if (request.getUsuarioId() == null) {
-            throw new CarritoInvalidoException();
-        }
-        User usuario = userRepository.findById(request.getUsuarioId())
-                .orElseThrow(UsuarioInexistenteException::new);
-
+    public Carrito obtenerOCrearActivo(User usuario) {
         Optional<Carrito> existente = carritoRepository.findByUsuario_IdAndEstado(
                 usuario.getId(), EstadoCarrito.ACTIVO);
         if (existente.isPresent()) {

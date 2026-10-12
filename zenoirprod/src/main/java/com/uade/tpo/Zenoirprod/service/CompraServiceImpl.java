@@ -39,12 +39,10 @@ import com.uade.tpo.Zenoirprod.exceptions.EventoNoDisponibleException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaNoDisponibleException;
 import com.uade.tpo.Zenoirprod.exceptions.StockInsuficienteException;
-import com.uade.tpo.Zenoirprod.exceptions.UsuarioInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.VentaNoHabilitadaException;
 import com.uade.tpo.Zenoirprod.repository.CarritoRepository;
 import com.uade.tpo.Zenoirprod.repository.CompraRepository;
 import com.uade.tpo.Zenoirprod.repository.EventoTipoEntradaRepository;
-import com.uade.tpo.Zenoirprod.repository.UserRepository;
 import com.uade.tpo.Zenoirprod.util.PrecioCalculator;
 
 @Service
@@ -56,21 +54,17 @@ public class CompraServiceImpl implements CompraService {
 
     @Autowired private CompraRepository compraRepository;
     @Autowired private EventoTipoEntradaRepository eventoTipoEntradaRepository;
-    @Autowired private UserRepository userRepository;
     @Autowired private CarritoRepository carritoRepository;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Compra crearCompra(CompraRequest request)
-            throws CompraInvalidaException, UsuarioInexistenteException,
+    public Compra crearCompra(User usuario, CompraRequest request)
+            throws CompraInvalidaException,
             EventoTipoEntradaInexistenteException, EventoTipoEntradaNoDisponibleException,
             StockInsuficienteException, VentaNoHabilitadaException, EventoNoDisponibleException,
             CarritoInexistenteException, CarritoAjenoException, CarritoNoModificableException {
 
         validarShape(request);
-
-        User usuario = userRepository.findById(request.getUsuarioId())
-                .orElseThrow(UsuarioInexistenteException::new);
 
         // Toda compra debe nacer de un carrito propio y activo del usuario.
         Carrito carrito = resolverCarrito(request.getCarritoId(), usuario);
@@ -228,7 +222,6 @@ public class CompraServiceImpl implements CompraService {
     }
 
     private void validarShape(CompraRequest request) throws CompraInvalidaException {
-        if (request.getUsuarioId() == null) throw new CompraInvalidaException();
         if (request.getItems() == null || request.getItems().isEmpty()) {
             throw new CompraInvalidaException();
         }

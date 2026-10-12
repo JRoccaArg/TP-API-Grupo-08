@@ -6,7 +6,6 @@ import lombok.Data;
 
 @Data
 public class CompraRequest {
-    private Integer usuarioId;
     private Integer carritoId;
     private List<ItemCompraRequest> items;
 

@@ -6,23 +6,20 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
 import com.uade.tpo.Zenoirprod.entity.Carrito;
-import com.uade.tpo.Zenoirprod.entity.dto.CarritoRequest;
+import com.uade.tpo.Zenoirprod.entity.User;
 import com.uade.tpo.Zenoirprod.entity.dto.ItemCarritoRequest;
 import com.uade.tpo.Zenoirprod.exceptions.CarritoInexistenteException;
-import com.uade.tpo.Zenoirprod.exceptions.CarritoInvalidoException;
 import com.uade.tpo.Zenoirprod.exceptions.CarritoNoModificableException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaNoDisponibleException;
 import com.uade.tpo.Zenoirprod.exceptions.ItemCarritoInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.ItemCarritoInvalidoException;
 import com.uade.tpo.Zenoirprod.exceptions.StockInsuficienteException;
-import com.uade.tpo.Zenoirprod.exceptions.UsuarioInexistenteException;
 
 public interface CarritoService {
 
     /** Devuelve el carrito ACTIVO del usuario, o crea uno nuevo si no tiene. */
-    Carrito obtenerOCrearActivo(CarritoRequest request)
-            throws CarritoInvalidoException, UsuarioInexistenteException;
+    Carrito obtenerOCrearActivo(User usuario);
 
     Optional<Carrito> getPorId(Integer id);
 

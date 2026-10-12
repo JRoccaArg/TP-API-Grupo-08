@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 import com.uade.tpo.Zenoirprod.repository.CarritoRepository;
 import com.uade.tpo.Zenoirprod.repository.CompraRepository;
 import com.uade.tpo.Zenoirprod.repository.TicketRepository;
-import com.uade.tpo.Zenoirprod.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -14,21 +13,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AuthorizationService {
 
-    private final UserRepository userRepository;
     private final CarritoRepository carritoRepository;
     private final CompraRepository compraRepository;
     private final TicketRepository ticketRepository;
-
-    // Verifica que el usuario que hace la petición es el mismo que el usuario al que quiere acceder.
-    // Falla cerrado: si falta el id, la autenticación o el usuario no existe, no autoriza.
-    public boolean puedeUsarUsuario(Integer usuarioId, Authentication authentication) {
-        if (usuarioId == null || authentication == null) {
-            return false;
-        }
-        return userRepository.findById(usuarioId)
-                .map(usuario -> esElUsuario(usuario.getEmail(), authentication))
-                .orElse(false);
-    }
 
     // Verifica que el carrito pertenece al usuario que lo pide y que el carrito exista.
     // Falla cerrado: si el carrito no existe no autoriza (se traduce en 403).
