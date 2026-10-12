@@ -15,6 +15,7 @@ Zenoir es una API para publicar eventos, administrar locaciones, tipos de entrad
 - Las imagenes de eventos se reciben como archivos multipart y se guardan en la base.
 - Los archivos admitidos deben ser imagenes.
 - La subida de una imagen devuelve `201 Created` y los listados se ordenan por el campo `orden` de forma ascendente.
+- Crear un recurso (evento, locacion, tipo de entrada, categoria, carrito, compra, imagen o usuario) devuelve `201 Created`; los recursos con consulta propia incluyen su ruta en el encabezado `Location`.
 - Las imagenes de locaciones tambien se reciben como archivos multipart, se guardan en la base y se ordenan de forma ascendente.
 - El registro y el inicio de sesion validan los datos recibidos y devuelven errores controlados.
 - Los usuarios guardan nombre, apellido, DNI, fecha de nacimiento, email, password, rol, fecha de registro y estado activo.

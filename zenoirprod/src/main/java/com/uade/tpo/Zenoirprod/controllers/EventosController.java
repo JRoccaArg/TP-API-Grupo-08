@@ -1,5 +1,7 @@
 package com.uade.tpo.Zenoirprod.controllers;
 
+import java.net.URI;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -80,7 +82,8 @@ public class EventosController {
         Evento creado = eventosService.crearEvento(eventoRequest.getTitulo(), eventoRequest.getDescripcion(),
                 eventoRequest.getEstado(), eventoRequest.getLocacion_id(), eventoRequest.getCategoria_id(), eventoRequest.getFechaHoraInicio(),
                 eventoRequest.getFechaHoraFin());
-        return ResponseEntity.ok(EventoResponse.fromEntity(creado));
+        return ResponseEntity.created(URI.create("/eventos/" + creado.getId()))
+                .body(EventoResponse.fromEntity(creado));
     }
 
 }

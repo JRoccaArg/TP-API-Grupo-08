@@ -1,5 +1,7 @@
 package com.uade.tpo.Zenoirprod.controllers;
 
+import java.net.URI;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -54,7 +56,8 @@ public class TipoEntradasController {
                 tipoEntradaRequest.getNombre(),
                 tipoEntradaRequest.getDescripcionBase(),
                 tipoEntradaRequest.getActivo());
-        return ResponseEntity.ok(TipoEntradaResponse.fromEntity(creado));
+        return ResponseEntity.created(URI.create("/tiposEntrada/" + creado.getId()))
+                .body(TipoEntradaResponse.fromEntity(creado));
     }
 
     @PutMapping("/{id}")

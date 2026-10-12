@@ -1,5 +1,7 @@
 package com.uade.tpo.Zenoirprod.controllers;
 
+import java.net.URI;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -54,7 +56,8 @@ public class LocacionesController {
                 locacionRequest.getNombre(),
                 locacionRequest.getDireccion(),
                 locacionRequest.getCapacidadMax());
-        return ResponseEntity.ok(LocacionResponse.fromEntity(creada));
+        return ResponseEntity.created(URI.create("/locaciones/" + creada.getId()))
+                .body(LocacionResponse.fromEntity(creada));
     }
 
     @PutMapping("/{id}")
