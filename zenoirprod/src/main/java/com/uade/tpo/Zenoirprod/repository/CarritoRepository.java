@@ -22,6 +22,7 @@ public interface CarritoRepository extends JpaRepository<Carrito, Integer> {
     boolean existsByItems_EventoTipoEntrada_Id(Integer eventoTipoEntradaId);
 
     @Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT c FROM Carrito c WHERE c.id = :id")
-    Optional<Carrito> findByIdForUpdate(@Param("id") Integer id);
+    @Query("SELECT c FROM Carrito c WHERE c.usuario.id = :usuarioId AND c.estado = :estado")
+    Optional<Carrito> findByUsuarioIdAndEstadoForUpdate(@Param("usuarioId") Integer usuarioId,
+            @Param("estado") EstadoCarrito estado);
 }

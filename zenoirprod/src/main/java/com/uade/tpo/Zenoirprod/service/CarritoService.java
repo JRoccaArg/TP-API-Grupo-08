@@ -1,15 +1,12 @@
 package com.uade.tpo.Zenoirprod.service;
 
-import java.util.Optional;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
 import com.uade.tpo.Zenoirprod.entity.Carrito;
 import com.uade.tpo.Zenoirprod.entity.User;
 import com.uade.tpo.Zenoirprod.entity.dto.ItemCarritoRequest;
-import com.uade.tpo.Zenoirprod.exceptions.CarritoInexistenteException;
-import com.uade.tpo.Zenoirprod.exceptions.CarritoNoModificableException;
+import com.uade.tpo.Zenoirprod.exceptions.CarritoActivoInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaNoDisponibleException;
 import com.uade.tpo.Zenoirprod.exceptions.ItemCarritoInexistenteException;
@@ -21,23 +18,26 @@ public interface CarritoService {
     /** Devuelve el carrito ACTIVO del usuario, o crea uno nuevo si no tiene. */
     Carrito obtenerOCrearActivo(User usuario);
 
-    Optional<Carrito> getPorId(Integer id);
+    /** Devuelve el carrito ACTIVO del usuario. */
+    Carrito getActivo(Integer usuarioId) throws CarritoActivoInexistenteException;
 
     Page<Carrito> getPorUsuario(Integer usuarioId, PageRequest pageRequest);
 
-    Carrito agregarItem(Integer carritoId, ItemCarritoRequest request)
-            throws CarritoInexistenteException, CarritoNoModificableException, ItemCarritoInvalidoException,
-            EventoTipoEntradaInexistenteException, EventoTipoEntradaNoDisponibleException,
-            StockInsuficienteException;
+    // Todas las operaciones siguientes actuan sobre el carrito ACTIVO del usuario.
 
-    Carrito actualizarCantidad(Integer carritoId, Integer itemId, Integer cantidad)
-            throws CarritoInexistenteException, CarritoNoModificableException, ItemCarritoInexistenteException,
+    /** Agrega la entrada al carrito activo del usuario; si todavia no tiene uno, lo crea. */
+    Carrito agregarItem(User usuario, ItemCarritoRequest request)
+            throws ItemCarritoInvalidoException, EventoTipoEntradaInexistenteException,
+            EventoTipoEntradaNoDisponibleException, StockInsuficienteException;
+
+    Carrito actualizarCantidad(Integer usuarioId, Integer itemId, Integer cantidad)
+            throws CarritoActivoInexistenteException, ItemCarritoInexistenteException,
             ItemCarritoInvalidoException, StockInsuficienteException;
 
-    Carrito quitarItem(Integer carritoId, Integer itemId)
-            throws CarritoInexistenteException, CarritoNoModificableException, ItemCarritoInexistenteException;
+    Carrito quitarItem(Integer usuarioId, Integer itemId)
+            throws CarritoActivoInexistenteException, ItemCarritoInexistenteException;
 
-    Carrito vaciar(Integer carritoId) throws CarritoInexistenteException, CarritoNoModificableException;
+    Carrito vaciar(Integer usuarioId) throws CarritoActivoInexistenteException;
 
-    Carrito abandonar(Integer carritoId) throws CarritoInexistenteException, CarritoNoModificableException;
+    Carrito abandonar(Integer usuarioId) throws CarritoActivoInexistenteException;
 }

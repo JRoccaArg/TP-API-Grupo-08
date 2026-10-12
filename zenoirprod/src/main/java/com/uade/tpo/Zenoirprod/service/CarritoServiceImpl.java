@@ -1,12 +1,12 @@
 package com.uade.tpo.Zenoirprod.service;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,8 +17,7 @@ import com.uade.tpo.Zenoirprod.entity.EventoTipoEntrada.EstadoEventoTipoEntrada;
 import com.uade.tpo.Zenoirprod.entity.ItemCarrito;
 import com.uade.tpo.Zenoirprod.entity.User;
 import com.uade.tpo.Zenoirprod.entity.dto.ItemCarritoRequest;
-import com.uade.tpo.Zenoirprod.exceptions.CarritoInexistenteException;
-import com.uade.tpo.Zenoirprod.exceptions.CarritoNoModificableException;
+import com.uade.tpo.Zenoirprod.exceptions.CarritoActivoInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaNoDisponibleException;
 import com.uade.tpo.Zenoirprod.exceptions.ItemCarritoInexistenteException;
@@ -26,25 +25,31 @@ import com.uade.tpo.Zenoirprod.exceptions.ItemCarritoInvalidoException;
 import com.uade.tpo.Zenoirprod.exceptions.StockInsuficienteException;
 import com.uade.tpo.Zenoirprod.repository.CarritoRepository;
 import com.uade.tpo.Zenoirprod.repository.EventoTipoEntradaRepository;
+import com.uade.tpo.Zenoirprod.repository.UserRepository;
 
 @Service
 public class CarritoServiceImpl implements CarritoService {
 
     @Autowired private CarritoRepository carritoRepository;
     @Autowired private EventoTipoEntradaRepository eventoTipoEntradaRepository;
+    @Autowired private UserRepository userRepository;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Carrito obtenerOCrearActivo(User usuario) {
+        // Se bloquea la fila del usuario para que dos pedidos simultaneos no creen dos carritos activos.
+        User bloqueado = userRepository.findByIdForUpdate(usuario.getId())
+                .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
+
         Optional<Carrito> existente = carritoRepository.findByUsuario_IdAndEstado(
-                usuario.getId(), EstadoCarrito.ACTIVO);
+                bloqueado.getId(), EstadoCarrito.ACTIVO);
         if (existente.isPresent()) {
             return existente.get();
         }
 
         LocalDateTime ahora = LocalDateTime.now();
         Carrito carrito = new Carrito();
-        carrito.setUsuario(usuario);
+        carrito.setUsuario(bloqueado);
         carrito.setEstado(EstadoCarrito.ACTIVO);
         carrito.setFechaCreacion(ahora);
         carrito.setFechaActualizacion(ahora);
@@ -52,8 +57,8 @@ public class CarritoServiceImpl implements CarritoService {
     }
 
     @Override
-    public Optional<Carrito> getPorId(Integer id) {
-        return carritoRepository.findById(id);
+    public Carrito getActivo(Integer usuarioId) throws CarritoActivoInexistenteException {
+        return carritoActivo(usuarioId);
     }
 
     @Override
@@ -63,25 +68,24 @@ public class CarritoServiceImpl implements CarritoService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Carrito agregarItem(Integer carritoId, ItemCarritoRequest request)
-            throws CarritoInexistenteException, CarritoNoModificableException, ItemCarritoInvalidoException,
-            EventoTipoEntradaInexistenteException, EventoTipoEntradaNoDisponibleException,
-            StockInsuficienteException {
+    public Carrito agregarItem(User usuario, ItemCarritoRequest request)
+            throws ItemCarritoInvalidoException, EventoTipoEntradaInexistenteException,
+            EventoTipoEntradaNoDisponibleException, StockInsuficienteException {
 
         if (request.getEventoTipoEntradaId() == null
                 || request.getCantidad() == null || request.getCantidad() <= 0) {
             throw new ItemCarritoInvalidoException();
         }
 
-        Carrito carrito = carritoRepository.findById(carritoId)
-                .orElseThrow(CarritoInexistenteException::new);
-        validarActivo(carrito);
-
         EventoTipoEntrada ete = eventoTipoEntradaRepository.findById(request.getEventoTipoEntradaId())
                 .orElseThrow(EventoTipoEntradaInexistenteException::new);
         if (ete.getEstado() != EstadoEventoTipoEntrada.ACTIVO) {
             throw new EventoTipoEntradaNoDisponibleException();
         }
+
+        // Agregar el primer item crea el carrito si el usuario todavia no tiene uno activo.
+        // Si algo falla mas abajo, la transaccion se revierte y no queda un carrito vacio de mas.
+        Carrito carrito = obtenerOCrearActivo(usuario);
 
         Optional<ItemCarrito> itemExistente = carrito.getItems().stream()
                 .filter(item -> item.getEventoTipoEntrada().getId().equals(ete.getId()))
@@ -111,17 +115,15 @@ public class CarritoServiceImpl implements CarritoService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Carrito actualizarCantidad(Integer carritoId, Integer itemId, Integer cantidad)
-            throws CarritoInexistenteException, CarritoNoModificableException, ItemCarritoInexistenteException,
+    public Carrito actualizarCantidad(Integer usuarioId, Integer itemId, Integer cantidad)
+            throws CarritoActivoInexistenteException, ItemCarritoInexistenteException,
             ItemCarritoInvalidoException, StockInsuficienteException {
 
         if (cantidad == null || cantidad <= 0) {
             throw new ItemCarritoInvalidoException();
         }
 
-        Carrito carrito = carritoRepository.findById(carritoId)
-                .orElseThrow(CarritoInexistenteException::new);
-        validarActivo(carrito);
+        Carrito carrito = carritoActivo(usuarioId);
 
         ItemCarrito item = buscarItem(carrito, itemId);
         if (item.getEventoTipoEntrada().getCantidadDisponible() < cantidad) {
@@ -135,11 +137,9 @@ public class CarritoServiceImpl implements CarritoService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Carrito quitarItem(Integer carritoId, Integer itemId)
-            throws CarritoInexistenteException, CarritoNoModificableException, ItemCarritoInexistenteException {
-        Carrito carrito = carritoRepository.findById(carritoId)
-                .orElseThrow(CarritoInexistenteException::new);
-        validarActivo(carrito);
+    public Carrito quitarItem(Integer usuarioId, Integer itemId)
+            throws CarritoActivoInexistenteException, ItemCarritoInexistenteException {
+        Carrito carrito = carritoActivo(usuarioId);
 
         ItemCarrito item = buscarItem(carrito, itemId);
         carrito.getItems().remove(item);
@@ -149,10 +149,8 @@ public class CarritoServiceImpl implements CarritoService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Carrito vaciar(Integer carritoId) throws CarritoInexistenteException, CarritoNoModificableException {
-        Carrito carrito = carritoRepository.findById(carritoId)
-                .orElseThrow(CarritoInexistenteException::new);
-        validarActivo(carrito);
+    public Carrito vaciar(Integer usuarioId) throws CarritoActivoInexistenteException {
+        Carrito carrito = carritoActivo(usuarioId);
 
         carrito.getItems().clear();
         carrito.setFechaActualizacion(LocalDateTime.now());
@@ -161,24 +159,20 @@ public class CarritoServiceImpl implements CarritoService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Carrito abandonar(Integer carritoId) throws CarritoInexistenteException, CarritoNoModificableException {
-        Carrito carrito = carritoRepository.findById(carritoId)
-                .orElseThrow(CarritoInexistenteException::new);
-        if (carrito.getEstado() == EstadoCarrito.CONVERTIDO) {
-            throw new CarritoNoModificableException();
-        }
+    public Carrito abandonar(Integer usuarioId) throws CarritoActivoInexistenteException {
+        Carrito carrito = carritoActivo(usuarioId);
 
         carrito.setEstado(EstadoCarrito.ABANDONADO);
         carrito.setFechaActualizacion(LocalDateTime.now());
         return carritoRepository.save(carrito);
     }
 
-    private void validarActivo(Carrito carrito) throws CarritoNoModificableException {
-        if (carrito.getEstado() != EstadoCarrito.ACTIVO) {
-            throw new CarritoNoModificableException();
-        }
+    private Carrito carritoActivo(Integer usuarioId) throws CarritoActivoInexistenteException {
+        return carritoRepository.findByUsuario_IdAndEstado(usuarioId, EstadoCarrito.ACTIVO)
+                .orElseThrow(CarritoActivoInexistenteException::new);
     }
 
+    // Solo busca entre los items del carrito activo del propio usuario: un itemId ajeno nunca se encuentra.
     private ItemCarrito buscarItem(Carrito carrito, Integer itemId) throws ItemCarritoInexistenteException {
         return carrito.getItems().stream()
                 .filter(item -> item.getId().equals(itemId))

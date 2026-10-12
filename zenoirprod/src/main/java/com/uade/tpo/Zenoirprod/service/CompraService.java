@@ -7,12 +7,9 @@ import org.springframework.data.domain.PageRequest;
 
 import com.uade.tpo.Zenoirprod.entity.Compra;
 import com.uade.tpo.Zenoirprod.entity.User;
-import com.uade.tpo.Zenoirprod.entity.dto.CompraRequest;
-import com.uade.tpo.Zenoirprod.exceptions.CarritoAjenoException;
-import com.uade.tpo.Zenoirprod.exceptions.CarritoInexistenteException;
-import com.uade.tpo.Zenoirprod.exceptions.CarritoNoModificableException;
+import com.uade.tpo.Zenoirprod.exceptions.CarritoActivoInexistenteException;
+import com.uade.tpo.Zenoirprod.exceptions.CarritoVacioException;
 import com.uade.tpo.Zenoirprod.exceptions.CompraInexistenteException;
-import com.uade.tpo.Zenoirprod.exceptions.CompraInvalidaException;
 import com.uade.tpo.Zenoirprod.exceptions.CompraNoCancelableException;
 import com.uade.tpo.Zenoirprod.exceptions.DevolucionNoPermitidaException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoNoDisponibleException;
@@ -23,11 +20,11 @@ import com.uade.tpo.Zenoirprod.exceptions.VentaNoHabilitadaException;
 
 public interface CompraService {
 
-    Compra crearCompra(User usuario, CompraRequest request)
-            throws CompraInvalidaException,
+    /** Compra todos los items del carrito ACTIVO del usuario. */
+    Compra crearCompra(User usuario)
+            throws CarritoActivoInexistenteException, CarritoVacioException,
             EventoTipoEntradaInexistenteException, EventoTipoEntradaNoDisponibleException,
-            StockInsuficienteException, VentaNoHabilitadaException, EventoNoDisponibleException,
-            CarritoInexistenteException, CarritoAjenoException, CarritoNoModificableException;
+            StockInsuficienteException, VentaNoHabilitadaException, EventoNoDisponibleException;
 
     Optional<Compra> getPorId(Integer id);
 

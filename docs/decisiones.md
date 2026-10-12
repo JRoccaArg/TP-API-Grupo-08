@@ -7,9 +7,16 @@ o si el recurso (usuario, carrito, compra, ticket) no existe, no autoriza. Antes
 devolvia `true` por defecto (`orElse(true)`), lo que autorizaba ante recursos
 inexistentes o ids nulos.
 
-Toda compra debe nacer de un carrito propio y activo del usuario: `crearCompra`
-rechaza `carritoId == null` con `CompraInvalidaException`. Se elimina la compra
-directa sin carrito.
+Toda compra nace del carrito activo del usuario autenticado: `POST /compras` no
+recibe body, el usuario sale del token y `crearCompra` rechaza con
+`CarritoActivoInexistenteException` o `CarritoVacioException` si no hay un carrito
+activo o esta vacio. Se elimina la compra directa sin carrito.
+
+Las operaciones sobre el carrito (`/carritos/activo/...`) actuan siempre sobre el
+carrito activo del usuario autenticado, por lo que no reciben el id del carrito.
+`POST /carritos` obtiene o crea ese carrito y `GET /carritos` lista el historial
+propio. Agregar el primer item (`POST /carritos/activo/items`) crea el carrito si
+el usuario no tiene uno activo, por lo que el frontend no necesita crearlo antes.
 
 La devolucion (cancelar compra) mantiene la politica actual: solo se reembolsa si
 el evento fue cancelado por el organizador. El usuario no cancela su compra por
@@ -27,8 +34,7 @@ Ver [[contexto]] y [[arquitectura]].
 
 ## 2026-09-08 - Consistencia de compras y datos relacionados
 
-Las operaciones que modifican carrito, compra o stock revierten todos sus cambios ante cualquier excepcion controlada. La compra bloquea el carrito y cada fila de stock mientras los procesa, valida que el carrito este activo y compara sus items con los solicitados.
-
+Las operaciones que modifican carrito, compra o stock revierten todos sus cambios ante cualquier excepcion controlada. La compra bloquea el carrito activo del usuario y cada fila de stock mientras los procesa, y compra los items del propio carrito. Obtener o crear el carrito activo bloquea la fila del usuario para que no puedan existir dos carritos activos por pedidos simultaneos.
 Los borrados de eventos, tipos de entrada y asociaciones evento-tipo se rechazan con `409 Conflict` cuando existen relaciones que deben conservarse. Las locaciones y tipos de entrada rechazan datos incompletos, capacidades no positivas y nombres duplicados.
 
 Ver [[contexto]] y [[arquitectura]].

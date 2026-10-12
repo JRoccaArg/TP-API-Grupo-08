@@ -25,7 +25,7 @@ Zenoir es una API para publicar eventos, administrar locaciones, tipos de entrad
 - Cada evento puede ofrecer distintos tipos de entrada con precio, descuento, stock y periodo de venta.
 - Las compras validan disponibilidad, descuentan stock y generan tickets; al cancelarse reponen el stock correspondiente.
 - Cada usuario puede tener un carrito activo con sus propios items de entrada.
-- Una compra asociada a un carrito solo se confirma si el carrito esta activo, pertenece al usuario y sus items coinciden con la solicitud.
+- La compra se hace sobre el carrito activo del usuario autenticado y no recibe datos en el body. Se rechaza si el usuario no tiene un carrito activo o si esta vacio.
 - La compra y la reposicion de entradas bloquean temporalmente el stock involucrado para evitar sobreventa por operaciones simultaneas.
 - Los eventos, tipos de entrada y asociaciones evento-tipo no se eliminan cuando tienen datos relacionados.
 - Las locaciones y tipos de entrada validan campos obligatorios, valores positivos y nombres duplicados.

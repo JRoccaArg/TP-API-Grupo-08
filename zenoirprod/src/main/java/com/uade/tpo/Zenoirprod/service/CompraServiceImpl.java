@@ -4,9 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -23,16 +21,13 @@ import com.uade.tpo.Zenoirprod.entity.Compra.EstadoCompra;
 import com.uade.tpo.Zenoirprod.entity.DetalleCompra;
 import com.uade.tpo.Zenoirprod.entity.EventoTipoEntrada;
 import com.uade.tpo.Zenoirprod.entity.EventoTipoEntrada.EstadoEventoTipoEntrada;
+import com.uade.tpo.Zenoirprod.entity.ItemCarrito;
 import com.uade.tpo.Zenoirprod.entity.Ticket;
 import com.uade.tpo.Zenoirprod.entity.Ticket.EstadoTicket;
 import com.uade.tpo.Zenoirprod.entity.User;
-import com.uade.tpo.Zenoirprod.entity.dto.CompraRequest;
-import com.uade.tpo.Zenoirprod.entity.dto.CompraRequest.ItemCompraRequest;
-import com.uade.tpo.Zenoirprod.exceptions.CarritoAjenoException;
-import com.uade.tpo.Zenoirprod.exceptions.CarritoInexistenteException;
-import com.uade.tpo.Zenoirprod.exceptions.CarritoNoModificableException;
+import com.uade.tpo.Zenoirprod.exceptions.CarritoActivoInexistenteException;
+import com.uade.tpo.Zenoirprod.exceptions.CarritoVacioException;
 import com.uade.tpo.Zenoirprod.exceptions.CompraInexistenteException;
-import com.uade.tpo.Zenoirprod.exceptions.CompraInvalidaException;
 import com.uade.tpo.Zenoirprod.exceptions.CompraNoCancelableException;
 import com.uade.tpo.Zenoirprod.exceptions.DevolucionNoPermitidaException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoNoDisponibleException;
@@ -58,27 +53,28 @@ public class CompraServiceImpl implements CompraService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Compra crearCompra(User usuario, CompraRequest request)
-            throws CompraInvalidaException,
+    public Compra crearCompra(User usuario)
+            throws CarritoActivoInexistenteException, CarritoVacioException,
             EventoTipoEntradaInexistenteException, EventoTipoEntradaNoDisponibleException,
-            StockInsuficienteException, VentaNoHabilitadaException, EventoNoDisponibleException,
-            CarritoInexistenteException, CarritoAjenoException, CarritoNoModificableException {
+            StockInsuficienteException, VentaNoHabilitadaException, EventoNoDisponibleException {
 
-        validarShape(request);
-
-        // Toda compra debe nacer de un carrito propio y activo del usuario.
-        Carrito carrito = resolverCarrito(request.getCarritoId(), usuario);
-        validarItemsCarrito(carrito, request.getItems());
+        // La compra sale siempre del carrito activo del usuario autenticado: no se recibe nada del cliente.
+        Carrito carrito = carritoRepository.findByUsuarioIdAndEstadoForUpdate(usuario.getId(), EstadoCarrito.ACTIVO)
+                .orElseThrow(CarritoActivoInexistenteException::new);
+        if (carrito.getItems().isEmpty()) {
+            throw new CarritoVacioException();
+        }
 
         List<DetalleCompra> detalles = new ArrayList<>();
         BigDecimal total = BigDecimal.ZERO;
         LocalDateTime ahora = LocalDateTime.now();
 
-        List<ItemCompraRequest> itemsOrdenados = new ArrayList<>(request.getItems());
-        itemsOrdenados.sort(Comparator.comparing(ItemCompraRequest::getEventoTipoEntradaId));
+        // El stock se bloquea siempre en el mismo orden para evitar deadlocks entre compras simultaneas.
+        List<ItemCarrito> itemsOrdenados = new ArrayList<>(carrito.getItems());
+        itemsOrdenados.sort(Comparator.comparing(item -> item.getEventoTipoEntrada().getId()));
 
-        for (ItemCompraRequest item : itemsOrdenados) {
-            EventoTipoEntrada ete = eventoTipoEntradaRepository.findByIdForUpdate(item.getEventoTipoEntradaId())
+        for (ItemCarrito item : itemsOrdenados) {
+            EventoTipoEntrada ete = eventoTipoEntradaRepository.findByIdForUpdate(item.getEventoTipoEntrada().getId())
                     .orElseThrow(EventoTipoEntradaInexistenteException::new);
 
             validarDisponibilidad(ete, item.getCantidad(), ahora);
@@ -168,38 +164,6 @@ public class CompraServiceImpl implements CompraService {
         return compraRepository.save(compra);
     }
 
-    private Carrito resolverCarrito(Integer carritoId, User usuario)
-            throws CompraInvalidaException, CarritoInexistenteException, CarritoAjenoException,
-            CarritoNoModificableException {
-        if (carritoId == null) {
-            throw new CompraInvalidaException();
-        }
-        Carrito carrito = carritoRepository.findByIdForUpdate(carritoId)
-                .orElseThrow(CarritoInexistenteException::new);
-        if (!carrito.getUsuario().getId().equals(usuario.getId())) {
-            throw new CarritoAjenoException();
-        }
-        if (carrito.getEstado() != EstadoCarrito.ACTIVO) {
-            throw new CarritoNoModificableException();
-        }
-        return carrito;
-    }
-
-    private void validarItemsCarrito(Carrito carrito, List<ItemCompraRequest> itemsCompra)
-            throws CompraInvalidaException {
-        Map<Integer, Integer> cantidadesCarrito = new HashMap<>();
-        carrito.getItems().forEach(item -> cantidadesCarrito.merge(
-                item.getEventoTipoEntrada().getId(), item.getCantidad(), Integer::sum));
-
-        Map<Integer, Integer> cantidadesCompra = new HashMap<>();
-        itemsCompra.forEach(item -> cantidadesCompra.merge(
-                item.getEventoTipoEntradaId(), item.getCantidad(), Integer::sum));
-
-        if (cantidadesCarrito.isEmpty() || !cantidadesCarrito.equals(cantidadesCompra)) {
-            throw new CompraInvalidaException();
-        }
-    }
-
     private void validarDisponibilidad(EventoTipoEntrada ete, int cantidad, LocalDateTime ahora)
             throws EventoTipoEntradaNoDisponibleException, VentaNoHabilitadaException,
             EventoNoDisponibleException, StockInsuficienteException {
@@ -218,20 +182,6 @@ public class CompraServiceImpl implements CompraService {
         }
         if (ete.getCantidadDisponible() < cantidad) {
             throw new StockInsuficienteException();
-        }
-    }
-
-    private void validarShape(CompraRequest request) throws CompraInvalidaException {
-        if (request.getItems() == null || request.getItems().isEmpty()) {
-            throw new CompraInvalidaException();
-        }
-        for (ItemCompraRequest item : request.getItems()) {
-
-            if (item == null) throw new CompraInvalidaException();
-            if (item.getEventoTipoEntradaId() == null) throw new CompraInvalidaException();
-            if (item.getCantidad() == null || item.getCantidad() <= 0) {
-                throw new CompraInvalidaException();
-            }
         }
     }
 
