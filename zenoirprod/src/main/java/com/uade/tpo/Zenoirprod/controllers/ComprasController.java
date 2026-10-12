@@ -57,11 +57,11 @@ public class ComprasController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or ((hasRole('USER') and @authorizationService.puedeAccederCompra(#id, authentication)))")
-    public ResponseEntity<CompraResponse> getPorId(@PathVariable Integer id) {
+    public ResponseEntity<CompraResponse> getPorId(@PathVariable Integer id) throws CompraInexistenteException {
         return service.getPorId(id)
                 .map(CompraResponse::fromEntity)
                 .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                .orElseThrow(CompraInexistenteException::new);
     }
 
     @GetMapping

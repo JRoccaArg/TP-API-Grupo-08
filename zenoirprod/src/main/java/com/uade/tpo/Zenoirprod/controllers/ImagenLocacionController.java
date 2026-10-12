@@ -1,7 +1,6 @@
 package com.uade.tpo.Zenoirprod.controllers;
 
 import java.net.URI;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -22,7 +21,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.uade.tpo.Zenoirprod.entity.ImagenLocacion;
 import com.uade.tpo.Zenoirprod.entity.dto.ImagenLocacionRequest;
 import com.uade.tpo.Zenoirprod.exceptions.ImagenLocacionInexistenteException;
-import com.uade.tpo.Zenoirprod.exceptions.ImagenLocacionInvalidaException;
 import com.uade.tpo.Zenoirprod.exceptions.LocacionInexsistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.PaginacionInvalidaException;
 import com.uade.tpo.Zenoirprod.service.ImagenLocacionService;
@@ -38,88 +36,50 @@ public class ImagenLocacionController {
     @GetMapping("locaciones/{locacionId}/imagenes")
     public ResponseEntity<Page<ImagenLocacion>> getImagenesPorLocacionId(@PathVariable Integer locacionId,
             @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer size) {
-        try {
-            Page<ImagenLocacion> imagenes = imagenLocacionService.getImagenesPorLocacionId(
-                    locacionId, PageableFactory.crear(page, size));
-            return ResponseEntity.ok(imagenes);
-        }
-        catch (LocacionInexsistenteException e) {
-            return ResponseEntity.notFound().build();
-        }
-        catch (PaginacionInvalidaException e) {
-            return ResponseEntity.badRequest().build();
-        }
-        catch (Exception e) {
-            return ResponseEntity.status(500).build();
-        }
+            @RequestParam(required = false) Integer size)
+            throws LocacionInexsistenteException, PaginacionInvalidaException {
+        Page<ImagenLocacion> imagenes = imagenLocacionService.getImagenesPorLocacionId(
+                locacionId, PageableFactory.crear(page, size));
+        return ResponseEntity.ok(imagenes);
     }
 
     @GetMapping("locaciones/{locacionId}/imagenes/{imagenId}")
     public ResponseEntity<ImagenLocacion> getImagenPorLocacionIdYImagenId(
-            @PathVariable Integer locacionId, @PathVariable Integer imagenId) {
-        try {
-            Optional<ImagenLocacion> imagen = imagenLocacionService
-                    .getImagenPorLocacionIdYImagenId(locacionId, imagenId);
-            if (imagen.isPresent()) {
-                return ResponseEntity.ok(imagen.get());
-            }
-            return ResponseEntity.notFound().build();
-        }
-        catch (LocacionInexsistenteException e) {
-            return ResponseEntity.notFound().build();
-        }
-        catch (Exception e) {
-            return ResponseEntity.status(500).build();
-        }
+            @PathVariable Integer locacionId, @PathVariable Integer imagenId)
+            throws LocacionInexsistenteException, ImagenLocacionInexistenteException {
+        ImagenLocacion imagen = imagenLocacionService
+                .getImagenPorLocacionIdYImagenId(locacionId, imagenId)
+                .orElseThrow(ImagenLocacionInexistenteException::new);
+        return ResponseEntity.ok(imagen);
     }
 
     @GetMapping("locaciones/{locacionId}/imagenes/{imagenId}/archivo")
     public ResponseEntity<byte[]> getArchivoImagen(@PathVariable Integer locacionId,
-            @PathVariable Integer imagenId) {
-        try {
-            Optional<ImagenLocacion> imagen = imagenLocacionService
-                    .getImagenPorLocacionIdYImagenId(locacionId, imagenId);
-            if (imagen.isEmpty()) {
-                return ResponseEntity.notFound().build();
-            }
-            return ResponseEntity.ok()
-                    .contentType(MediaType.parseMediaType(imagen.get().getTipoContenido()))
-                    .header(HttpHeaders.CONTENT_DISPOSITION,
-                            "inline; filename=\"" + imagen.get().getNombreArchivo() + "\"")
-                    .body(imagen.get().getDatos());
-        }
-        catch (LocacionInexsistenteException e) {
-            return ResponseEntity.notFound().build();
-        }
-        catch (Exception e) {
-            return ResponseEntity.status(500).build();
-        }
+            @PathVariable Integer imagenId)
+            throws LocacionInexsistenteException, ImagenLocacionInexistenteException {
+        ImagenLocacion imagen = imagenLocacionService
+                .getImagenPorLocacionIdYImagenId(locacionId, imagenId)
+                .orElseThrow(ImagenLocacionInexistenteException::new);
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(imagen.getTipoContenido()))
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "inline; filename=\"" + imagen.getNombreArchivo() + "\"")
+                .body(imagen.getDatos());
     }
 
+    // El servicio declara "throws Exception" en crear y actualizar (por la lectura del archivo), por eso se propaga aca.
     @PostMapping(value = "locaciones/{locacionId}/imagenes",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ImagenLocacion> postImagen(@PathVariable Integer locacionId,
-            @ModelAttribute ImagenLocacionRequest imagenLocacionRequest) {
-        try {
-            ImagenLocacion resultado = imagenLocacionService.crearImagenLocacion(
-                    imagenLocacionRequest.getArchivo(),
-                    imagenLocacionRequest.getTextoAlternativo(),
-                    locacionId,
-                    imagenLocacionRequest.getOrden());
-            return ResponseEntity.created(URI.create(
-                    "/locaciones/" + locacionId + "/imagenes/" + resultado.getId())).body(resultado);
-        }
-        catch (LocacionInexsistenteException e) {
-            return ResponseEntity.notFound().build();
-        }
-        catch (ImagenLocacionInvalidaException e) {
-            return ResponseEntity.badRequest().build();
-        }
-        catch (Exception e) {
-            return ResponseEntity.status(500).build();
-        }
+            @ModelAttribute ImagenLocacionRequest imagenLocacionRequest) throws Exception {
+        ImagenLocacion resultado = imagenLocacionService.crearImagenLocacion(
+                imagenLocacionRequest.getArchivo(),
+                imagenLocacionRequest.getTextoAlternativo(),
+                locacionId,
+                imagenLocacionRequest.getOrden());
+        return ResponseEntity.created(URI.create(
+                "/locaciones/" + locacionId + "/imagenes/" + resultado.getId())).body(resultado);
     }
 
     @PatchMapping(value = "locaciones/{locacionId}/imagenes/{imagenId}",
@@ -127,45 +87,21 @@ public class ImagenLocacionController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ImagenLocacion> patchImagen(@PathVariable Integer locacionId,
             @PathVariable Integer imagenId,
-            @ModelAttribute ImagenLocacionRequest imagenLocacionRequest) {
-        try {
-            return ResponseEntity.ok(imagenLocacionService.updateImagenLocacion(
-                    imagenId,
-                    locacionId,
-                    imagenLocacionRequest.getArchivo(),
-                    imagenLocacionRequest.getTextoAlternativo(),
-                    imagenLocacionRequest.getOrden()));
-        }
-        catch (LocacionInexsistenteException e) {
-            return ResponseEntity.notFound().build();
-        }
-        catch (ImagenLocacionInexistenteException e) {
-            return ResponseEntity.notFound().build();
-        }
-        catch (ImagenLocacionInvalidaException e) {
-            return ResponseEntity.badRequest().build();
-        }
-        catch (Exception e) {
-            return ResponseEntity.status(500).build();
-        }
+            @ModelAttribute ImagenLocacionRequest imagenLocacionRequest) throws Exception {
+        return ResponseEntity.ok(imagenLocacionService.updateImagenLocacion(
+                imagenId,
+                locacionId,
+                imagenLocacionRequest.getArchivo(),
+                imagenLocacionRequest.getTextoAlternativo(),
+                imagenLocacionRequest.getOrden()));
     }
 
     @DeleteMapping("locaciones/{locacionId}/imagenes/{imagenId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> deleteImagen(@PathVariable Integer locacionId,
-            @PathVariable Integer imagenId) {
-        try {
-            imagenLocacionService.eliminarImagenLocacion(imagenId, locacionId);
-            return ResponseEntity.noContent().build();
-        }
-        catch (LocacionInexsistenteException e) {
-            return ResponseEntity.notFound().build();
-        }
-        catch (ImagenLocacionInexistenteException e) {
-            return ResponseEntity.notFound().build();
-        }
-        catch (Exception e) {
-            return ResponseEntity.status(500).build();
-        }
+            @PathVariable Integer imagenId)
+            throws LocacionInexsistenteException, ImagenLocacionInexistenteException {
+        imagenLocacionService.eliminarImagenLocacion(imagenId, locacionId);
+        return ResponseEntity.noContent().build();
     }
 }

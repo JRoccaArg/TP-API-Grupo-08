@@ -44,11 +44,12 @@ public class CategoriesController {
     }
 
     @GetMapping("/{categoryId}")
-    public ResponseEntity<CategoryResponse> getCategoryById(@PathVariable Integer categoryId) {
+    public ResponseEntity<CategoryResponse> getCategoryById(@PathVariable Integer categoryId)
+            throws CategoryInexistenteException {
         return categoryService.getCategoryById(categoryId)
                 .map(CategoryResponse::fromEntity)
                 .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                .orElseThrow(CategoryInexistenteException::new);
     }
 
     @PostMapping

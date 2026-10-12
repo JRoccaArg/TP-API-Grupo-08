@@ -2,7 +2,6 @@ package com.uade.tpo.Zenoirprod.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -42,12 +41,9 @@ public class LocacionesController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<LocacionResponse> getLocacionPorId(@PathVariable Integer id) {
-        try {
-            return ResponseEntity.ok(LocacionResponse.fromEntity(locacionService.getLocacionPorId(id)));
-        } catch (LocacionInexsistenteException e) {
-            return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<LocacionResponse> getLocacionPorId(@PathVariable Integer id)
+            throws LocacionInexsistenteException {
+        return ResponseEntity.ok(LocacionResponse.fromEntity(locacionService.getLocacionPorId(id)));
     }
 
     @PostMapping
@@ -65,29 +61,20 @@ public class LocacionesController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<LocacionResponse> updateLocacion(@PathVariable Integer id,
             @RequestBody LocacionRequest locacionRequest)
-            throws LocacionInvalidaException, LocacionDuplicadaException {
-        try {
-            Locacion actualizada = locacionService.updateLocacion(
-                    id,
-                    locacionRequest.getNombre(),
-                    locacionRequest.getDireccion(),
-                    locacionRequest.getCapacidadMax());
-            return ResponseEntity.ok(LocacionResponse.fromEntity(actualizada));
-        } catch (LocacionInexsistenteException e) {
-            return ResponseEntity.notFound().build();
-        }
+            throws LocacionInexsistenteException, LocacionInvalidaException, LocacionDuplicadaException {
+        Locacion actualizada = locacionService.updateLocacion(
+                id,
+                locacionRequest.getNombre(),
+                locacionRequest.getDireccion(),
+                locacionRequest.getCapacidadMax());
+        return ResponseEntity.ok(LocacionResponse.fromEntity(actualizada));
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> deleteLocacion(@PathVariable Integer id) {
-        try {
-            locacionService.deleteLocacion(id);
-            return ResponseEntity.noContent().build();
-        } catch (LocacionInexsistenteException e) {
-            return ResponseEntity.notFound().build();
-        } catch (LocacionEnUsoException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
-        }
+    public ResponseEntity<?> deleteLocacion(@PathVariable Integer id)
+            throws LocacionInexsistenteException, LocacionEnUsoException {
+        locacionService.deleteLocacion(id);
+        return ResponseEntity.noContent().build();
     }
 }

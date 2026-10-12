@@ -50,11 +50,11 @@ public class CarritosController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('USER') and @authorizationService.puedeAccederCarrito(#id, authentication)")
-    public ResponseEntity<CarritoResponse> getPorId(@PathVariable Integer id) {
+    public ResponseEntity<CarritoResponse> getPorId(@PathVariable Integer id) throws CarritoInexistenteException {
         return service.getPorId(id)
                 .map(CarritoResponse::fromEntity)
                 .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                .orElseThrow(CarritoInexistenteException::new);
     }
 
     @GetMapping
