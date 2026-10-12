@@ -34,7 +34,7 @@ Ver [[contexto]] y [[arquitectura]].
 
 ## 2026-09-08 - Consistencia de compras y datos relacionados
 
-Las operaciones que modifican carrito, compra o stock revierten todos sus cambios ante cualquier excepcion controlada. La compra bloquea el carrito activo del usuario y cada fila de stock mientras los procesa, y compra los items del propio carrito. Obtener o crear el carrito activo bloquea la fila del usuario para que no puedan existir dos carritos activos por pedidos simultaneos.
+Las operaciones que modifican carrito, compra o stock revierten todos sus cambios ante cualquier excepcion controlada. La compra bloquea el carrito activo del usuario y cada fila de stock mientras los procesa, y compra los items del propio carrito. Obtener o crear el carrito activo bloquea la fila del usuario para que no puedan existir dos carritos activos por pedidos simultaneos. Editar una oferta de entrada (`PATCH /eventosTiposEntrada/{id}`) tambien bloquea su fila para no pisar el stock que descuenta una compra simultanea.
 Los borrados de eventos, tipos de entrada y asociaciones evento-tipo se rechazan con `409 Conflict` cuando existen relaciones que deben conservarse. Las locaciones y tipos de entrada rechazan datos incompletos, capacidades no positivas y nombres duplicados.
 
 Ver [[contexto]] y [[arquitectura]].

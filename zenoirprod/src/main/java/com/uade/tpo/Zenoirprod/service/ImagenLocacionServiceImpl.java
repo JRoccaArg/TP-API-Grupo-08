@@ -1,7 +1,6 @@
 package com.uade.tpo.Zenoirprod.service;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,14 +31,6 @@ public class ImagenLocacionServiceImpl implements ImagenLocacionService {
             throw new LocacionInexsistenteException();
         }
         return imagenLocacionRepository.findByLocacionIdOrderByOrdenAsc(locacionId, pageRequest);
-    }
-
-    public List<ImagenLocacion> getImagenesPorLocacionId(Integer locacionId)
-            throws LocacionInexsistenteException {
-        if (locacionRepository.findById(locacionId).isEmpty()) {
-            throw new LocacionInexsistenteException();
-        }
-        return imagenLocacionRepository.findByLocacionIdOrderByOrdenAsc(locacionId);
     }
 
     public Optional<ImagenLocacion> getImagenPorLocacionIdYImagenId(Integer locacionId, Integer imagenId)

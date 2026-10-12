@@ -109,7 +109,9 @@ public class EventoTipoEntradaServiceImp implements EventoTipoEntradaService {
             throw new EventoTipoEntradaInvalidoException();
         }
 
-        EventoTipoEntrada entrada = getPorId(id);
+        // Se bloquea la fila: una compra simultanea no puede quedar pisada por esta edicion (ni al reves).
+        EventoTipoEntrada entrada = eventoTipoEntradaRepository.findByIdForUpdate(id)
+                .orElseThrow(EventoTipoEntradaInexistenteException::new);
 
         if (request.getPrecio() != null) {
             if (request.getPrecio().compareTo(BigDecimal.ZERO) <= 0) {
