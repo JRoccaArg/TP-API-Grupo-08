@@ -1,0 +1,154 @@
+.logo {
+  font: 800 32px / 1 var(--fuente-marca);
+  letter-spacing: -0.045em;
+  color: var(--blanco);
+}
+
+.navbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 40px 56px;
+}
+
+.navbar__nav {
+  display: flex;
+  align-items: center;
+  gap: 38px;
+  font: 600 14px var(--fuente-ui);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.navbar__separador { width: 1px; height: 22px; background: rgba(255, 255, 255, 0.28); }
+
+.enlace-nav {
+  padding-bottom: 6px;
+  border-bottom: 1px solid transparent;
+  transition: color 0.2s;
+}
+
+.enlace-nav:hover { color: var(--oro); }
+.enlace-nav--activo { border-bottom-color: var(--oro); }
+
+/* Cuenta */
+.cuenta { display: flex; align-items: center; gap: 10px; text-transform: none; letter-spacing: 0; }
+
+.cuenta__avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(216, 188, 120, 0.6);
+  border-radius: 50%;
+  font: 600 12px var(--fuente-marca);
+  color: var(--oro);
+}
+
+.cuenta__nombre { font: 500 15px var(--fuente-ui); }
+.cuenta__salir { padding: 0; border: 0; background: transparent; color: var(--gris); font: 400 13px var(--fuente-ui); text-decoration: underline; }
+
+/* Carrito del header */
+.carrito-chip { position: relative; }
+
+.carrito-chip__boton {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.carrito-chip__cuenta {
+  position: absolute;
+  top: -2px;
+  left: 14px;
+  min-width: 19px;
+  height: 19px;
+  padding: 0 5px;
+  border-radius: 10px;
+  font: 700 11px / 19px var(--fuente-ui);
+  text-align: center;
+}
+
+.carrito-chip__reloj { font: 600 14px var(--fuente-ui); color: var(--oro); font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+
+/* Carrito desplegable */
+.mini-carrito {
+  position: absolute;
+  right: -16px;
+  top: calc(100% + 16px);
+  width: 430px;
+  padding: 26px;
+  border-radius: 20px;
+  background: #101010;
+  border: 1px solid var(--oro-borde);
+  box-shadow: 0 40px 90px rgba(0, 0, 0, 0.75);
+  text-transform: none;
+  letter-spacing: 0;
+  transform-origin: calc(100% - 52px) 0;
+}
+
+.mini-carrito::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  right: 60px;
+  width: 14px;
+  height: 14px;
+  background: #101010;
+  border-left: 1px solid var(--oro-borde);
+  border-top: 1px solid var(--oro-borde);
+  transform: rotate(45deg);
+}
+
+.mini-carrito__cabecera { display: flex; align-items: baseline; justify-content: space-between; }
+.mini-carrito__cabecera h2 { font: 600 22px var(--fuente-ui); letter-spacing: -0.03em; }
+.mini-carrito__cabecera span { font: 400 14px var(--fuente-ui); color: var(--gris); }
+.mini-carrito__vacio { margin-top: 16px; font: 300 15px var(--fuente-ui); color: var(--gris); }
+
+.mini-carrito__reserva {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+  padding: 12px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  font: 300 14px var(--fuente-ui);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.mini-carrito__reserva strong { font: 700 30px / 1 var(--fuente-titulo); font-variant-numeric: tabular-nums; }
+.mini-carrito__lista { display: flex; flex-direction: column; gap: 14px; margin-top: 16px; }
+.mini-carrito__lista li { display: flex; align-items: center; gap: 14px; }
+.mini-carrito__lista img { width: 38px; height: 68px; object-fit: cover; border-radius: 6px; }
+.mini-carrito__lista div { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.mini-carrito__lista strong { font: 700 22px / 1 var(--fuente-titulo); text-transform: uppercase; }
+.mini-carrito__lista span { font: 300 13px var(--fuente-ui); color: var(--gris); }
+.mini-carrito__lista b { font: 700 26px var(--fuente-titulo); }
+
+.mini-carrito__total {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  font: 600 10px var(--fuente-marca);
+  letter-spacing: 0.24em;
+  color: var(--gris-oscuro);
+}
+
+.mini-carrito__total strong { font: 700 44px / 1 var(--fuente-titulo); letter-spacing: 0; }
+.mini-carrito__acciones { display: flex; gap: 10px; margin-top: 20px; }
+.mini-carrito__acciones .boton { flex: 1; height: 50px; padding: 0; font-size: 12px; letter-spacing: 0.14em; }

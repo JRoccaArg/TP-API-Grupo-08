@@ -1,0 +1,33 @@
+/* Colores, degradados y tipografías del sitio. Se usan como var(--nombre) en el resto de los CSS. */
+:root {
+  --negro: #0a0a0a;
+  --negro-suave: #0f0f0f;
+  --negro-pie: #111;
+  --blanco: #fff;
+  --gris: #9a9a9a;
+  --gris-oscuro: #8c8c8c;
+  --gris-claro: #b5b5b5;
+  --linea: rgba(255, 255, 255, 0.14);
+
+  --oro: #d8bc78;
+  --oro-borde: rgba(216, 188, 120, 0.4);
+  --tinta-oro: #1b1407;
+  --peligro: #c9847e;
+
+  --oro-relleno: linear-gradient(115deg, #f6e6b0 0%, #e2c07a 22%, #c79c48 50%, #ebd08a 74%, #a9803a 100%);
+  --oro-degradado: linear-gradient(
+    100deg,
+    #b58a3b 0%,
+    #f4e3a9 20%,
+    #d2ac5c 42%,
+    #fff2c6 52%,
+    #c9a24e 72%,
+    #9b7630 100%
+  );
+
+  --fuente-ui: 'Inter Tight', system-ui, sans-serif;
+  --fuente-titulo: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  --fuente-marca: 'Montserrat', system-ui, sans-serif;
+
+  --ancho-pagina: 1320px;
+}

@@ -1,0 +1,18 @@
+/* Ajustes básicos para pantallas angostas (el diseño está pensado principalmente para escritorio). */
+@media (max-width: 1100px) {
+  .pagina { padding: 150px 24px 80px; }
+  .navbar { padding: 24px; }
+  .navbar__nav { gap: 18px; }
+  .enlace-nav { display: none; }
+  .evento, .compra__grilla, .admin__dos-columnas, .donde, .acceso { grid-template-columns: 1fr; }
+  .evento__flyer { position: static; width: 100%; max-width: 400px; height: auto; aspect-ratio: 9 / 16; }
+  .acceso__foto { min-height: 320px; }
+  .acceso__panel { padding: 56px 24px; }
+  .mis-entradas__grilla { grid-template-columns: 1fr; }
+  .fila-admin { grid-template-columns: 72px 1fr; }
+  .barra-fecha { grid-template-columns: 1fr; }
+  .sponsors__titulo { padding: 0 24px; }
+  .sponsors__grupo { gap: 72px; padding-right: 72px; }
+  .hero__foto { left: 0; width: 100%; }
+  .hero__texto { left: 24px; bottom: 360px; }
+}

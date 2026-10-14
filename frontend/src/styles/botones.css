@@ -1,0 +1,41 @@
+.boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  height: 52px;
+  padding: 0 30px;
+  border: 0;
+  border-radius: 999px;
+  font: 700 14px var(--fuente-ui);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.boton:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.boton:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.boton--oro { box-shadow: 0 10px 30px rgba(199, 156, 72, 0.28); }
+
+.boton--contorno {
+  background: transparent;
+  border: 1px solid rgba(216, 188, 120, 0.6);
+  color: var(--oro);
+}
+
+.boton--oscuro {
+  background: rgba(216, 188, 120, 0.1);
+  border: 1px solid rgba(216, 188, 120, 0.22);
+  color: var(--oro);
+}
+
+.boton--chico { height: 44px; padding: 0 24px; font-size: 12px; letter-spacing: 0.14em; }
+.boton--grande { height: 60px; padding: 0 38px; font-size: 15px; }
+.boton--ancho { width: 100%; }

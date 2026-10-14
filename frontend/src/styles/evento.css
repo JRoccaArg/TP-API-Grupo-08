@@ -1,0 +1,80 @@
+.evento { display: grid; grid-template-columns: 400px minmax(0, 1fr); gap: 90px; align-items: start; }
+
+.evento__flyer {
+  position: sticky;
+  top: 110px;
+  width: 400px;
+  height: 711px;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 40px 90px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(216, 188, 120, 0.25);
+}
+
+.evento__flyer img { width: 100%; height: 100%; object-fit: cover; }
+.evento__presenta { font: 600 11px var(--fuente-marca); letter-spacing: 0.34em; color: var(--oro); }
+.evento__titulo { margin-top: 14px; font: 800 clamp(100px, 11.5vw, 168px) / 0.84 var(--fuente-titulo); text-transform: uppercase; }
+
+.evento__datos {
+  display: grid;
+  grid-template-columns: 1fr 0.8fr 1.5fr;
+  margin-top: 40px;
+  border-top: 1px solid var(--linea);
+  border-bottom: 1px solid var(--linea);
+}
+
+.evento__datos div { padding: 18px 0 18px 24px; border-left: 1px solid rgba(255, 255, 255, 0.12); }
+.evento__datos div:first-child { padding-left: 0; border-left: 0; }
+.evento__datos dt { font: 600 10px var(--fuente-marca); letter-spacing: 0.24em; color: var(--gris-oscuro); }
+.evento__datos dd { margin-top: 7px; font: 500 18px var(--fuente-ui); letter-spacing: -0.01em; }
+.evento__datos dd a { margin-left: 8px; border-bottom: 1px solid var(--oro); font: 500 14px var(--fuente-ui); color: var(--oro); }
+.evento__descripcion { max-width: 520px; margin-top: 26px; font: 300 21px / 1.4 var(--fuente-ui); color: rgba(255, 255, 255, 0.82); }
+.evento__finalizado { margin-top: 60px; font: 300 22px var(--fuente-ui); color: var(--gris); }
+
+/* Entradas */
+.entradas { margin-top: 68px; }
+.entradas__cabecera { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; }
+.entradas__cabecera h2 { font: 600 42px / 1 var(--fuente-ui); letter-spacing: -0.045em; }
+.entradas__cabecera span { font: 400 14px var(--fuente-ui); color: var(--gris); }
+.entradas__lista { display: flex; flex-direction: column; gap: 12px; margin-top: 26px; }
+
+.fila-entrada {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 22px 26px;
+  border: 1px solid var(--linea);
+  border-radius: 14px;
+  background: var(--negro-suave);
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.fila-entrada--elegida { border-color: rgba(216, 188, 120, 0.7); background: rgba(216, 188, 120, 0.06); box-shadow: 0 0 40px rgba(216, 188, 120, 0.08); }
+.fila-entrada--AGOTADO { opacity: 0.55; border-color: rgba(255, 255, 255, 0.08); }
+.fila-entrada--AGOTADO h3 { text-decoration: line-through; }
+.fila-entrada__datos { flex: 1; min-width: 0; }
+.fila-entrada h3 { font: 700 34px / 1 var(--fuente-titulo); text-transform: uppercase; }
+.fila-entrada__descuento { margin-left: 14px; font: 700 12px var(--fuente-marca); letter-spacing: 0.14em; }
+.fila-entrada__datos p { margin-top: 7px; font: 300 15px var(--fuente-ui); color: #a8a8a8; }
+.fila-entrada__precio { text-align: right; }
+.fila-entrada__precio s { display: block; font: 500 17px var(--fuente-titulo); color: #7e7e7e; }
+.fila-entrada__precio strong { font: 700 46px / 1 var(--fuente-titulo); font-variant-numeric: tabular-nums; }
+.fila-entrada__aviso { width: 152px; text-align: right; font: 400 14px / 1.35 var(--fuente-ui); color: var(--gris-claro); }
+.fila-entrada__aviso strong { color: var(--blanco); font-weight: 600; }
+
+/* Barra de compra */
+.barra-compra {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: 28px;
+  padding: 20px 24px 20px 30px;
+  border: 1px solid var(--oro-borde);
+  border-radius: 20px;
+  background: #121212;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.barra-compra__rotulo { font: 600 10px var(--fuente-marca); letter-spacing: 0.24em; color: var(--gris-oscuro); }
+.barra-compra__total { display: block; margin-top: 4px; font: 700 52px / 1 var(--fuente-titulo); }
+.barra-compra__nota { margin-top: 14px; font: 300 14px var(--fuente-ui); color: var(--gris); }

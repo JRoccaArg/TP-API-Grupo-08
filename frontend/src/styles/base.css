@@ -1,0 +1,145 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--negro);
+  color: var(--blanco);
+  font-family: var(--fuente-ui);
+  overflow-x: hidden;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+h1, h2, h3, p, ul, ol, dl, dd {
+  margin: 0;
+  padding: 0;
+}
+
+ul, ol {
+  list-style: none;
+}
+
+/* ---- Efectos reutilizables (los usan muchos componentes) ---- */
+.oro-relleno {
+  background: var(--oro-relleno);
+  background-size: 240% 100%;
+  animation: oroMover 8s ease-in-out infinite alternate;
+  color: var(--tinta-oro);
+}
+
+.oro-texto {
+  background: var(--oro-degradado);
+  background-size: 260% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: oroTexto 7s ease-in-out infinite alternate;
+}
+
+.brillo {
+  position: relative;
+  overflow: hidden;
+}
+
+.brillo::after {
+  content: '';
+  position: absolute;
+  top: -10%;
+  bottom: -10%;
+  left: -70%;
+  width: 40%;
+  background: linear-gradient(100deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0));
+  transform: skewX(-20deg);
+  animation: destello 5s ease-in-out infinite;
+}
+
+.aparece { animation: aparecer 1s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.aparece-rapido { animation: desplegar 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.ken { animation: zoomLento 26s ease-in-out infinite alternate; }
+.flotar { animation: flotar 7s ease-in-out infinite alternate; }
+
+/* ---- Estructura y textos comunes ---- */
+.pagina {
+  max-width: var(--ancho-pagina);
+  margin: 0 auto;
+  padding: 130px 48px 120px;
+}
+
+.titulo-seccion {
+  font-size: clamp(56px, 6.4vw, 92px);
+  font-weight: 600;
+  line-height: 0.95;
+  letter-spacing: -0.05em;
+  text-transform: uppercase;
+}
+
+.titulo-grande {
+  font-size: clamp(60px, 7vw, 104px);
+  font-weight: 600;
+  line-height: 0.92;
+  letter-spacing: -0.055em;
+  text-transform: uppercase;
+}
+
+.titulo-pagina {
+  font-size: 64px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.05em;
+}
+
+.rotulo {
+  font: 600 11px var(--fuente-marca);
+  letter-spacing: 0.24em;
+  color: var(--gris-oscuro);
+}
+
+.rotulo-oro {
+  font: 600 11px var(--fuente-marca);
+  letter-spacing: 0.32em;
+  color: var(--oro);
+}
+
+.enlace-oro {
+  padding-bottom: 2px;
+  border-bottom: 1px solid var(--oro);
+  color: var(--oro);
+  font-weight: 500;
+}
+
+.aviso {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  min-height: 80vh;
+  text-align: center;
+}
+
+.aviso__mensaje {
+  font: 600 clamp(40px, 5vw, 72px) / 1 var(--fuente-ui);
+  letter-spacing: -0.05em;
+}

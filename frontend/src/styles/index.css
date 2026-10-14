@@ -1,0 +1,15 @@
+/* Un solo punto de entrada: main.jsx importa este archivo y él trae el resto. */
+@import './variables.css';
+@import './base.css';
+@import './animaciones.css';
+@import './botones.css';
+@import './controles.css';
+@import './navbar.css';
+@import './inicio.css';
+@import './footer.css';
+@import './evento.css';
+@import './compra.css';
+@import './entradas.css';
+@import './acceso.css';
+@import './admin.css';
+@import './responsive.css';

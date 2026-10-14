@@ -1,0 +1,72 @@
+/* Selector de cantidad (− 2 +) */
+.selector {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+}
+
+.selector__boton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.selector__boton.oro-relleno { background: var(--oro-relleno); background-size: 240% 100%; color: var(--tinta-oro); }
+.selector__boton:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.selector__valor {
+  min-width: 34px;
+  text-align: center;
+  font: 700 26px var(--fuente-titulo);
+}
+
+/* Campos de formulario con línea fina */
+.campo { display: block; }
+
+.campo__etiqueta {
+  display: flex;
+  justify-content: space-between;
+  font: 600 10px var(--fuente-marca);
+  letter-spacing: 0.26em;
+  color: var(--gris-oscuro);
+  transition: color 0.2s;
+}
+
+.campo:focus-within .campo__etiqueta { color: var(--oro); }
+
+.campo__control {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  padding: 8px 0 14px;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.28);
+  color: var(--blanco);
+  font: 400 20px var(--fuente-ui);
+  outline: none;
+  color-scheme: dark;
+  transition: border-color 0.2s;
+}
+
+.campo__control:focus { border-bottom-color: var(--oro); }
+.campo__control::placeholder { color: #6a6a6a; }
+select.campo__control option { background: #111; color: #fff; }
+
+.campo__accion {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--gris);
+  font: 500 12px var(--fuente-ui);
+  letter-spacing: 0;
+  text-decoration: underline;
+}

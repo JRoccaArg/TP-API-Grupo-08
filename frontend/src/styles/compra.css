@@ -1,0 +1,83 @@
+/* Pasos */
+.pasos { display: flex; align-items: center; gap: 18px; font: 600 11px var(--fuente-marca); letter-spacing: 0.22em; text-transform: uppercase; }
+.paso { display: flex; flex: 1; align-items: center; gap: 18px; white-space: nowrap; }
+.paso:last-child { flex: none; }
+.paso:not(:last-child)::after { content: ''; flex: 1; height: 1px; background: rgba(255, 255, 255, 0.16); }
+.paso--hecho { color: var(--oro); }
+.paso--hecho::after { background: rgba(216, 188, 120, 0.6) !important; }
+.paso--actual { color: var(--blanco); text-decoration: underline; text-decoration-color: var(--oro); text-underline-offset: 8px; }
+.paso--pendiente { color: #6f6f6f; }
+
+/* Reserva */
+.reserva {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: 36px;
+  padding: 16px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.reserva p { font: 300 16px var(--fuente-ui); color: rgba(255, 255, 255, 0.85); }
+.reserva__tiempo { font: 700 36px / 1 var(--fuente-titulo); font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+
+.reserva__barra {
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  width: 94.5%;
+  height: 2px;
+  transform-origin: left center;
+  animation: oroMover 8s ease-in-out infinite alternate, vaciar 40s linear infinite alternate;
+}
+
+/* Estructura de carrito y pago */
+.compra__grilla { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 64px; align-items: start; margin-top: 52px; }
+.lineas { margin-top: 34px; border-top: 1px solid rgba(255, 255, 255, 0.16); }
+.linea { display: flex; align-items: center; gap: 24px; padding: 24px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.12); }
+.linea img { flex: none; width: 68px; height: 121px; object-fit: cover; border-radius: 8px; }
+.linea__datos { flex: 1; min-width: 0; }
+.linea h3 { font: 700 32px / 1 var(--fuente-titulo); text-transform: uppercase; }
+.linea__tipo { margin-left: 14px; font: 700 12px var(--fuente-marca); letter-spacing: 0.16em; color: var(--oro); }
+.linea__datos p { margin-top: 7px; font: 300 15px var(--fuente-ui); color: #a8a8a8; }
+.linea__datos .linea__unidad { margin-top: 12px; color: var(--gris-claro); }
+.linea__unidad s { color: #6f6f6f; }
+.linea__unidad b { color: var(--blanco); font-weight: 600; }
+.linea__subtotal { width: 124px; text-align: right; font: 700 38px / 1 var(--fuente-titulo); }
+.linea__quitar, .compra__vaciar { padding: 0; border: 0; background: transparent; color: var(--gris); font: 400 14px var(--fuente-ui); text-decoration: underline; }
+.compra__vaciar { color: var(--peligro); }
+.compra__acciones { display: flex; align-items: center; justify-content: space-between; margin-top: 26px; }
+
+/* Resumen y total */
+.resumen { padding: 30px; border: 1px solid rgba(216, 188, 120, 0.35); border-radius: 18px; background: var(--negro-suave); }
+.resumen__lista { display: flex; flex-direction: column; gap: 14px; margin: 22px 0; font: 300 16px var(--fuente-ui); color: #c9c9c9; }
+.resumen__lista li { display: flex; justify-content: space-between; }
+.resumen__lista li span:last-child { color: var(--blanco); }
+.resumen__lista .resumen__oro { color: var(--oro); }
+.resumen__total { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 28px; padding-top: 22px; border-top: 1px solid var(--linea); }
+.resumen__total strong { font: 700 60px / 1 var(--fuente-titulo); }
+.resumen__gran-total { display: block; margin: 12px 0 6px; font: 700 80px / 1 var(--fuente-titulo); }
+.resumen__nota { margin-top: 16px; font: 300 13px / 1.45 var(--fuente-ui); color: var(--gris); }
+.resumen .boton { margin-top: 28px; }
+
+/* Pago */
+.lista-compra { margin-top: 34px; border-top: 1px solid rgba(255, 255, 255, 0.16); }
+.lista-compra__cabecera { display: flex; align-items: center; justify-content: space-between; padding: 22px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.12); }
+.lista-compra li { display: flex; align-items: center; gap: 18px; padding: 20px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.12); }
+.lista-compra img { width: 42px; height: 75px; object-fit: cover; border-radius: 6px; }
+.lista-compra li div { flex: 1; }
+.lista-compra h3 { font: 700 26px / 1 var(--fuente-titulo); text-transform: uppercase; }
+.lista-compra p { margin-top: 5px; font: 300 14px var(--fuente-ui); color: var(--gris); }
+.lista-compra li strong { font: 700 32px var(--fuente-titulo); }
+.bloque-pago { margin-top: 34px; }
+.comprador { display: flex; align-items: center; gap: 16px; margin-top: 16px; }
+.comprador .cuenta__avatar { width: 46px; height: 46px; font-size: 14px; }
+.comprador strong { font: 500 20px var(--fuente-ui); }
+.comprador p, .metodo p { margin-top: 3px; font: 300 14px var(--fuente-ui); color: var(--gris); }
+.metodo { display: flex; align-items: center; gap: 18px; margin-top: 16px; padding: 22px 24px; border: 1px solid rgba(216, 188, 120, 0.6); border-radius: 14px; background: rgba(216, 188, 120, 0.05); }
+.metodo__punto { flex: none; width: 12px; height: 12px; border-radius: 50%; box-shadow: 0 0 0 5px rgba(216, 188, 120, 0.2); }
+.metodo strong { font: 500 19px var(--fuente-ui); }
+.metodo p { color: var(--gris-claro); }

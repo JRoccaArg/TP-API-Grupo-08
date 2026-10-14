@@ -1,0 +1,15 @@
+.pie { padding: 150px 56px 0; background: var(--negro-pie); overflow: hidden; }
+.pie__datos { display: flex; justify-content: space-between; gap: 48px; }
+.pie__rotulo { font: 400 17px var(--fuente-ui); color: var(--oro); }
+.pie__mail { display: inline-block; margin-top: 14px; font: 500 40px / 1 var(--fuente-ui); letter-spacing: -0.045em; }
+.pie__redes { display: flex; flex-direction: column; align-items: flex-end; gap: 14px; font: 400 18px var(--fuente-ui); }
+.pie__redes small { margin-top: 20px; font: 400 14px var(--fuente-ui); }
+
+.pie__marca {
+  margin: 20px 0 0 -14px;
+  padding-bottom: 20px;
+  font: 800 clamp(120px, 27vw, 400px) / 0.82 var(--fuente-marca);
+  letter-spacing: -0.05em;
+  white-space: nowrap;
+  user-select: none;
+}

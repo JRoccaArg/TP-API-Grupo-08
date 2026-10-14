@@ -1,0 +1,27 @@
+import { Link, useLocation } from 'react-router-dom'
+
+const estaActivo = (enlace, pathname) => {
+  if (enlace.activaEn) return pathname.startsWith(enlace.activaEn)
+  if (enlace.ancla) return false
+  return enlace.ruta === '/' ? pathname === '/' : pathname.startsWith(enlace.ruta)
+}
+
+// Un enlace del header. En el inicio, los que tienen "ancla" bajan a su sección;
+// en las otras pantallas llevan al inicio.
+export default function EnlaceNav({ enlace }) {
+  const { pathname } = useLocation()
+  const clase = `enlace-nav ${estaActivo(enlace, pathname) ? 'enlace-nav--activo oro-texto' : ''}`
+
+  if (enlace.ancla && pathname === '/') {
+    return (
+      <a href={`#${enlace.ancla}`} className={clase}>
+        {enlace.texto}
+      </a>
+    )
+  }
+  return (
+    <Link to={enlace.ruta} className={clase}>
+      {enlace.texto}
+    </Link>
+  )
+}
