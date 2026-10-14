@@ -15,11 +15,20 @@ Las operaciones administrativas usan `hasRole('ADMIN')`. Los recursos propios co
 
 Ver [[contexto]] y [[decisiones]].
 
+## Reserva de entradas
+
+1. Estados del carrito: `ACTIVO` (armando) → `EN_PAGO` (en la pantalla de pago) → `CONVERTIDO` (pagado) o `ABANDONADO` (abandonado o vencido, con los items vaciados). En `ACTIVO` y `EN_PAGO` las entradas ya estan apartadas hasta `fechaVencimiento`.
+2. Agregar o subir la cantidad descuenta de `cantidadDisponible` en el acto. La primera entrada fija el reloj de armado (15 minutos, sin renovarse); si el carrito se vacia, el reloj se borra.
+3. `POST /carritos/activo/iniciar-pago` pasa el carrito a `EN_PAGO` y arranca un reloj de pago nuevo (15 minutos desde ese momento). No toca el stock; volver a llamarlo no reinicia el reloj. `POST /compras` es el boton de pagar (simulado).
+4. Quitar, bajar la cantidad, vaciar o abandonar devuelven las entradas. `CarritoVencimientoScheduler` devuelve las de los carritos abiertos vencidos y los deja `ABANDONADO`.
+5. Orden de bloqueos en toda operacion: usuario, carrito y ofertas ordenadas por id.
+6. La oferta se bloquea y se refresca (`bloquearOferta`) para leer el stock ya confirmado por otra operacion.
+
 ## Consistencia de compra
 
-1. Se bloquea el carrito indicado y se valida propietario, estado e items.
+1. Se bloquea el carrito del usuario y se valida que este vigente, con items y `EN_PAGO` (el usuario entro a la pantalla de pago).
 2. Los tipos de entrada se ordenan por id para adquirir sus bloqueos siempre en el mismo orden.
-3. Cada stock se vuelve a leer bloqueado antes de validarlo y descontarlo.
+3. Cada oferta se vuelve a leer bloqueada y se valida (evento activo, oferta activa o agotada, periodo de venta). El stock no se toca: ya estaba reservado.
 4. Si cualquier paso falla, `@Transactional(rollbackFor = Exception.class)` revierte la operacion completa.
 5. Al confirmar, la compra queda vinculada y el carrito pasa a `CONVERTIDO`.
 
@@ -39,4 +48,4 @@ Los datos binarios se guardan como `byte[]` mediante `@Lob`. Las respuestas JSON
 
 ## Venta de entradas
 
-`EventoTipoEntrada` relaciona un evento con un tipo de entrada y mantiene su precio, descuento, periodo de venta y stock. `Carrito` pertenece a un usuario y contiene sus `ItemCarrito`. Al confirmar una compra se crean los detalles y tickets correspondientes y se descuenta el stock.
+`EventoTipoEntrada` relaciona un evento con un tipo de entrada y mantiene su precio, descuento, periodo de venta y stock. `Carrito` pertenece a un usuario y contiene sus `ItemCarrito`. Las entradas se descuentan del stock cuando entran al carrito (ver Reserva de entradas); al pagar se crean los detalles y tickets correspondientes.

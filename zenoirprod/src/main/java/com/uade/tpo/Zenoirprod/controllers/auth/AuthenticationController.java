@@ -1,7 +1,7 @@
 package com.uade.tpo.Zenoirprod.controllers.auth;
 
-import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,31 +23,14 @@ public class AuthenticationController {
     private final AuthenticationService service;
 
     @PostMapping("/register")
-    public ResponseEntity<AuthenticationResponse> register(@RequestBody RegisterRequest request) {
-        try {
-            return ResponseEntity.ok(service.register(request));
-        }
-        catch (DatosAutenticacionInvalidosException e) {
-            return ResponseEntity.badRequest().build();
-        }
-        catch (EmailEnUsoException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
-        }
-        catch (DniEnUsoException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
-        }
+    public ResponseEntity<AuthenticationResponse> register(@RequestBody RegisterRequest request)
+            throws DatosAutenticacionInvalidosException, EmailEnUsoException, DniEnUsoException {
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.register(request));
     }
 
     @PostMapping("/authenticate")
-    public ResponseEntity<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest request) {
-        try {
-            return ResponseEntity.ok(service.authenticate(request));
-        }
-        catch (DatosAutenticacionInvalidosException e) {
-            return ResponseEntity.badRequest().build();
-        }
-        catch (CredencialesInvalidasException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
+    public ResponseEntity<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest request)
+            throws DatosAutenticacionInvalidosException, CredencialesInvalidasException {
+        return ResponseEntity.ok(service.authenticate(request));
     }
 }

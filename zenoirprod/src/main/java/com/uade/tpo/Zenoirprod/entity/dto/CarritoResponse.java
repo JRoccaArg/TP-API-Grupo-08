@@ -1,11 +1,14 @@
 package com.uade.tpo.Zenoirprod.entity.dto;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 import com.uade.tpo.Zenoirprod.entity.Carrito;
 import com.uade.tpo.Zenoirprod.entity.Carrito.EstadoCarrito;
 import com.uade.tpo.Zenoirprod.entity.User;
+import com.uade.tpo.Zenoirprod.util.PrecioCalculator;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,11 +27,22 @@ public class CarritoResponse {
     private EstadoCarrito estado;
     private LocalDateTime fechaCreacion;
     private LocalDateTime fechaActualizacion;
+    // Hasta cuando estan apartadas las entradas: el reloj de armado si esta ACTIVO, el de pago si esta EN_PAGO.
+    // Es null si el carrito no tiene entradas.
+    private LocalDateTime fechaVencimiento;
     private List<ItemCarritoResponse> items;
+    // Suma de los subtotales: es el importe que se cobra al pagar.
+    private BigDecimal total;
 
     public static CarritoResponse fromEntity(Carrito c) {
         if (c == null) return null;
         User u = c.getUsuario();
+        List<ItemCarritoResponse> items = c.getItems() == null ? List.of()
+                : c.getItems().stream().map(ItemCarritoResponse::fromEntity).toList();
+        BigDecimal total = items.stream()
+                .map(ItemCarritoResponse::getSubtotal)
+                .filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
         return CarritoResponse.builder()
                 .id(c.getId())
                 .usuarioId(u != null ? u.getId() : null)
@@ -36,8 +50,9 @@ public class CarritoResponse {
                 .estado(c.getEstado())
                 .fechaCreacion(c.getFechaCreacion())
                 .fechaActualizacion(c.getFechaActualizacion())
-                .items(c.getItems() == null ? List.of()
-                        : c.getItems().stream().map(ItemCarritoResponse::fromEntity).toList())
+                .fechaVencimiento(c.getFechaVencimiento())
+                .items(items)
+                .total(PrecioCalculator.normalizar(total))
                 .build();
     }
 }

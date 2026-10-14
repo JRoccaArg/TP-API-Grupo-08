@@ -1,9 +1,7 @@
 package com.uade.tpo.Zenoirprod.service;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -109,7 +107,9 @@ public class EventoTipoEntradaServiceImp implements EventoTipoEntradaService {
             throw new EventoTipoEntradaInvalidoException();
         }
 
-        EventoTipoEntrada entrada = getPorId(id);
+        // Se bloquea la fila: una compra simultanea no puede quedar pisada por esta edicion (ni al reves).
+        EventoTipoEntrada entrada = eventoTipoEntradaRepository.findByIdForUpdate(id)
+                .orElseThrow(EventoTipoEntradaInexistenteException::new);
 
         if (request.getPrecio() != null) {
             if (request.getPrecio().compareTo(BigDecimal.ZERO) <= 0) {

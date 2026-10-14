@@ -1,6 +1,5 @@
 package com.uade.tpo.Zenoirprod.service;
 
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,13 +31,6 @@ public class ImagenEventoServiceImpl implements ImagenEventoService {
             throw new EventoInexistenteException();
         }
         return imagenEventoRepository.findByEventoIdOrderByOrdenAsc(eventoId, pageRequest);
-    }
-
-    public List<ImagenEvento> getImagenesPorEventoId(Integer eventoId) throws EventoInexistenteException {
-        if (eventosRepository.findById(eventoId).isEmpty()) {
-            throw new EventoInexistenteException();
-        }
-        return imagenEventoRepository.findByEventoIdOrderByOrdenAsc(eventoId);
     }
 
     public Optional<ImagenEvento> getImagenPorEventoIdYImagenId(Integer eventoId, Integer imagenId) throws EventoInexistenteException {

@@ -6,28 +6,25 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
 import com.uade.tpo.Zenoirprod.entity.Compra;
-import com.uade.tpo.Zenoirprod.entity.dto.CompraRequest;
-import com.uade.tpo.Zenoirprod.exceptions.CarritoAjenoException;
-import com.uade.tpo.Zenoirprod.exceptions.CarritoInexistenteException;
-import com.uade.tpo.Zenoirprod.exceptions.CarritoNoModificableException;
+import com.uade.tpo.Zenoirprod.entity.User;
+import com.uade.tpo.Zenoirprod.exceptions.CarritoActivoInexistenteException;
+import com.uade.tpo.Zenoirprod.exceptions.PagoNoIniciadoException;
+import com.uade.tpo.Zenoirprod.exceptions.CarritoVacioException;
 import com.uade.tpo.Zenoirprod.exceptions.CompraInexistenteException;
-import com.uade.tpo.Zenoirprod.exceptions.CompraInvalidaException;
 import com.uade.tpo.Zenoirprod.exceptions.CompraNoCancelableException;
 import com.uade.tpo.Zenoirprod.exceptions.DevolucionNoPermitidaException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoNoDisponibleException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaNoDisponibleException;
-import com.uade.tpo.Zenoirprod.exceptions.StockInsuficienteException;
-import com.uade.tpo.Zenoirprod.exceptions.UsuarioInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.VentaNoHabilitadaException;
 
 public interface CompraService {
 
-    Compra crearCompra(CompraRequest request)
-            throws CompraInvalidaException, UsuarioInexistenteException,
+    /** Paga (simulado, sin pasarela) todos los items del carrito EN_PAGO del usuario. */
+    Compra crearCompra(User usuario)
+            throws CarritoActivoInexistenteException, CarritoVacioException, PagoNoIniciadoException,
             EventoTipoEntradaInexistenteException, EventoTipoEntradaNoDisponibleException,
-            StockInsuficienteException, VentaNoHabilitadaException, EventoNoDisponibleException,
-            CarritoInexistenteException, CarritoAjenoException, CarritoNoModificableException;
+            VentaNoHabilitadaException, EventoNoDisponibleException;
 
     Optional<Compra> getPorId(Integer id);
 

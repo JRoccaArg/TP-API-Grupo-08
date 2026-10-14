@@ -1,5 +1,7 @@
 package com.uade.tpo.Zenoirprod.controllers;
 
+import java.net.URI;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -41,12 +43,9 @@ public class TipoEntradasController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<TipoEntradaResponse> getTipoEntradaPorId(@PathVariable Integer id) {
-        try {
-            return ResponseEntity.ok(TipoEntradaResponse.fromEntity(tipoEntradaService.getTipoEntradaPorId(id)));
-        } catch (TipoEntradaInexistenteException e) {
-            return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<TipoEntradaResponse> getTipoEntradaPorId(@PathVariable Integer id)
+            throws TipoEntradaInexistenteException {
+        return ResponseEntity.ok(TipoEntradaResponse.fromEntity(tipoEntradaService.getTipoEntradaPorId(id)));
     }
 
     @PostMapping
@@ -57,35 +56,28 @@ public class TipoEntradasController {
                 tipoEntradaRequest.getNombre(),
                 tipoEntradaRequest.getDescripcionBase(),
                 tipoEntradaRequest.getActivo());
-        return ResponseEntity.ok(TipoEntradaResponse.fromEntity(creado));
+        return ResponseEntity.created(URI.create("/tiposEntrada/" + creado.getId()))
+                .body(TipoEntradaResponse.fromEntity(creado));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<TipoEntradaResponse> updateTipoEntrada(@PathVariable Integer id,
             @RequestBody TipoEntradaRequest tipoEntradaRequest)
-            throws TipoEntradaInvalidoException, TipoEntradaDuplicadoException {
-        try {
-            TipoEntrada actualizado = tipoEntradaService.updateTipoEntrada(
-                    id,
-                    tipoEntradaRequest.getNombre(),
-                    tipoEntradaRequest.getDescripcionBase(),
-                    tipoEntradaRequest.getActivo());
-            return ResponseEntity.ok(TipoEntradaResponse.fromEntity(actualizado));
-        } catch (TipoEntradaInexistenteException e) {
-            return ResponseEntity.notFound().build();
-        }
+            throws TipoEntradaInexistenteException, TipoEntradaInvalidoException, TipoEntradaDuplicadoException {
+        TipoEntrada actualizado = tipoEntradaService.updateTipoEntrada(
+                id,
+                tipoEntradaRequest.getNombre(),
+                tipoEntradaRequest.getDescripcionBase(),
+                tipoEntradaRequest.getActivo());
+        return ResponseEntity.ok(TipoEntradaResponse.fromEntity(actualizado));
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> deleteTipoEntrada(@PathVariable Integer id)
-            throws TipoEntradaEnUsoException {
-        try {
-            tipoEntradaService.deleteTipoEntrada(id);
-            return ResponseEntity.noContent().build();
-        } catch (TipoEntradaInexistenteException e) {
-            return ResponseEntity.notFound().build();
-        }
+            throws TipoEntradaInexistenteException, TipoEntradaEnUsoException {
+        tipoEntradaService.deleteTipoEntrada(id);
+        return ResponseEntity.noContent().build();
     }
 }

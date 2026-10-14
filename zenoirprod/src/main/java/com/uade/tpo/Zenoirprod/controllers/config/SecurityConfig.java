@@ -23,6 +23,7 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final AuthenticationProvider authenticationProvider;
+    private final ManejadorErroresSeguridad manejadorErroresSeguridad;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -38,6 +39,9 @@ public class SecurityConfig {
                                 "/eventosTiposEntrada", "/eventosTiposEntrada/**")
                         .permitAll()
                         .anyRequest().authenticated())
+                .exceptionHandling(errores -> errores
+                        .authenticationEntryPoint(manejadorErroresSeguridad)
+                        .accessDeniedHandler(manejadorErroresSeguridad))
                 .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)

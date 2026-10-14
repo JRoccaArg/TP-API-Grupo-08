@@ -1,5 +1,31 @@
 # Decisiones
 
+## 2026-10-12 - Reserva de entradas en el carrito (15 minutos) y errores con mensaje
+
+**Reserva (se aparta al agregar, con dos relojes).** Agregar una entrada al carrito la descuenta de `cantidadDisponible` en el acto (la oferta pasa a `AGOTADO` al llegar a 0): lo que el usuario puso en el carrito le queda asegurado hasta que el carrito venza. Si no alcanza, responde `409` ahi mismo con el detalle (`No hay stock suficiente de General (Show 1): quedan 3`). El carrito tiene dos estados abiertos:
+- `ACTIVO` (armando): `fechaVencimiento` = primera entrada + `carrito.armado-minutos` (15). No se renueva al agregar mas; vuelve a `null` si el carrito se vacia, y la siguiente entrada arranca un reloj nuevo.
+- `EN_PAGO` (pantalla de pago): `POST /carritos/activo/iniciar-pago`, que llama el frontend al abrir esa pantalla. Arranca un reloj de pago nuevo: `fechaVencimiento` = ahora + `carrito.pago-minutos` (15), que reemplaza al de armado. Las entradas ya estaban apartadas, asi que solo se revalida que el evento y las ofertas sigan a la venta. Volver a llamarlo (recargar) no reinicia el reloj, para que nadie retenga entradas entrando a pagar una y otra vez. Estando `EN_PAGO` se puede seguir modificando el carrito (aparta o devuelve la diferencia, sin tocar el reloj); si queda vacio vuelve a `ACTIVO`. El tope de retencion de una persona es armado mas pago (unos 30 minutos).
+
+El boton de pagar de esa pantalla es `POST /compras` (pago simulado, sin pasarela): exige un carrito `EN_PAGO` vigente, valida evento y oferta (acepta `AGOTADO`, porque puede estarlo por este mismo carrito), genera los tickets y lo pasa a `CONVERTIDO`, sin descontar stock de nuevo. Un segundo `POST /compras` (doble clic) responde `404`: ya no hay carrito abierto.
+
+Un job (`CarritoVencimientoScheduler`, cada minuto) devuelve las entradas de los carritos abiertos vencidos; ademas, uno vencido que el job todavia no libero se trata como inexistente y se libera al pedir un carrito nuevo. Al vencer o abandonar, el carrito queda `ABANDONADO` y **se vacian sus items** (asi no bloquean el borrado de ofertas). Los `CONVERTIDO` conservan los suyos. Un carrito `ACTIVO` con items y sin vencimiento es anterior a esta logica (nunca aparto stock): se trata como vencido y se abandona sin devolver nada.
+
+Se descuenta el stock real y no se calculan reservas aparte porque `cantidadDisponible` ya es la unica fuente de verdad del catalogo, de `/disponibilidad`, del estado `AGOTADO` y de las validaciones del PATCH de la oferta. Se aparta al agregar (y no al entrar a pagar) porque asi lo pidio la docente ("al agregar entradas al carrito, bloquear ese stock") y porque asegura al usuario que no va a llegar a la pantalla de pago y encontrar que ya no hay entradas; el reloj de pago nuevo es lo habitual en la venta de entradas (el reloj arranca al iniciar el checkout).
+
+**Respuesta del carrito.** `CarritoResponse` trae `estado`, `fechaVencimiento` (hasta cuando estan apartadas las entradas; `null` si el carrito esta vacio) y `total`; cada item trae `precioUnitario` (con el descuento vigente) y `subtotal`, calculados con `PrecioCalculator`, la misma formula de la compra: lo que se muestra es lo que se cobra.
+
+**Estado nuevo en bases existentes.** Se sigue usando la misma base. Hibernate crea un `CHECK` con los valores del enum y `ddl-auto=update` no lo actualiza: en una base de SQL Server ya creada hay que correr una vez el script del README (seccion "Si tu base de SQL Server ya estaba creada"). La columna `fecha_vencimiento` de `Carritos` la agrega Hibernate sola. No esta probado en SQL Server, solo en H2. Una base nueva o el perfil `dev` no necesitan nada.
+
+**Bloqueos.** Orden fijo para evitar deadlocks: usuario, carrito y ofertas ordenadas por id. Al bloquear una oferta se la refresca (`bloquearOferta`): llega ya cargada con los items del carrito y, sin refrescar, el bloqueo devolvia el stock viejo y se perdian devoluciones concurrentes. Lo mismo ocurria en `CompraServiceImpl.cancelar` (6 cancelaciones simultaneas devolvian 5 entradas, sin ningun error): ahora usa el mismo criterio. Un `PessimisticLockingFailureException` (bloqueo no obtenido o deadlock de la base) responde `409` con mensaje para que el cliente reintente.
+
+**Errores.** `ManejadorErrores` extiende `ResponseEntityExceptionHandler`: los errores de Spring MVC (405, 415, parametro faltante o invalido, JSON roto, multipart, ruta inexistente) salen con el mismo formato y un `message`. Lo inesperado responde `500` con un mensaje generico y el detalle solo en el log. 401 y 403 siguen siendo genericos a proposito. La ruta inexistente usa `spring.mvc.throw-exception-if-no-handler-found` y `spring.web.resources.add-mappings=false`, validos mientras el proyecto no sirva recursos estaticos.
+
+**Un carrito por usuario.** Un usuario tiene como maximo un carrito abierto (`ACTIVO` o `EN_PAGO`); los pagados y abandonados quedan de historial (`GET /carritos`). `GET /carritos/activo` lo devuelve y, si no tiene, crea uno vacio (cumple lo que pidio la docente: un GET sobre el carrito del token que devuelve o crea el unico carrito activo). La unicidad la garantiza el bloqueo de la fila del usuario al crear (probado con 12 pedidos simultaneos del mismo usuario: un solo carrito). `POST /carritos` sigue haciendo lo mismo y quedo redundante.
+
+Los tests existentes se actualizaron a los cambios previos (registro devuelve `201`, `POST /carritos` sin body, imagenes paginadas, nombre de locacion unico, `GET /carritos/activo` crea el carrito). Pendientes: ver [[contexto]].
+
+Ver [[arquitectura]].
+
 ## 2026-09-08 - Endurecimiento de auditoria (endpoints y reglas de negocio)
 
 `AuthorizationService` pasa a fallar cerrado: si falta el id o la autenticacion,
@@ -7,9 +33,16 @@ o si el recurso (usuario, carrito, compra, ticket) no existe, no autoriza. Antes
 devolvia `true` por defecto (`orElse(true)`), lo que autorizaba ante recursos
 inexistentes o ids nulos.
 
-Toda compra debe nacer de un carrito propio y activo del usuario: `crearCompra`
-rechaza `carritoId == null` con `CompraInvalidaException`. Se elimina la compra
-directa sin carrito.
+Toda compra nace del carrito activo del usuario autenticado: `POST /compras` no
+recibe body, el usuario sale del token y `crearCompra` rechaza con
+`CarritoActivoInexistenteException` o `CarritoVacioException` si no hay un carrito
+activo o esta vacio. Se elimina la compra directa sin carrito.
+
+Las operaciones sobre el carrito (`/carritos/activo/...`) actuan siempre sobre el
+carrito activo del usuario autenticado, por lo que no reciben el id del carrito.
+`POST /carritos` obtiene o crea ese carrito y `GET /carritos` lista el historial
+propio. Agregar el primer item (`POST /carritos/activo/items`) crea el carrito si
+el usuario no tiene uno activo, por lo que el frontend no necesita crearlo antes.
 
 La devolucion (cancelar compra) mantiene la politica actual: solo se reembolsa si
 el evento fue cancelado por el organizador. El usuario no cancela su compra por
@@ -27,8 +60,7 @@ Ver [[contexto]] y [[arquitectura]].
 
 ## 2026-09-08 - Consistencia de compras y datos relacionados
 
-Las operaciones que modifican carrito, compra o stock revierten todos sus cambios ante cualquier excepcion controlada. La compra bloquea el carrito y cada fila de stock mientras los procesa, valida que el carrito este activo y compara sus items con los solicitados.
-
+Las operaciones que modifican carrito, compra o stock revierten todos sus cambios ante cualquier excepcion controlada. La compra bloquea el carrito activo del usuario y cada fila de stock mientras los procesa, y compra los items del propio carrito. Obtener o crear el carrito activo bloquea la fila del usuario para que no puedan existir dos carritos activos por pedidos simultaneos. Editar una oferta de entrada (`PATCH /eventosTiposEntrada/{id}`) tambien bloquea su fila para no pisar el stock que descuenta una compra simultanea.
 Los borrados de eventos, tipos de entrada y asociaciones evento-tipo se rechazan con `409 Conflict` cuando existen relaciones que deben conservarse. Las locaciones y tipos de entrada rechazan datos incompletos, capacidades no positivas y nombres duplicados.
 
 Ver [[contexto]] y [[arquitectura]].

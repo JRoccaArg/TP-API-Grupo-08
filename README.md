@@ -121,6 +121,22 @@ La contraseña no está en el repo: cada uno la define en su propia máquina.
   **SQL Server Browser** esté iniciado (Servicios de Windows), es el que resuelve el
   nombre de instancia al puerto real.
 
+### Si tu base de SQL Server ya estaba creada (estado `EN_PAGO` del carrito)
+
+Hibernate creó en su momento una restricción `CHECK` en la tabla `Carritos` con los estados
+de entonces (`ACTIVO`, `CONVERTIDO`, `ABANDONADO`) y `ddl-auto=update` no la actualiza: sin este
+paso, iniciar el pago de un carrito falla. Se corre **una sola vez** por base (en una base nueva, o con el
+perfil `dev`, no hace falta). Reemplazá `Zenoir_Prod` por el nombre de tu base:
+
+```sql
+USE Zenoir_Prod;
+DECLARE @nombre sysname = (SELECT name FROM sys.check_constraints
+                           WHERE parent_object_id = OBJECT_ID('Carritos') AND definition LIKE '%CONVERTIDO%');
+IF @nombre IS NOT NULL EXEC('ALTER TABLE Carritos DROP CONSTRAINT ' + QUOTENAME(@nombre));
+ALTER TABLE Carritos ADD CONSTRAINT CK_Carritos_estado
+    CHECK (estado IN ('ACTIVO', 'EN_PAGO', 'CONVERTIDO', 'ABANDONADO'));
+```
+
 ## Endpoints actuales
 
 | Método | Ruta | Descripción |
@@ -147,6 +163,14 @@ La contraseña no está en el repo: cada uno la define en su propia máquina.
 | `POST` | `/categories` | Crear categoría |
 | `PATCH` | `/categories/{id}` | Modificar categoría |
 | `DELETE` | `/categories/{id}` | Eliminar categoría |
+| `GET` | `/carritos/activo` | Carrito abierto del usuario (si no tiene, lo crea vacío; máximo uno abierto por usuario), con precios y total |
+| `POST` | `/carritos/activo/items` | Agregar una entrada al carrito: la aparta en el acto y asegura 15 min desde la primera |
+| `PATCH` | `/carritos/activo/items/{itemId}` | Cambiar la cantidad de un item (aparta o devuelve la diferencia) |
+| `DELETE` | `/carritos/activo/items/{itemId}` | Quitar un item (devuelve la entrada) |
+| `POST` | `/carritos/activo/iniciar-pago` | Al abrir la pantalla de pago: el carrito pasa a `EN_PAGO` y arranca un reloj de pago de 15 min |
+| `POST` | `/carritos/activo/vaciar` | Vaciar el carrito (devuelve las entradas) |
+| `POST` | `/carritos/activo/abandonar` | Abandonar el carrito (devuelve las entradas y lo vacía) |
+| `POST` | `/compras` | Botón de pagar (simulado, sin pasarela): exige haber iniciado el pago |
 | `POST` | `/api/v1/auth/register` | Registrar usuario |
 | `POST` | `/api/v1/auth/authenticate` | Iniciar sesión |
 

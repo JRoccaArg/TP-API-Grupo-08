@@ -22,20 +22,21 @@ public class TicketsController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or (hasRole('USER') and @authorizationService.puedeAccederTicket(#id, authentication))")
-    public ResponseEntity<TicketResponse> getPorId(@PathVariable Integer id) {
+    public ResponseEntity<TicketResponse> getPorId(@PathVariable Integer id) throws TicketInexistenteException {
         return service.getPorId(id)
                 .map(TicketResponse::fromEntity)
                 .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                .orElseThrow(TicketInexistenteException::new);
     }
 
     @GetMapping("/qr/{codigoQr}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<TicketResponse> getPorCodigoQr(@PathVariable String codigoQr) {
+    public ResponseEntity<TicketResponse> getPorCodigoQr(@PathVariable String codigoQr)
+            throws TicketInexistenteException {
         return service.getPorCodigoQr(codigoQr)
                 .map(TicketResponse::fromEntity)
                 .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                .orElseThrow(TicketInexistenteException::new);
     }
 
     @PostMapping("/qr/{codigoQr}/utilizar")
