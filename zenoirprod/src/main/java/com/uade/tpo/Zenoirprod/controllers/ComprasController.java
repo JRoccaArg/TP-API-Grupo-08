@@ -18,6 +18,7 @@ import com.uade.tpo.Zenoirprod.entity.Compra;
 import com.uade.tpo.Zenoirprod.entity.User;
 import com.uade.tpo.Zenoirprod.entity.dto.CompraResponse;
 import com.uade.tpo.Zenoirprod.exceptions.CarritoActivoInexistenteException;
+import com.uade.tpo.Zenoirprod.exceptions.PagoNoIniciadoException;
 import com.uade.tpo.Zenoirprod.exceptions.CarritoVacioException;
 import com.uade.tpo.Zenoirprod.exceptions.CompraInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.CompraNoCancelableException;
@@ -26,7 +27,6 @@ import com.uade.tpo.Zenoirprod.exceptions.EventoNoDisponibleException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaNoDisponibleException;
 import com.uade.tpo.Zenoirprod.exceptions.PaginacionInvalidaException;
-import com.uade.tpo.Zenoirprod.exceptions.StockInsuficienteException;
 import com.uade.tpo.Zenoirprod.exceptions.VentaNoHabilitadaException;
 import com.uade.tpo.Zenoirprod.service.CompraService;
 import com.uade.tpo.Zenoirprod.util.PageableFactory;
@@ -40,9 +40,9 @@ public class ComprasController {
     @PostMapping
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<CompraResponse> crear(@AuthenticationPrincipal User usuario)
-            throws CarritoActivoInexistenteException, CarritoVacioException,
+            throws CarritoActivoInexistenteException, CarritoVacioException, PagoNoIniciadoException,
             EventoTipoEntradaInexistenteException, EventoTipoEntradaNoDisponibleException,
-            StockInsuficienteException, VentaNoHabilitadaException, EventoNoDisponibleException {
+            VentaNoHabilitadaException, EventoNoDisponibleException {
         Compra compra = service.crearCompra(usuario);
         return ResponseEntity
                 .created(URI.create("/compras/" + compra.getId()))

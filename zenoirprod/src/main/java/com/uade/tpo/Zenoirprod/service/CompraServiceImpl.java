@@ -26,6 +26,7 @@ import com.uade.tpo.Zenoirprod.entity.Ticket;
 import com.uade.tpo.Zenoirprod.entity.Ticket.EstadoTicket;
 import com.uade.tpo.Zenoirprod.entity.User;
 import com.uade.tpo.Zenoirprod.exceptions.CarritoActivoInexistenteException;
+import com.uade.tpo.Zenoirprod.exceptions.PagoNoIniciadoException;
 import com.uade.tpo.Zenoirprod.exceptions.CarritoVacioException;
 import com.uade.tpo.Zenoirprod.exceptions.CompraInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.CompraNoCancelableException;
@@ -33,12 +34,14 @@ import com.uade.tpo.Zenoirprod.exceptions.DevolucionNoPermitidaException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoNoDisponibleException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaNoDisponibleException;
-import com.uade.tpo.Zenoirprod.exceptions.StockInsuficienteException;
 import com.uade.tpo.Zenoirprod.exceptions.VentaNoHabilitadaException;
 import com.uade.tpo.Zenoirprod.repository.CarritoRepository;
 import com.uade.tpo.Zenoirprod.repository.CompraRepository;
 import com.uade.tpo.Zenoirprod.repository.EventoTipoEntradaRepository;
 import com.uade.tpo.Zenoirprod.util.PrecioCalculator;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 
 @Service
 public class CompraServiceImpl implements CompraService {
@@ -50,24 +53,34 @@ public class CompraServiceImpl implements CompraService {
     @Autowired private CompraRepository compraRepository;
     @Autowired private EventoTipoEntradaRepository eventoTipoEntradaRepository;
     @Autowired private CarritoRepository carritoRepository;
+    @PersistenceContext private EntityManager entityManager;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Compra crearCompra(User usuario)
-            throws CarritoActivoInexistenteException, CarritoVacioException,
+            throws CarritoActivoInexistenteException, CarritoVacioException, PagoNoIniciadoException,
             EventoTipoEntradaInexistenteException, EventoTipoEntradaNoDisponibleException,
-            StockInsuficienteException, VentaNoHabilitadaException, EventoNoDisponibleException {
+            VentaNoHabilitadaException, EventoNoDisponibleException {
 
-        // La compra sale siempre del carrito activo del usuario autenticado: no se recibe nada del cliente.
-        Carrito carrito = carritoRepository.findByUsuarioIdAndEstadoForUpdate(usuario.getId(), EstadoCarrito.ACTIVO)
+        LocalDateTime ahora = LocalDateTime.now();
+
+        // La compra sale siempre del carrito abierto del usuario autenticado: no se recibe nada del cliente.
+        Carrito carrito = carritoRepository.findEnCursoForUpdate(usuario.getId())
                 .orElseThrow(CarritoActivoInexistenteException::new);
+        // Un carrito EN_PAGO vencido ya no tiene sus entradas apartadas (las libera el job de limpieza): no se paga.
+        if (!carrito.estaVigente(ahora)) {
+            throw new CarritoActivoInexistenteException();
+        }
         if (carrito.getItems().isEmpty()) {
             throw new CarritoVacioException();
+        }
+        // Pagar es el paso siguiente a entrar a la pantalla de pago (iniciar el pago): ahi arranca el reloj de pago.
+        if (carrito.getEstado() != EstadoCarrito.EN_PAGO) {
+            throw new PagoNoIniciadoException();
         }
 
         List<DetalleCompra> detalles = new ArrayList<>();
         BigDecimal total = BigDecimal.ZERO;
-        LocalDateTime ahora = LocalDateTime.now();
 
         // El stock se bloquea siempre en el mismo orden para evitar deadlocks entre compras simultaneas.
         List<ItemCarrito> itemsOrdenados = new ArrayList<>(carrito.getItems());
@@ -77,7 +90,7 @@ public class CompraServiceImpl implements CompraService {
             EventoTipoEntrada ete = eventoTipoEntradaRepository.findByIdForUpdate(item.getEventoTipoEntrada().getId())
                     .orElseThrow(EventoTipoEntradaInexistenteException::new);
 
-            validarDisponibilidad(ete, item.getCantidad(), ahora);
+            validarVenta(ete, ahora);
 
             BigDecimal precioUnitario =
                     PrecioCalculator.precioConDescuento(ete.getPrecio(), ete.getPorcentajeDescuento());
@@ -91,8 +104,7 @@ public class CompraServiceImpl implements CompraService {
             detalle.setTickets(generarTickets(item.getCantidad(), ahora));
             detalles.add(detalle);
 
-            descontarStock(ete, item.getCantidad());
-
+            // El stock no se descuenta aca: ya quedo apartado cuando las entradas entraron al carrito.
             total = total.add(subtotal);
         }
 
@@ -107,6 +119,7 @@ public class CompraServiceImpl implements CompraService {
         Compra guardada = compraRepository.save(compra);
 
         carrito.setEstado(EstadoCarrito.CONVERTIDO);
+        carrito.setFechaVencimiento(null);
         carrito.setFechaActualizacion(ahora);
         carritoRepository.save(carrito);
 
@@ -143,8 +156,7 @@ public class CompraServiceImpl implements CompraService {
         }
 
         for (DetalleCompra detalle : compra.getDetalles()) {
-            EventoTipoEntrada ete = eventoTipoEntradaRepository
-                    .findByIdForUpdate(detalle.getEventoTipoEntrada().getId())
+            EventoTipoEntrada ete = bloquearOferta(detalle.getEventoTipoEntrada().getId())
                     .orElseThrow(CompraNoCancelableException::new);
 
             int aDevolver = 0;
@@ -164,14 +176,26 @@ public class CompraServiceImpl implements CompraService {
         return compraRepository.save(compra);
     }
 
-    private void validarDisponibilidad(EventoTipoEntrada ete, int cantidad, LocalDateTime ahora)
+    // Bloquea la fila de la oferta y trae su stock actual. El refresh es necesario: la oferta ya viene cargada con
+    // la compra, con el stock de antes de esperar el bloqueo. Sin refrescar, dos cancelaciones simultaneas se
+    // pisan y se pierden devoluciones. Mismo criterio que CarritoServiceImpl.
+    private Optional<EventoTipoEntrada> bloquearOferta(Integer id) {
+        Optional<EventoTipoEntrada> oferta = eventoTipoEntradaRepository.findByIdForUpdate(id);
+        oferta.ifPresent(entityManager::refresh);
+        return oferta;
+    }
+
+    // El stock no se valida aca: las entradas del carrito ya estan reservadas. Una oferta AGOTADO es normal (puede
+    // estar agotada justamente por esta reserva); lo que la bloquea es que el admin la pause o la finalice.
+    private void validarVenta(EventoTipoEntrada ete, LocalDateTime ahora)
             throws EventoTipoEntradaNoDisponibleException, VentaNoHabilitadaException,
-            EventoNoDisponibleException, StockInsuficienteException {
+            EventoNoDisponibleException {
 
         if (!EVENTO_ACTIVO.equalsIgnoreCase(ete.getEvento().getEstado())) {
             throw new EventoNoDisponibleException();
         }
-        if (ete.getEstado() != EstadoEventoTipoEntrada.ACTIVO) {
+        if (ete.getEstado() != EstadoEventoTipoEntrada.ACTIVO
+                && ete.getEstado() != EstadoEventoTipoEntrada.AGOTADO) {
             throw new EventoTipoEntradaNoDisponibleException();
         }
         if (ete.getFechaInicioVenta() != null && ahora.isBefore(ete.getFechaInicioVenta())) {
@@ -180,18 +204,6 @@ public class CompraServiceImpl implements CompraService {
         if (ete.getFechaFinVenta() != null && ahora.isAfter(ete.getFechaFinVenta())) {
             throw new VentaNoHabilitadaException();
         }
-        if (ete.getCantidadDisponible() < cantidad) {
-            throw new StockInsuficienteException();
-        }
-    }
-
-    private void descontarStock(EventoTipoEntrada ete, int cantidad) {
-        int restante = ete.getCantidadDisponible() - cantidad;
-        ete.setCantidadDisponible(restante);
-        if (restante == 0) {
-            ete.setEstado(EstadoEventoTipoEntrada.AGOTADO);
-        }
-        eventoTipoEntradaRepository.save(ete);
     }
 
     private void devolverStock(EventoTipoEntrada ete, int cantidad) {
