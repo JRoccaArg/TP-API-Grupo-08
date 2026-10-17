@@ -17,6 +17,8 @@ npm run dev      # http://localhost:5173
 Otros comandos: `npm run build` (compila a `dist/`), `npm run lint` (oxlint), `npm run preview`.
 
 
+Ver [guía de catálogo y detalle](GUIA_CATALOGO.md) para el contrato de integración y las pruebas manuales.
+
 ## Conexión con el backend
 
 Iniciá el backend siguiendo el README de la raíz del repositorio. El catálogo usa el proxy `/api` de Vite, cuyo destino predeterminado es `http://127.0.0.1:8080`.
