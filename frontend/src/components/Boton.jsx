@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 // "variante" cambia el aspecto: oro (relleno dorado), contorno u oscuro.
 export default function Boton({
   to,
+  state,
   onClick,
   tipo = 'button',
   variante = 'oro',
@@ -16,7 +17,7 @@ export default function Boton({
 
   if (to) {
     return (
-      <Link to={to} onClick={onClick} className={clases}>
+      <Link to={to} state={state} onClick={onClick} className={clases}>
         {children}
       </Link>
     )

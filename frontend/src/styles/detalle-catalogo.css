@@ -1,0 +1,58 @@
+/* Estilos limitados al módulo de catálogo/detalle. */
+.imagen-evento { width: 100%; height: 100%; }
+.imagen-evento img { width: 100%; height: 100%; object-fit: cover; }
+.imagen-evento__vacia { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; width: 100%; height: 100%; min-height: 160px; padding: 24px; text-align: center; background: radial-gradient(ellipse at top, #30291b, #111 70%); color: var(--oro); }
+.imagen-evento__vacia span { font: 500 30px var(--fuente-marca); letter-spacing: .15em; }
+.imagen-evento__vacia small { font: 400 14px var(--fuente-ui); color: var(--gris-claro); }
+.detalle-catalogo__volver { display: inline-block; margin-bottom: 34px; }
+.detalle-catalogo .evento { gap: 48px; grid-template-columns: minmax(240px, 350px) minmax(0, 1fr); }
+.detalle-catalogo .evento__titulo { font-size: clamp(56px, 7.5vw, 110px); overflow-wrap: anywhere; }
+.detalle-catalogo .evento__contenido { min-width: 0; }
+.detalle-catalogo .evento__descripcion { white-space: pre-line; overflow-wrap: anywhere; }
+.detalle-catalogo .evento__datos { grid-template-columns: 1fr 1fr; }
+.detalle-catalogo .evento__datos div:last-child { grid-column: 1 / -1; border-left: 0; border-top: 1px solid var(--linea); padding-left: 0; }
+.detalle-catalogo .evento__datos dd { overflow-wrap: anywhere; line-height: 1.45; }
+.galeria-evento { position: sticky; top: 110px; min-width: 0; }
+.detalle-catalogo .evento__flyer { position: static; width: 100%; height: auto; aspect-ratio: 9 / 16; }
+.galeria-evento__opciones { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+.galeria-evento__opciones button { width: 68px; height: 88px; padding: 0; border: 1px solid var(--linea); border-radius: 6px; overflow: hidden; background: var(--negro-suave); }
+.galeria-evento__opciones button[aria-pressed="true"] { border: 2px solid var(--oro); }
+.galeria-evento__opciones .imagen-evento__vacia { min-height: 0; padding: 5px; gap: 4px; }
+.galeria-evento__opciones .imagen-evento__vacia span { font-size: 8px; }
+.galeria-evento__opciones .imagen-evento__vacia small { font-size: 8px; }
+.detalle-catalogo__actualizar { border: 0; background: transparent; padding: 0 0 3px; margin-top: 30px; font-size: 14px; text-decoration: underline; }
+.detalle-catalogo__actualizar:disabled { opacity: .5; cursor: wait; }
+.catalogo-nota { margin-top: 18px; color: var(--gris-claro); font-size: 15px; line-height: 1.5; }
+.detalle-catalogo .fila-entrada { flex-wrap: wrap; padding: 20px; gap: 16px; }
+.detalle-catalogo .fila-entrada__datos { flex-basis: 100%; }
+.detalle-catalogo .fila-entrada__precio { margin-right: auto; text-align: left; }
+.detalle-catalogo .fila-entrada__precio strong { font-size: 36px; overflow-wrap: anywhere; }
+.detalle-catalogo .fila-entrada__aviso { width: auto; max-width: 50%; }
+.detalle-catalogo .barra-compra { flex-wrap: wrap; }
+.detalle-catalogo .entradas__cabecera { flex-wrap: wrap; gap: 12px; }
+.detalle-catalogo .entradas__cabecera h2 { font-size: 36px; }
+.detalle-catalogo button:focus-visible, .detalle-catalogo a:focus-visible { outline: 2px solid var(--oro); outline-offset: 5px; }
+@media (max-width: 1100px) {
+  .detalle-catalogo .evento { grid-template-columns: minmax(210px, 300px) minmax(0, 1fr); gap: 32px; }
+}
+@media (max-width: 720px) {
+  .detalle-catalogo .pagina { padding: 115px 20px 64px; }
+  .detalle-catalogo .evento { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+  .galeria-evento { position: static; max-width: 400px; width: 100%; margin: 0 auto; }
+  .detalle-catalogo .evento__titulo { font-size: clamp(48px, 13vw, 78px); }
+  .detalle-catalogo .evento__datos dd { font-size: 16px; }
+  .detalle-catalogo .evento__descripcion { font-size: 18px; }
+  .detalle-catalogo .entradas { margin-top: 38px; }
+  .detalle-catalogo .barra-compra { padding: 18px; }
+  .detalle-catalogo .barra-compra .boton { width: 100%; min-width: 0; }
+  .detalle-catalogo .barra-compra__total { font-size: 44px; }
+  .detalle-catalogo .fila-entrada__descuento { display: inline-block; }
+}
+
+@media (max-width: 640px) {
+  :is(.inicio-catalogo, .detalle-catalogo) .pie { padding: 64px 20px 0; }
+  :is(.inicio-catalogo, .detalle-catalogo) .pie__datos { flex-direction: column; gap: 32px; }
+  :is(.inicio-catalogo, .detalle-catalogo) .pie__redes { align-items: flex-start; }
+  :is(.inicio-catalogo, .detalle-catalogo) .pie__mail { font-size: clamp(24px, 8vw, 36px); overflow-wrap: anywhere; }
+  :is(.inicio-catalogo, .detalle-catalogo) .pie__marca { margin-left: -3px; }
+}

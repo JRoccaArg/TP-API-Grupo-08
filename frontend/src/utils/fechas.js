@@ -36,7 +36,7 @@ export const horario = (inicio, fin) => `${hora(new Date(inicio))} a ${hora(new 
 // "2026-10-24T22:00:00" -> "2026-10-24T22:00" (formato que usa <input type="datetime-local">)
 export const paraInput = (iso) => iso.slice(0, 16)
 
-export const cuentaRegresiva = (iso) => {
-  const minutos = Math.max(0, Math.floor((new Date(iso) - Date.now()) / UN_MINUTO))
+export const cuentaRegresiva = (iso, ahora = Date.now()) => {
+  const minutos = Math.max(0, Math.floor((new Date(iso) - ahora) / UN_MINUTO))
   return { dias: Math.floor(minutos / 1440), horas: Math.floor((minutos % 1440) / 60), minutos: minutos % 60 }
 }
