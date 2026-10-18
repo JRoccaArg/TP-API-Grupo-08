@@ -33,6 +33,11 @@ Para inspeccionar la base: `http://localhost:8080/h2-console`
 
 ## Usar SQL Server en vez de H2
 
+Para replicar el catálogo completo con ofertas e imágenes, seguí la
+[guía del seed de SQL Server](zenoirprod/database/seed/README.md). La carga es manual
+y requiere una base vacía con las tablas generadas por el backend.
+
+
 El equipo usa esto para tener persistencia real (los datos no se borran al apagar la
 app). Cada integrante usa **su propio SQL Server local**, no uno compartido. Estos pasos
 se hacen **una sola vez** por máquina.
