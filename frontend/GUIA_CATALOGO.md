@@ -120,3 +120,12 @@ En Insomnia, los parámetros numéricos usan punto decimal; por ejemplo:
 ```text
 GET /eventos?page=0&size=6&catalogo=true&precioMin=42499.99&precioMax=42499.99
 ```
+
+## Zona horaria del catálogo
+
+Los eventos y ventanas de venta almacenados como `LocalDateTime` representan horarios de
+`America/Argentina/Buenos_Aires`. Las respuestas de evento y oferta incluyen offset ISO
+(por ejemplo `2026-10-18T12:00-03:00`). Las solicitudes de alta/edición siguen enviando
+horario local sin offset. React compara instantes y muestra horarios de Buenos Aires,
+independientemente de la zona del navegador. La portada reintenta en un minuto si
+el reloj del cliente ya considera pasada la próxima fecha; no consulta en bucle.

@@ -1,6 +1,7 @@
 package com.uade.tpo.Zenoirprod.service;
 
 import java.time.LocalDateTime;
+import com.uade.tpo.Zenoirprod.util.FechaCatalogo;
 import java.math.BigDecimal;
 import java.text.Normalizer;
 import java.util.Locale;
@@ -65,7 +66,7 @@ public class EventosServiceImp implements EventosService {
         // Los caracteres de LIKE se buscan literalmente, igual que en el filtro anterior.
         String patron = "%" + busqueda.replace("!", "!!").replace("%", "!%").replace("_", "!_").replace("[", "![") + "%";
         return eventosRepository.buscar(patron, categoriaId, precioMin, precioMax,
-                catalogo, proximo, LocalDateTime.now(), pageRequest);
+                catalogo, proximo, FechaCatalogo.ahora(), pageRequest);
     }
 
     public Optional<Evento> getEventoPorId(Integer id) throws EventoInexistenteException {
@@ -188,7 +189,7 @@ public class EventosServiceImp implements EventosService {
             boolean validarInicioFuturo) throws FechaEventoInvalidaException {
         if (fechaHoraInicio == null || fechaHoraFin == null
                 || !fechaHoraFin.isAfter(fechaHoraInicio)
-                || (validarInicioFuturo && fechaHoraInicio.isBefore(LocalDateTime.now()))) {
+                || (validarInicioFuturo && fechaHoraInicio.isBefore(FechaCatalogo.ahora()))) {
             throw new FechaEventoInvalidaException();
         }
     }

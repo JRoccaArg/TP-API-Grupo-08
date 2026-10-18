@@ -2,6 +2,8 @@ package com.uade.tpo.Zenoirprod.entity.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.uade.tpo.Zenoirprod.util.FechaCatalogo;
 
 import com.uade.tpo.Zenoirprod.entity.EventoTipoEntrada.EstadoEventoTipoEntrada;
 
@@ -30,7 +32,9 @@ public class EventoTipoEntradaResponseDTO {
 
     private Integer cantidadDisponible;
 
+    @JsonSerialize(using = FechaCatalogo.class)
     private LocalDateTime fechaInicioVenta;
+    @JsonSerialize(using = FechaCatalogo.class)
     private LocalDateTime fechaFinVenta;
 
     private EstadoEventoTipoEntrada estado;

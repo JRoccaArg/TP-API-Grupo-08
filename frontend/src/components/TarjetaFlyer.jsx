@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom'
 import Icono from './Icono.jsx'
 import ImagenEvento from './ImagenEvento.jsx'
-import { fechaLarga } from '../utils/fechas.js'
+import { fechaApi, fechaLarga, ZONA_CATALOGO } from '../utils/fechas.js'
 import { precio } from '../utils/formatos.js'
 import { resumenEntradas, precioDesdeEnRango } from '../utils/eventos.js'
 
@@ -25,7 +25,7 @@ export default function TarjetaFlyer({ evento, ahora, indice = 0, filtroPrecio =
   const precioDesde = hayRango ? precioDesdeEnRango(evento, filtroPrecio, ahora) : precioGeneral
   const destino = `/eventos/${evento.id}`
   const origen = { volverA: `${location.pathname}${location.search}#fechas` }
-  const fecha = new Date(evento.fechaHoraInicio)
+  const fecha = fechaApi(evento.fechaHoraInicio)
   const fechaValida = Boolean(evento.fechaHoraInicio) && Number.isFinite(fecha.getTime())
   const tienePrecio = estado === 'EN_VENTA' && typeof precioDesde === 'number' && Number.isFinite(precioDesde)
   const inactivo = ['FINALIZADO', 'CANCELADO', 'VENTA_FINALIZADA'].includes(estado)
@@ -43,7 +43,7 @@ export default function TarjetaFlyer({ evento, ahora, indice = 0, filtroPrecio =
         <p className="catalogo-tarjeta__categoria">{evento.categoriaNombre || 'Evento'}</p>
         <h3 className="catalogo-tarjeta__titulo"><Link to={destino} state={origen}>{evento.titulo || 'Evento sin título'}</Link></h3>
         <p className="catalogo-tarjeta__horario">
-          {fechaValida ? <time dateTime={evento.fechaHoraInicio}>{fecha.toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' })} · {fecha.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false })} h</time> : 'Fecha y horario a confirmar'}
+          {fechaValida ? <time dateTime={evento.fechaHoraInicio}>{fecha.toLocaleDateString('es-AR', { timeZone: ZONA_CATALOGO, day: 'numeric', month: 'long', year: 'numeric' })} · {fecha.toLocaleTimeString('es-AR', { timeZone: ZONA_CATALOGO, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })} h</time> : 'Fecha y horario a confirmar'}
         </p>
         <p className="flyer__lugar">
           <strong>{evento.locacionNombre || 'Lugar a confirmar'}</strong>

@@ -9,6 +9,7 @@ import Sponsors from '../components/Sponsors.jsx'
 import Footer from '../components/Footer.jsx'
 import { obtenerProximo, obtenerCatalogo, obtenerCategorias } from '../utils/apiEventos.js'
 import { leerFiltrosCatalogo } from '../utils/eventos.js'
+import { esperaProximaFecha } from '../utils/fechas.js'
 import { cinta } from '../data/landing.js'
 
 export default function Inicio() {
@@ -37,8 +38,8 @@ export default function Inicio() {
 
   useEffect(() => {
     if (!proximo) return
-    const espera = Math.max(1, new Date(proximo.fechaHoraInicio).getTime() - Date.now() + 1)
-    const reloj = setTimeout(() => setIntento((actual) => actual + 1), Math.min(espera, 2147483647))
+    const espera = esperaProximaFecha(proximo.fechaHoraInicio)
+    const reloj = setTimeout(() => setIntento((actual) => actual + 1), espera)
     return () => clearTimeout(reloj)
   }, [proximo])
 

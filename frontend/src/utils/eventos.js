@@ -1,3 +1,5 @@
+import { fechaApi } from './fechas.js'
+
 // El backend devuelve precioFinal: no recalculamos sus descuentos ni inventamos estadoVenta.
 const estado = (valor) => (valor || '').toUpperCase()
 const tienePrecio = (oferta) => Number.isFinite(oferta.precioFinal) && oferta.precioFinal >= 0
@@ -11,8 +13,8 @@ export function estadoOferta(oferta, evento, ahora = Date.now()) {
   if (estado(oferta.estado) === 'FINALIZADO') return 'FINALIZADO'
   if (estado(oferta.estado) === 'PAUSADO') return 'PAUSADO'
   if (estado(oferta.estado) === 'AGOTADO' || oferta.cantidadDisponible === 0) return 'AGOTADO'
-  if (oferta.fechaFinVenta && ahora > new Date(oferta.fechaFinVenta).getTime()) return 'FINALIZADO'
-  if (oferta.fechaInicioVenta && ahora < new Date(oferta.fechaInicioVenta).getTime()) return 'PROXIMAMENTE'
+  if (oferta.fechaFinVenta && ahora > fechaApi(oferta.fechaFinVenta).getTime()) return 'FINALIZADO'
+  if (oferta.fechaInicioVenta && ahora < fechaApi(oferta.fechaInicioVenta).getTime()) return 'PROXIMAMENTE'
   if (estado(oferta.estado) !== 'ACTIVO' || !Number.isInteger(oferta.cantidadDisponible) ||
       oferta.cantidadDisponible < 0 || !tienePrecio(oferta)) return 'PAUSADO'
   return 'EN_VENTA'
