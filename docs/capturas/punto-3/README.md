@@ -2,7 +2,7 @@
 
 Capturadas el 18/10/2026 desde `http://localhost:5173`, rama
 `feature/catalogo-detalle-eventos`, con la API conectada a SQL Server.
-Son recortes completos de la sección implementada, no de toda la landing.
+El catálogo está recortado a su sección; el detalle se captura completo, sin recortar el ancho.
 
 | Tamaño de viewport | Catálogo | Detalle |
 | --- | --- | --- |
