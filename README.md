@@ -18,10 +18,11 @@ Por defecto arranca con el perfil **`sqlsrv`**, que se conecta al **SQL Server l
 base `Zenoir_Prod` creada (ver más abajo). Cada valor se puede pisar con variables de entorno
 (`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`).
 
-### Alternativa sin instalar nada: H2 en memoria
+### Alternativa opcional: H2 en memoria
 
 Si querés levantarlo en una máquina sin SQL Server, está el perfil **`dev`** (base H2 en
-memoria). Los datos se pierden al apagar la aplicación.
+memoria). Los datos se pierden al apagar la aplicación. Este perfil no usa la base ni
+el seed de SQL Server: para verificar el catálogo compartido y sus imágenes, usá `sqlsrv`.
 
 ```bash
 cd zenoirprod
