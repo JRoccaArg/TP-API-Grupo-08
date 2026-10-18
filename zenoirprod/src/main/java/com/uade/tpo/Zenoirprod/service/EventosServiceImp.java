@@ -1,6 +1,9 @@
 package com.uade.tpo.Zenoirprod.service;
 
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
+import java.text.Normalizer;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 
@@ -42,6 +45,28 @@ public class EventosServiceImp implements EventosService {
         return eventosRepository.findAll(pageRequest);
     }
 
+
+    // La llamada histórica conserva sus resultados, estados y paginación.
+    public Page<Evento> getEventos(PageRequest pageRequest, String nombre, Integer categoriaId,
+            BigDecimal precioMin, BigDecimal precioMax, boolean catalogo, boolean proximo)
+            throws EventoInvalidoException {
+        if ((precioMin != null && precioMin.signum() < 0)
+                || (precioMax != null && precioMax.signum() < 0)
+                || (precioMin != null && precioMax != null && precioMin.compareTo(precioMax) > 0)
+                || (categoriaId != null && categoriaId < 1)) {
+            throw new EventoInvalidoException();
+        }
+        String busqueda = nombre == null ? "" : Normalizer.normalize(nombre.trim(), Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "").toLowerCase(Locale.ROOT);
+        if (busqueda.isEmpty() && categoriaId == null && precioMin == null && precioMax == null
+                && !catalogo && !proximo) {
+            return getEventos(pageRequest);
+        }
+        // Los caracteres de LIKE se buscan literalmente, igual que en el filtro anterior.
+        String patron = "%" + busqueda.replace("!", "!!").replace("%", "!%").replace("_", "!_") + "%";
+        return eventosRepository.buscar(patron, categoriaId, precioMin, precioMax,
+                catalogo, proximo, LocalDateTime.now(), pageRequest);
+    }
 
     public Optional<Evento> getEventoPorId(Integer id) throws EventoInexistenteException {
         return Optional.of(eventosRepository.findById(id)
