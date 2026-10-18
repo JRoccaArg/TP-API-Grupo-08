@@ -11,5 +11,4 @@ Thumbs.db
 **/application-local.properties
 **/src/main/resources/application.properties
 
-# Tests locales
-zenoirprod/src/test/
+# Las fuentes de tests se versionan; target/ se ignora en zenoirprod/.gitignore.
