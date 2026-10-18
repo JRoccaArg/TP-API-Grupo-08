@@ -65,7 +65,7 @@ Mirá el nombre del servidor con el que te conectaste en SSMS (arriba a la izqui
 - **Instancia por defecto** — el nombre es solo la PC, ej. `DESKTOP-ABC123`. Escucha en
   el puerto `1433` de siempre: usá las variables simples del punto 4a.
 - **Instancia con nombre** — el nombre tiene una barra, ej. `DESKTOP-ABC123\SQLEXPRESS01`
-  (así es la tuya). No usa el puerto 1433 fijo: usá la variante del punto 4b.
+  Puede usar un puerto distinto de 1433: usá la variante del punto 4b.
 
 ### 4a. Levantar la app — instancia por defecto
 
