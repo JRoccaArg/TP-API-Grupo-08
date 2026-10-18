@@ -34,8 +34,8 @@
 .catalogo-eventos__pulso { width: 28px; height: 28px; margin-bottom: 8px; border: 2px solid #4c4230; border-top-color: #dec58f; border-radius: 50%; animation: catalogo-girar .9s linear infinite; }
 @keyframes catalogo-girar { to { transform: rotate(360deg); } }
 
-.catalogo-eventos .fechas__fila { display: flex; align-items: stretch; min-width: 0; max-width: 100%; gap: 20px; padding: 12px 0 24px; margin: 24px 0 0; overflow-x: auto; overflow-y: hidden; }
-.catalogo-eventos .flyer { display: flex; flex: 0 0 340px; flex-direction: column; min-width: 0; width: 340px; border: 0; border-radius: 28px; box-shadow: inset 0 0 0 1px rgba(216, 188, 120, .22), 0 30px 60px rgba(0, 0, 0, .45); background: #121212; }
+.catalogo-eventos .fechas__fila { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); align-items: stretch; min-width: 0; max-width: 100%; gap: 20px; padding: 12px 0 24px; margin: 24px 0 0; overflow: visible; }
+.catalogo-eventos .flyer { display: flex; flex-direction: column; min-width: 0; width: 100%; border: 0; border-radius: 28px; box-shadow: inset 0 0 0 1px rgba(216, 188, 120, .22), 0 30px 60px rgba(0, 0, 0, .45); background: #121212; }
 .catalogo-eventos .flyer__imagen { flex-shrink: 0; width: 100%; height: auto; aspect-ratio: 9 / 16; background: #191814; }
 .catalogo-eventos .flyer__visual { display: flex; width: 100%; height: 100%; object-fit: cover; }
 .catalogo-eventos .flyer__visual img { width: 100%; height: 100%; object-fit: cover; }
@@ -56,7 +56,7 @@
 .catalogo-eventos .catalogo-tarjeta__estado--agotado,
 .catalogo-eventos .catalogo-tarjeta__estado--cancelado,
 .catalogo-eventos .catalogo-tarjeta__estado--error { color: #e7b7a7; border-color: #795c4d; }
-.catalogo-eventos .flyer__accion { gap: 10px; margin-top: auto; padding-top: 14px; }
+.catalogo-eventos .flyer__accion { flex-wrap: wrap; gap: 10px; margin-top: auto; padding-top: 14px; }
 .catalogo-eventos .flyer__accion > p { min-width: 0; overflow-wrap: anywhere; }
 .catalogo-eventos .flyer__accion small { font-size: 8px; letter-spacing: .1em; }
 .catalogo-eventos .flyer__accion p strong { margin-top: 3px; font-size: 36px; }
@@ -73,6 +73,7 @@
 .inicio-catalogo .hero--sin-proximo .hero__texto { bottom: 100px; }
 
 @media (max-width: 1100px) {
+  .catalogo-eventos .fechas__fila { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .catalogo-eventos .fechas__cabecera,
   .catalogo-eventos__contenido { padding-left: 30px; padding-right: 30px; }
   .catalogo-eventos .catalogo-filtros__campos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -90,6 +91,7 @@
 }
 
 @media (max-width: 640px) {
+  .catalogo-eventos .fechas__fila { grid-template-columns: minmax(0, 1fr); }
   .catalogo-eventos { padding: 65px 0 72px; }
   .catalogo-eventos .fechas__cabecera { flex-direction: column; gap: 20px; padding: 0 20px; }
   .catalogo-eventos .titulo-seccion { font-size: clamp(38px, 11vw, 64px); line-height: 1; }
@@ -103,7 +105,7 @@
   .catalogo-eventos .catalogo-filtros input,
   .catalogo-eventos .catalogo-filtros select { font-size: 16px; padding: 10px; }
   .catalogo-eventos .catalogo-filtros__pie { align-items: flex-start; flex-direction: column; gap: 8px; }
-  .catalogo-eventos .flyer { flex-basis: min(340px, calc(100vw - 40px)); width: min(340px, calc(100vw - 40px)); }
+  .catalogo-eventos .flyer { width: 100%; }
   .catalogo-eventos .catalogo-tarjeta__titulo { font-size: 28px; }
   .catalogo-eventos .flyer__accion p strong { font-size: 34px; }
   .catalogo-eventos .flyer__accion small { font-size: 9px; }

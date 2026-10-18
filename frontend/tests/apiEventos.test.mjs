@@ -10,7 +10,7 @@ const responder = (datos, estado = 200) => new Response(JSON.stringify(datos), {
 })
 const pagina = (elementos, numero = 0) => ({
   content: elementos.slice(numero * 100, (numero + 1) * 100),
-  totalPages: Math.ceil(elementos.length / 100),
+  totalPages: Math.ceil(elementos.length / 100), totalElements: elementos.length, number: numero,
 })
 const evento = (id, cambios = {}) => ({
   id, titulo: `Evento ${id}`, estado: 'ACTIVO', fechaHoraInicio: '2026-10-31T22:00:00', ...cambios,
@@ -42,23 +42,25 @@ afterEach(() => { globalThis.fetch = fetchOriginal })
 
 // Cada prueba restaura fetch y se ejecuta secuencialmente: ningún mock alcanza la API real.
 describe('consultas públicas del catálogo', { concurrency: false }, () => {
-  test('reúne más de cien eventos y todas las páginas antes de completar y ordenar', async () => {
-    const eventos = Array.from({ length: 205 }, (_, i) => evento(205 - i))
-    eventos.push(evento(206, { estado: 'BORRADOR' }))
+  test('pide sólo seis eventos al servidor, envía filtros y completa únicamente esa página', async () => {
+    const eventos = Array.from({ length: 6 }, (_, i) => evento(100 - i))
     const signal = new AbortController().signal
     const llamadas = simularFetch((url) => {
-      if (url.pathname === '/api/eventos') return responder(pagina(eventos, Number(url.searchParams.get('page'))))
-      if (/^\/api\/eventosTiposEntrada\/evento\/\d+$/.test(url.pathname) ||
-          /^\/api\/eventos\/\d+\/imagenes$/.test(url.pathname)) return responder(pagina([]))
-      throw new Error(`Consulta inesperada: ${url}`)
+      if (url.pathname === '/api/eventos') {
+        assert.deepEqual(Object.fromEntries(url.searchParams), {
+          page: '2', size: '6', catalogo: 'true', nombre: 'Café & Jazz', categoriaId: '5', precioMin: '0', precioMax: '8500.50',
+        })
+        return responder({ content: eventos, totalElements: 205, totalPages: 35, number: 2, size: 6 })
+      }
+      return responder(pagina([]))
     })
-    const catalogo = await obtenerCatalogo(signal)
-    assert.equal(catalogo.length, 205)
-    assert.deepEqual(catalogo.map(e => e.id), Array.from({ length: 205 }, (_, i) => i + 1))
-    assert.equal(llamadas.filter(l => l.url.pathname === '/api/eventos').length, 3)
-    assert.equal(llamadas.length, 3 + 205 * 2)
-    assert.ok(catalogo.every(e => Array.isArray(e.ofertas) && Array.isArray(e.imagenes)))
-    verificarGetPaginados(llamadas, signal)
+    const catalogo = await obtenerCatalogo(signal, { busqueda: ' Café & Jazz ', categoria: '5', precioMin: '0', precioMax: '8500.50', pagina: 3 })
+    assert.equal(catalogo.totalElements, 205)
+    assert.equal(catalogo.totalPages, 35)
+    assert.deepEqual(catalogo.content.map(e => e.id), eventos.map(e => e.id))
+    assert.equal(llamadas.filter(l => l.url.pathname === '/api/eventos').length, 1)
+    assert.equal(llamadas.length, 1 + 6 * 2)
+    assert.ok(llamadas.every(l => l.opciones.signal === signal))
   })
 
   test('reúne todas las ofertas e imágenes y ordena portada antes que galería y luego orden', async () => {
@@ -90,15 +92,12 @@ describe('consultas públicas del catálogo', { concurrency: false }, () => {
     verificarGetPaginados(llamadas)
   })
 
-  test('una página posterior fallida rechaza el catálogo completo sin mostrar uno parcial', async () => {
-    const llamadas = simularFetch((url) => {
-      assert.equal(url.pathname, '/api/eventos')
-      if (url.searchParams.get('page') === '0') return responder({ content: [evento(1)], totalPages: 2 })
-      return responder({ message: 'Servicio temporalmente no disponible' }, 503)
-    })
-    await assert.rejects(obtenerCatalogo(), error =>
+  test('propaga el error de la página solicitada sin consultar otras páginas', async () => {
+    const llamadas = simularFetch(() => responder({ message: 'Servicio temporalmente no disponible' }, 503))
+    await assert.rejects(obtenerCatalogo(undefined, { pagina: 4 }), error =>
       error instanceof ErrorApi && error.estado === 503 && error.message === 'Servicio temporalmente no disponible')
-    assert.equal(llamadas.length, 2)
+    assert.equal(llamadas.length, 1)
+    assert.equal(llamadas[0].url.searchParams.get('page'), '3')
   })
 
   test('recupera errores auxiliares y conserva el evento con mensajes visibles', async () => {
@@ -108,7 +107,7 @@ describe('consultas públicas del catálogo', { concurrency: false }, () => {
       if (url.pathname.endsWith('/imagenes')) throw new TypeError('fetch failed')
       throw new Error(`Consulta inesperada: ${url}`)
     })
-    const [e] = await obtenerCatalogo()
+    const { content: [e] } = await obtenerCatalogo()
     assert.equal(e.id, 8)
     assert.deepEqual(e.ofertas, [])
     assert.deepEqual(e.imagenes, [])
@@ -139,7 +138,7 @@ describe('consultas públicas del catálogo', { concurrency: false }, () => {
       return responder(pagina([]))
     })
     await assert.rejects(obtenerCatalogo(signal), error => error === abortado)
-    verificarGetPaginados(llamadas, signal)
+    verificarGetPaginados(llamadas.filter(l => l.url.pathname !== '/api/eventos'), signal)
   })
 
   test('normaliza errores de red y conserva el mensaje HTTP del backend', async () => {
@@ -209,17 +208,18 @@ test('antes de integrar vuelve a consultar stock y detecta una cantidad ya no di
   assert.deepEqual(resultado.seleccion, [{ ofertaId: 7, cantidad: 2 }])
 })
 
-test('conserva los cuatro eventos y el orden original, con activos antes de finalizados', async () => {
-  const originales = [
-    evento(3, { titulo: 'Golden Edition', estado: 'FINALIZADO' }),
-    evento(2, { titulo: 'Haunted Edition' }),
-    evento(4, { titulo: 'Vol. 4 · Secret Location', estado: 'FINALIZADO' }),
-    evento(1, { titulo: 'After Palace' }),
-  ]
-  simularFetch((url) => url.pathname === '/api/eventos' ? responder(pagina(originales)) : responder(pagina([])))
-  const catalogo = await obtenerCatalogo()
-  assert.deepEqual(catalogo.map(e => e.titulo), [
-    'After Palace', 'Haunted Edition', 'Golden Edition', 'Vol. 4 · Secret Location',
-  ])
-  assert.equal(catalogo.length, 4)
+test('conserva el orden que entrega el servidor y los totales aun cuando la página está vacía', async () => {
+  simularFetch(() => responder({ content: [], totalPages: 4, totalElements: 20, number: 99 }))
+  const resultado = await obtenerCatalogo(undefined, { pagina: 100 })
+  assert.equal(resultado.number, 99)
+  assert.equal(resultado.totalPages, 4)
+  assert.equal(resultado.totalElements, 20)
+  assert.deepEqual(resultado.content, [])
+})
+
+test('no acepta un catálogo sin metadatos de paginación válidos', async () => {
+  for (const datos of [{ content: [] }, { content: [], totalPages: 1, totalElements: -1, number: 0 }]) {
+    simularFetch(() => responder(datos))
+    await assert.rejects(obtenerCatalogo(), /formato inesperado/)
+  }
 })

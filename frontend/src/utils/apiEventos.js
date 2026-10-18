@@ -83,13 +83,30 @@ function completarLotes(eventos, signal) {
     .then((lote) => completarLotes(eventos.slice(4), signal).then((resto) => [...lote, ...resto]))
 }
 
-export function obtenerCatalogo(signal) {
-  return consultarPaginas('/eventos', signal)
-    .then((eventos) => eventos.filter((evento) => evento.estado?.toUpperCase() !== 'BORRADOR'))
-    .then((eventos) => completarLotes(eventos, signal))
-    .then((eventos) => eventos.sort((a, b) =>
-      Number(b.estado?.toUpperCase() === 'ACTIVO') - Number(a.estado?.toUpperCase() === 'ACTIVO') || a.id - b.id))
+// El catálogo pide una sola página; las ofertas e imágenes se completan sólo para esa página.
+export function obtenerCatalogo(signal, { busqueda = '', categoria = '', precioMin = '', precioMax = '', pagina = 1 } = {}) {
+  const parametros = new URLSearchParams({ page: String(pagina - 1), size: '6', catalogo: 'true' })
+  if (busqueda.trim()) parametros.set('nombre', busqueda.trim())
+  if (categoria) parametros.set('categoriaId', categoria)
+  if (precioMin !== '') parametros.set('precioMin', precioMin)
+  if (precioMax !== '') parametros.set('precioMax', precioMax)
+  return consultar(`/eventos?${parametros}`, signal).then((datos) => {
+    if (!Array.isArray(datos?.content) || !Number.isInteger(datos.totalPages) || datos.totalPages < 0 ||
+        !Number.isInteger(datos.totalElements) || datos.totalElements < 0 ||
+        !Number.isInteger(datos.number) || datos.number < 0) {
+      throw new ErrorApi('El listado recibido tiene un formato inesperado.')
+    }
+    return completarLotes(datos.content, signal).then((content) => ({ ...datos, content }))
+  })
 }
+
+export const obtenerCategorias = (signal) => consultarPaginas('/categories', signal)
+  .then((categorias) => categorias.map((categoria) => ({ ...categoria, id: String(categoria.id) }))
+    .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es')))
+
+// La portada obtiene la próxima fecha global, aunque el catálogo esté filtrado o en otra página.
+export const obtenerProximo = (signal) => consultar('/eventos?page=0&size=1&proximo=true', signal)
+  .then((datos) => datos.content[0] || null)
 
 export function verificarSeleccion(evento, seleccion, signal) {
   return Promise.all([

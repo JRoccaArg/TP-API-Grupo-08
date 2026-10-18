@@ -68,3 +68,15 @@ export function totalSeleccion(seleccion, ofertas) {
     return total + Math.round((oferta?.precioFinal || 0) * 100) * item.cantidad
   }, 0) / 100
 }
+
+export function leerFiltrosCatalogo(parametros) {
+  const importe = (valor) => valor !== null && valor.trim() !== '' && Number.isFinite(Number(valor)) && Number(valor) >= 0 ? valor : ''
+  const precioMin = importe(parametros.get('min'))
+  const precioMax = importe(parametros.get('max'))
+  const pedida = Number(parametros.get('pagina'))
+  return {
+    busqueda: parametros.get('q') || '', categoria: parametros.get('categoria') || '', precioMin, precioMax,
+    pagina: Number.isSafeInteger(pedida) && pedida > 0 ? pedida : 1,
+    rangoInvalido: precioMin !== '' && precioMax !== '' && Number(precioMin) > Number(precioMax),
+  }
+}
