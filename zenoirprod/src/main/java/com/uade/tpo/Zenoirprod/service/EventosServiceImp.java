@@ -63,7 +63,7 @@ public class EventosServiceImp implements EventosService {
             return getEventos(pageRequest);
         }
         // Los caracteres de LIKE se buscan literalmente, igual que en el filtro anterior.
-        String patron = "%" + busqueda.replace("!", "!!").replace("%", "!%").replace("_", "!_") + "%";
+        String patron = "%" + busqueda.replace("!", "!!").replace("%", "!%").replace("_", "!_").replace("[", "![") + "%";
         return eventosRepository.buscar(patron, categoriaId, precioMin, precioMax,
                 catalogo, proximo, LocalDateTime.now(), pageRequest);
     }

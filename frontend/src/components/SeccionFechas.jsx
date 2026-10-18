@@ -25,7 +25,7 @@ export default function SeccionFechas({ datos, categorias = [], cargando = false
   }, [cargando, hash])
 
   const filtros = leerFiltrosCatalogo(parametros)
-  const { rangoInvalido, pagina } = filtros
+  const { errorPrecio, pagina } = filtros
   const paginas = Math.max(1, datos.totalPages)
   const inicio = (pagina - 1) * POR_PAGINA
   const total = datos.totalElements
@@ -70,7 +70,7 @@ export default function SeccionFechas({ datos, categorias = [], cargando = false
         <p>Elegí tu próxima noche y conocé todas las fechas de Zenoir.</p>
       </div>
       <div className="catalogo-eventos__contenido">
-        <FiltrosEventos filtros={filtros} categorias={categorias} rangoInvalido={rangoInvalido} hayFiltros={hayFiltros} onCambiar={cambiarFiltro} onLimpiar={limpiarFiltros} />
+        <FiltrosEventos filtros={filtros} categorias={categorias} errorPrecio={errorPrecio} hayFiltros={hayFiltros} onCambiar={cambiarFiltro} onLimpiar={limpiarFiltros} />
         {errorCategorias && <div className="catalogo-eventos__aviso" role="status"><p>No pudimos cargar las categorías.</p><button type="button" onClick={onReintentar}>Reintentar</button></div>}
 
         {cargando ? (
@@ -102,12 +102,12 @@ export default function SeccionFechas({ datos, categorias = [], cargando = false
               </div>
             )}
             <div ref={resultados} id="catalogo-resultados" className="catalogo-eventos__resultados" aria-live="polite" aria-atomic="true">
-              {!rangoInvalido && <p><strong>{total}</strong> {total === 1 ? 'evento encontrado' : 'eventos encontrados'}{total > 0 && <span> · Mostrando {inicio + 1}–{Math.min(inicio + eventos.length, total)}</span>}</p>}
+              {!errorPrecio && <p><strong>{total}</strong> {total === 1 ? 'evento encontrado' : 'eventos encontrados'}{total > 0 && <span> · Mostrando {inicio + 1}–{Math.min(inicio + eventos.length, total)}</span>}</p>}
             </div>
-            {rangoInvalido ? (
+            {errorPrecio ? (
               <div className="catalogo-eventos__estado">
                 <h3>Revisá el rango de precios</h3>
-                <p>El precio mínimo tiene que ser menor o igual al máximo para buscar entradas.</p>
+                <p>{errorPrecio}</p>
               </div>
             ) : total === 0 ? (
               <div className="catalogo-eventos__estado" role="status">
@@ -118,7 +118,7 @@ export default function SeccionFechas({ datos, categorias = [], cargando = false
             ) : (
               <>
                 <div className="fechas__fila">
-                  {eventos.map((evento, indice) => <TarjetaFlyer key={evento.id} evento={evento} ahora={ahora} indice={indice} />)}
+                  {eventos.map((evento, indice) => <TarjetaFlyer key={evento.id} evento={evento} ahora={ahora} indice={indice} filtroPrecio={filtros} />)}
                 </div>
                 <PaginacionEventos pagina={pagina} paginas={paginas} onCambiar={cambiarPagina} />
               </>

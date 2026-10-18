@@ -3,7 +3,7 @@ import Icono from './Icono.jsx'
 import ImagenEvento from './ImagenEvento.jsx'
 import { fechaLarga } from '../utils/fechas.js'
 import { precio } from '../utils/formatos.js'
-import { resumenEntradas } from '../utils/eventos.js'
+import { resumenEntradas, precioDesdeEnRango } from '../utils/eventos.js'
 
 const ETIQUETAS = {
   EN_VENTA: 'Entradas disponibles',
@@ -18,9 +18,11 @@ const ETIQUETAS = {
   REPROGRAMADO: 'Evento reprogramado',
 }
 
-export default function TarjetaFlyer({ evento, ahora, indice = 0 }) {
+export default function TarjetaFlyer({ evento, ahora, indice = 0, filtroPrecio = {} }) {
   const location = useLocation()
-  const { estado, precioDesde } = resumenEntradas(evento, ahora)
+  const { estado, precioDesde: precioGeneral } = resumenEntradas(evento, ahora)
+  const hayRango = Boolean(filtroPrecio.precioMin || filtroPrecio.precioMax)
+  const precioDesde = hayRango ? precioDesdeEnRango(evento, filtroPrecio, ahora) : precioGeneral
   const destino = `/eventos/${evento.id}`
   const origen = { volverA: `${location.pathname}${location.search}#fechas` }
   const fecha = new Date(evento.fechaHoraInicio)
@@ -50,7 +52,7 @@ export default function TarjetaFlyer({ evento, ahora, indice = 0 }) {
         <p className={`catalogo-tarjeta__estado catalogo-tarjeta__estado--${estado.toLowerCase()}`}>{ETIQUETAS[estado] || 'Consultá el detalle'}</p>
         <div className="flyer__accion">
           {tienePrecio ? (
-            <p><small>DESDE · PRECIO FINAL</small><strong className="oro-texto">{precio(precioDesde)}</strong></p>
+            <p><small>{hayRango ? 'DESDE · EN TU RANGO' : 'DESDE · PRECIO FINAL'}</small><strong className="oro-texto">{precio(precioDesde)}</strong></p>
           ) : (
             <p className="catalogo-tarjeta__sin-precio">{estado === 'ERROR' ? 'Precio sin confirmar' : 'Conocé los detalles'}</p>
           )}

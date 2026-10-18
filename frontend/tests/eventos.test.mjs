@@ -2,6 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import {
   ajustarSeleccion, estadoOferta, filtrarEventos, resumenEntradas, totalSeleccion,
+  leerFiltrosCatalogo, normalizarImporteFiltro, precioDesdeEnRango, validarRangoPrecios,
 } from '../src/utils/eventos.js'
 
 const AHORA = new Date('2026-10-17T12:00:00Z').getTime()
@@ -142,4 +143,31 @@ test('descarta cantidades no finitas en lugar de convertirlas en toda la disponi
   for (const cantidad of [Infinity, -Infinity, NaN, undefined, '3']) {
     assert.deepEqual(ajustarSeleccion([{ ofertaId: 1, cantidad }], [oferta()], evento(), AHORA), [])
   }
+})
+
+
+test('los importes inválidos no desaparecen ni se convierten en filtros vacíos', () => {
+  for (const valor of ['-1', 'texto', '0x10', 'Infinity', '8.500,50', '8500.501']) {
+    const filtros = leerFiltrosCatalogo(new URLSearchParams({ min: valor }))
+    assert.equal(filtros.precioMin, valor)
+    assert.ok(filtros.errorPrecio, valor)
+  }
+  assert.equal(leerFiltrosCatalogo(new URLSearchParams({ min: '0', max: '0' })).errorPrecio, '')
+})
+
+test('acepta centavos con coma o punto y valida los dos extremos juntos', () => {
+  assert.equal(normalizarImporteFiltro(' 8500,50 '), '8500.50')
+  assert.equal(validarRangoPrecios('8500,50', '8500.50'), '')
+  assert.match(validarRangoPrecios('8500,51', '8500.50'), /mínimo/)
+  assert.match(validarRangoPrecios('', '-1'), /negativos/)
+  assert.equal(validarRangoPrecios('', ''), '')
+})
+
+test('la tarjeta muestra el precio de una oferta dentro del rango, incluido cero', () => {
+  const e = evento({ ofertas: [oferta({ precioFinal: 0 }), oferta({ id: 2, precioFinal: 42499.99 })] })
+  assert.equal(precioDesdeEnRango(e, { precioMin: '18000' }, AHORA), 42499.99)
+  assert.equal(precioDesdeEnRango(e, { precioMin: '42499,99', precioMax: '42499.99' }, AHORA), 42499.99)
+  assert.equal(precioDesdeEnRango(e, { precioMin: '0', precioMax: '0' }, AHORA), 0)
+  assert.equal(precioDesdeEnRango(e, { precioMin: '100', precioMax: '200' }, AHORA), null)
+  assert.equal(precioDesdeEnRango(e, { precioMin: '-1' }, AHORA), null)
 })

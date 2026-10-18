@@ -1,4 +1,4 @@
-import { ajustarSeleccion } from './eventos.js'
+import { ajustarSeleccion, normalizarImporteFiltro } from './eventos.js'
 
 // Todas las consultas de este módulo son GET públicos; no usan la sesión ni el carrito.
 const API_BASE = (import.meta.env?.VITE_API_URL || '/api').replace(/\/$/, '')
@@ -88,8 +88,8 @@ export function obtenerCatalogo(signal, { busqueda = '', categoria = '', precioM
   const parametros = new URLSearchParams({ page: String(pagina - 1), size: '6', catalogo: 'true' })
   if (busqueda.trim()) parametros.set('nombre', busqueda.trim())
   if (categoria) parametros.set('categoriaId', categoria)
-  if (precioMin !== '') parametros.set('precioMin', precioMin)
-  if (precioMax !== '') parametros.set('precioMax', precioMax)
+  if (precioMin !== '') parametros.set('precioMin', normalizarImporteFiltro(precioMin))
+  if (precioMax !== '') parametros.set('precioMax', normalizarImporteFiltro(precioMax))
   return consultar(`/eventos?${parametros}`, signal).then((datos) => {
     if (!Array.isArray(datos?.content) || !Number.isInteger(datos.totalPages) || datos.totalPages < 0 ||
         !Number.isInteger(datos.totalElements) || datos.totalElements < 0 ||

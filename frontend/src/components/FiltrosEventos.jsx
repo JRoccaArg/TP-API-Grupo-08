@@ -1,4 +1,4 @@
-export default function FiltrosEventos({ filtros, categorias, rangoInvalido, hayFiltros, onCambiar, onLimpiar }) {
+export default function FiltrosEventos({ filtros, categorias, errorPrecio, hayFiltros, onCambiar, onLimpiar }) {
   const categoriaConocida = !filtros.categoria || categorias.some((categoria) => categoria.id === filtros.categoria)
 
   return (
@@ -18,18 +18,18 @@ export default function FiltrosEventos({ filtros, categorias, rangoInvalido, hay
         </label>
         <label htmlFor="eventos-minimo">
           <span>Precio mínimo ($)</span>
-          <input id="eventos-minimo" type="number" min="0" step="0.01" inputMode="decimal" placeholder="Sin mínimo" value={filtros.precioMin} aria-invalid={rangoInvalido || undefined} aria-describedby={rangoInvalido ? 'eventos-error-precio eventos-ayuda-precio' : 'eventos-ayuda-precio'} onChange={(evento) => onCambiar('precioMin', evento.target.value)} />
+          <input id="eventos-minimo" type="text" inputMode="decimal" placeholder="Sin mínimo" value={filtros.precioMin} aria-invalid={Boolean(errorPrecio) || undefined} aria-describedby={errorPrecio ? 'eventos-error-precio eventos-ayuda-precio' : 'eventos-ayuda-precio'} onChange={(evento) => onCambiar('precioMin', evento.target.value)} />
         </label>
         <label htmlFor="eventos-maximo">
           <span>Precio máximo ($)</span>
-          <input id="eventos-maximo" type="number" min="0" step="0.01" inputMode="decimal" placeholder="Sin máximo" value={filtros.precioMax} aria-invalid={rangoInvalido || undefined} aria-describedby={rangoInvalido ? 'eventos-error-precio eventos-ayuda-precio' : 'eventos-ayuda-precio'} onChange={(evento) => onCambiar('precioMax', evento.target.value)} />
+          <input id="eventos-maximo" type="text" inputMode="decimal" placeholder="Sin máximo" value={filtros.precioMax} aria-invalid={Boolean(errorPrecio) || undefined} aria-describedby={errorPrecio ? 'eventos-error-precio eventos-ayuda-precio' : 'eventos-ayuda-precio'} onChange={(evento) => onCambiar('precioMax', evento.target.value)} />
         </label>
       </div>
       <div className="catalogo-filtros__pie">
-        <p id="eventos-ayuda-precio">Filtrá por el precio final de una entrada actualmente en venta.</p>
+        <p id="eventos-ayuda-precio">Buscamos entradas en venta dentro del rango. Ingresá importes sin separadores de miles; usá coma o punto para los centavos.</p>
         <button type="button" onClick={onLimpiar} disabled={!hayFiltros}>Limpiar filtros</button>
       </div>
-      {rangoInvalido && <p id="eventos-error-precio" className="catalogo-filtros__error" role="alert">El mínimo no puede superar al máximo.</p>}
+      {errorPrecio && <p id="eventos-error-precio" className="catalogo-filtros__error" role="alert">{errorPrecio}</p>}
     </form>
   )
 }

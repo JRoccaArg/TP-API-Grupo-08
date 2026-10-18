@@ -223,3 +223,11 @@ test('no acepta un catálogo sin metadatos de paginación válidos', async () =>
     await assert.rejects(obtenerCatalogo(), /formato inesperado/)
   }
 })
+
+
+test('envía precios con coma como decimales para Spring sin perder el filtro de cero', async () => {
+  const llamadas = simularFetch(() => responder({ content: [], totalPages: 0, totalElements: 0, number: 0 }))
+  await obtenerCatalogo(undefined, { precioMin: '0', precioMax: '8500,50' })
+  assert.equal(llamadas[0].url.searchParams.get('precioMin'), '0')
+  assert.equal(llamadas[0].url.searchParams.get('precioMax'), '8500.50')
+})

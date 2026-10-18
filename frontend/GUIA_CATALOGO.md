@@ -82,3 +82,41 @@ Creá solicitudes GET sobre la URL del backend configurado, usando los IDs y pre
 8. Enviá sólo `page` sin `size`: responde 400.
 
 En el navegador comprobá los mismos filtros, avanzar y retroceder, abrir el detalle y volver, además de los estados de carga, vacío y error. En Network, la consulta del catálogo debe enviar `size=6`; no debe recorrer todas las páginas para filtrar. En desarrollo, StrictMode puede iniciar y cancelar solicitudes adicionales.
+
+### Comprobar los campos de precio
+
+En el navegador se aceptan centavos con coma o punto, sin separadores de miles
+(`8500,50` o `8500.50`). React envía el punto decimal que espera la API. Un campo
+vacío deja ese extremo sin límite; `0` es un límite válido y no equivale a vacío.
+Los importes inválidos permanecen visibles con un mensaje y no se consulta el
+catálogo hasta corregirlos. No se borran ni se interpretan como ausencia de filtro.
+
+Los dos límites se aplican a la misma oferta actualmente en venta. Un evento puede
+tener otras entradas más baratas o más caras: con un rango activo, la tarjeta muestra
+el menor precio que cumple ese rango y lo identifica como `DESDE · EN TU RANGO`.
+Sin filtro de precio, muestra el menor precio general como antes. Abrir el detalle
+conserva todas las ofertas del evento.
+
+Para repetir las comprobaciones con el [seed del repositorio](../zenoirprod/database/seed/README.md),
+mientras sus ofertas sigan vigentes, limpiá los filtros antes de cada caso:
+
+| Mínimo | Máximo | Resultado esperado |
+| --- | --- | --- |
+| vacío | vacío | 20 eventos públicos, seis por página. |
+| 18000 | vacío | Cuatro eventos; Tango muestra $42.499,99, la entrada que cumple el mínimo. |
+| vacío | 30000 | Diez eventos; al avanzar se muestran 7–10 y se conserva el máximo. |
+| 8500 | 8500 | Noche de Jazz en el Palacio, $8.500. |
+| 42499,99 | 42499.99 | Tango y Medianoche, $42.499,99. |
+| 0 | 0 | Dos eventos con entradas gratuitas. |
+| 9000 | 8000 | Mensaje de rango invertido, sin mostrar resultados anteriores. |
+| -1 | vacío | Mensaje de precio negativo y el valor sigue visible para corregirlo. |
+| texto | vacío | Mensaje de importe inválido, sin quitar el filtro silenciosamente. |
+
+Combiná además nombre `Noche`, categoría `Música` y rango 8000–9000: queda Jazz.
+Después de avanzar de página, cambiar un límite vuelve a la primera página.
+`Limpiar filtros` vacía ambos precios, el nombre y la categoría y restaura el catálogo.
+En Insomnia, los parámetros numéricos usan punto decimal; por ejemplo:
+
+```text
+GET /eventos?page=0&size=6&catalogo=true&precioMin=42499.99&precioMax=42499.99
+```

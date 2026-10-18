@@ -37,18 +37,40 @@ export function resumenEntradas(evento, ahora = Date.now()) {
   }
 }
 
+// Los campos conservan lo escrito; sólo normalizamos al comparar o consultar la API.
+export const normalizarImporteFiltro = (valor) => String(valor ?? '').trim().replace(',', '.')
+
+export function validarRangoPrecios(precioMin = '', precioMax = '') {
+  const importes = [precioMin, precioMax].map(normalizarImporteFiltro)
+  if (importes.some((valor) => valor.startsWith('-'))) return 'Los precios no pueden ser negativos.'
+  if (importes.some((valor) => valor !== '' &&
+    (!/^(?:\d+(?:\.\d{0,2})?|\.\d{1,2})$/.test(valor) || !Number.isFinite(Number(valor))))) {
+    return 'Ingresá precios válidos, con hasta dos decimales y sin separadores de miles.'
+  }
+  if (importes.every((valor) => valor !== '') && Number(importes[0]) > Number(importes[1])) {
+    return 'El mínimo no puede superar al máximo.'
+  }
+  return ''
+}
+
+// El precio mostrado debe pertenecer a la misma oferta que cumple los dos límites.
+export function precioDesdeEnRango(evento, { precioMin = '', precioMax = '' } = {}, ahora = Date.now()) {
+  if (evento.errorOfertas || validarRangoPrecios(precioMin, precioMax)) return null
+  const minimo = normalizarImporteFiltro(precioMin) === '' ? 0 : Number(normalizarImporteFiltro(precioMin))
+  const maximo = normalizarImporteFiltro(precioMax) === '' ? Infinity : Number(normalizarImporteFiltro(precioMax))
+  const precios = (evento.ofertas || []).filter((oferta) =>
+    estadoOferta(oferta, evento, ahora) === 'EN_VENTA' &&
+    oferta.precioFinal >= minimo && oferta.precioFinal <= maximo).map((oferta) => oferta.precioFinal)
+  return precios.length ? Math.min(...precios) : null
+}
+
 export function filtrarEventos(eventos, { busqueda = '', categoria = '', precioMin = '', precioMax = '' }, ahora = Date.now()) {
-  const minimo = precioMin === '' ? 0 : Number(precioMin)
-  const maximo = precioMax === '' ? Infinity : Number(precioMax)
-  if (!Number.isFinite(minimo) || minimo < 0 || Number.isNaN(maximo) || maximo < minimo) return []
+  if (validarRangoPrecios(precioMin, precioMax)) return []
   return eventos.filter((evento) => {
     if (!normalizar(evento.titulo).includes(normalizar(busqueda.trim()))) return false
     if (categoria && String(evento.categoriaId) !== String(categoria)) return false
     if (precioMin === '' && precioMax === '') return true
-    // Una misma oferta debe cumplir ambos extremos; incluye otras entradas además de la más barata.
-    return !evento.errorOfertas && evento.ofertas.some((oferta) =>
-      estadoOferta(oferta, evento, ahora) === 'EN_VENTA' &&
-      oferta.precioFinal >= minimo && oferta.precioFinal <= maximo)
+    return precioDesdeEnRango(evento, { precioMin, precioMax }, ahora) !== null
   })
 }
 
@@ -70,13 +92,12 @@ export function totalSeleccion(seleccion, ofertas) {
 }
 
 export function leerFiltrosCatalogo(parametros) {
-  const importe = (valor) => valor !== null && valor.trim() !== '' && Number.isFinite(Number(valor)) && Number(valor) >= 0 ? valor : ''
-  const precioMin = importe(parametros.get('min'))
-  const precioMax = importe(parametros.get('max'))
+  const precioMin = parametros.get('min') || ''
+  const precioMax = parametros.get('max') || ''
   const pedida = Number(parametros.get('pagina'))
   return {
     busqueda: parametros.get('q') || '', categoria: parametros.get('categoria') || '', precioMin, precioMax,
     pagina: Number.isSafeInteger(pedida) && pedida > 0 ? pedida : 1,
-    rangoInvalido: precioMin !== '' && precioMax !== '' && Number(precioMin) > Number(precioMax),
+    errorPrecio: validarRangoPrecios(precioMin, precioMax),
   }
 }

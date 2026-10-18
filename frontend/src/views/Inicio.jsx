@@ -13,13 +13,13 @@ import { cinta } from '../data/landing.js'
 
 export default function Inicio() {
   const [parametros, setParametros] = useSearchParams()
-  const { busqueda, categoria, precioMin, precioMax, pagina, rangoInvalido } = leerFiltrosCatalogo(parametros)
+  const { busqueda, categoria, precioMin, precioMax, pagina, errorPrecio } = leerFiltrosCatalogo(parametros)
   const [consulta, setConsulta] = useState({ clave: '', datos: { content: [], totalElements: 0, totalPages: 0 }, error: '' })
   const [categorias, setCategorias] = useState([])
   const [errorCategorias, setErrorCategorias] = useState('')
   const [reintento, setReintento] = useState(0)
   const clave = JSON.stringify([busqueda, categoria, precioMin, precioMax, pagina, reintento])
-  const cargando = !rangoInvalido && consulta.clave !== clave
+  const cargando = !errorPrecio && consulta.clave !== clave
   const error = consulta.clave === clave ? consulta.error : ''
   const reintentar = () => setReintento((actual) => actual + 1)
   const [proximo, setProximo] = useState(null)
@@ -54,7 +54,7 @@ export default function Inicio() {
 
   useEffect(() => {
     const control = new AbortController()
-    if (rangoInvalido) return () => control.abort()
+    if (errorPrecio) return () => control.abort()
     obtenerCatalogo(control.signal, { busqueda, categoria, precioMin, precioMax, pagina }).then((datos) => {
       if (control.signal.aborted) return
       const ultima = Math.max(1, datos.totalPages)
@@ -70,7 +70,7 @@ export default function Inicio() {
       if (!control.signal.aborted) setConsulta({ clave, datos: { content: [], totalElements: 0, totalPages: 0 }, error: fallo.message })
     })
     return () => control.abort()
-  }, [busqueda, categoria, precioMin, precioMax, pagina, rangoInvalido, clave, setParametros])
+  }, [busqueda, categoria, precioMin, precioMax, pagina, errorPrecio, clave, setParametros])
 
   return (
     <div className="inicio-catalogo">
