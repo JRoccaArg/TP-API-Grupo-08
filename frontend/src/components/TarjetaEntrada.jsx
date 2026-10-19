@@ -1,5 +1,5 @@
 import Boton from './Boton.jsx'
-import QRMarcador from './QRMarcador.jsx'
+import CodigoQR from './CodigoQR.jsx'
 import { diaMes, diaYFecha } from '../utils/fechas.js'
 
 // Entrada con QR lista para mostrar en la puerta. Solo muestra datos: no decide nada.
@@ -26,7 +26,7 @@ export default function TarjetaEntrada({ entrada, evento, comprador, numero, tot
           <p className="tarjeta-entrada__estado">{entrada.estado === 'UTILIZADO' ? 'ENTRADA UTILIZADA' : 'ENTRADA CANCELADA'}</p>
         )}
         <div className="tarjeta-entrada__qr">
-          <QRMarcador />
+          <CodigoQR codigoQr={entrada.codigoQr} />
         </div>
         <p className="tarjeta-entrada__nombre">{comprador}</p>
         <p className="tarjeta-entrada__codigo">

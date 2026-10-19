@@ -55,6 +55,7 @@ Recorrido del módulo conectado: Inicio → buscar/filtrar eventos → detalle �
 | `/eventos/:id` | `EventoDetalle` (evento + elegir entradas) |
 | `/carrito`, `/pago` | `Carrito`, `Pago` (solo USER) |
 | `/mis-entradas` | `MisEntradas` (solo USER) |
+| `/verificar/:codigo` | `VerificarEntrada` (la abre el QR de una entrada; solo ADMIN) |
 | `/login`, `/registro` | `Login`, `Registro` |
 | `/admin`, `/admin/nuevo`, `/admin/:id` | `GestionarEventos`, `NuevoEvento`, `EditarEvento` (solo ADMIN) |
 | `*` | `Aviso` ("Esta página no existe") |
@@ -94,11 +95,28 @@ Los componentes separan consulta, presentación, filtros y selección. Las consu
 - Los logos de varios colores (AFA/LPF) quedan en una sola tinta: lo que era cian, dorado o azul se dibuja en blanco y lo claro queda transparente. En Speed Unlimited el rayo rojo se dibuja en blanco atenuado (`fill-opacity` dentro del SVG) para que el texto blanco no se pierda encima.
 - Para agregar uno: poner el SVG en `assets/sponsors/`, sumarlo en `data/sponsors.js` y darle su altura en `inicio.css` (`.sponsors__logo--su-id`), porque cada logo tiene otra proporción.
 
+## Verificación de entradas (QR)
+
+Cada entrada de "Mis entradas" y de "Compra confirmada" tiene un QR real (`components/CodigoQR.jsx`, con la librería `qrcode.react`). El QR guarda un link a `/verificar/<codigoQr>`. El código es el UUID al azar que genera el back al comprar, uno por entrada.
+
+- El organizador escanea el QR con la cámara del celular y se abre `views/VerificarEntrada.jsx`. Solo el rol ADMIN puede verificar: un visitante ve "Ingresá como organizador" y, después del login, vuelve a la misma verificación; un usuario común ve "Solo el organizador puede verificar entradas".
+- Al abrir el link se consulta la entrada **sin gastarla** (`GET /tickets/qr/{codigo}`). Si es válida: ✅ "Entrada válida" con a quién pertenece, el evento, la fecha, el lugar y el tipo. El ingreso se registra con el botón "Registrar ingreso" (`POST /tickets/qr/{codigo}/utilizar`).
+- Si el código no existe: ❌ "Entrada no válida". Si ya se usó: ❌ "Entrada ya utilizada", con el día y la hora en que se usó. Si está cancelada: ❌ "Entrada cancelada".
+- Se registra con un botón y no al abrir el link porque abrir una página no debería cambiar datos (igual que un GET en el back): así una vista previa o un escaneo de prueba no queman la entrada. Además, en desarrollo React ejecuta los efectos dos veces (StrictMode): si el efecto gastara la entrada, el primer escaneo diría "ya utilizada".
+- El estado de cada pantalla sale de una tabla (`RESULTADOS` en `utils/verificacion.js`), igual que `ACCIONES` en `FilaEntrada`.
+
+**Escanear con el celular (demo).** El QR tiene que apuntar a una dirección que el celular pueda abrir. Con la PC y el celular en la misma red Wi-Fi:
+
+1. Copiá `.env.example` a `.env.local` y poné en `VITE_URL_PUBLICA` la IP de la PC (por ejemplo `http://192.168.0.15:5173`; se ve con `ipconfig`).
+2. Levantá el front con `npm run dev -- --host` para que Vite acepte conexiones de la red. Si el celular no abre la página, permití Node.js en el firewall de Windows.
+3. En el celular, ingresá con la cuenta ADMIN la primera vez (la sesión queda guardada) y escaneá los QR con la cámara.
+
+Sin configurar nada, el QR apunta a `http://localhost:5173`: sirve para probar desde la misma PC abriendo el link.
+
 ## Qué es de mentira
 
 - Login/registro, contraseñas y roles.
 - Los arrays de eventos y ofertas de `src/data/` se conservan para las maquetas de administración y carrito. El catálogo y el detalle consultan la API. "Mis entradas" muestra siempre 3 entradas de ejemplo.
-- El QR es un dibujo, no un código real.
 - Los botones de admin (guardar, crear, eliminar, subir flyer) no persisten nada.
 - El reloj de reserva (15 min) es solo visual y arranca al agregar al carrito.
 - El catálogo y el detalle tienen ajustes para escritorio y celular; otros módulos conservan sus estilos anteriores.
@@ -130,5 +148,9 @@ Para poder explicarlas si preguntan:
 - **`animation-play-state: paused`** y **`filter: drop-shadow()`**: la cinta de auspiciantes se pausa al pasar el mouse y el logo recibe un brillo dorado.
 - **Google Fonts** por `<link>` en `index.html` (Inter Tight, Barlow Condensed, Montserrat).
 - **Vite**: `npm run dev` / `build` como herramienta de desarrollo.
+- **`qrcode.react`** (librería): `<QRCodeSVG value="..." />` dibuja como SVG el QR de un texto. Se usa solo en `CodigoQR.jsx`.
+- **Variables de entorno de Vite** (`import.meta.env.VITE_URL_PUBLICA`): las que empiezan con `VITE_` llegan al navegador. Se configuran en `.env.local` (ver `.env.example`). Ya se usaba `VITE_API_URL` en `apiEventos.js`.
+- **`state` en un link** (`<Link state>` y `useLocation().state`): el aviso de la verificación le dice al login a dónde volver.
+- **Lista de definiciones `<dl>` / `<dt>` / `<dd>`** (HTML): pares "etiqueta: valor" en el resultado de la verificación.
 
-Única dependencia agregada a lo que trae la plantilla de Vite: `react-router-dom`.
+Dependencias agregadas a lo que trae la plantilla de Vite: `react-router-dom` y `qrcode.react` (QR de las entradas).

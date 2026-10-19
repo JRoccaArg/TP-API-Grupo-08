@@ -30,6 +30,10 @@ export const diaMes = (iso) => new Intl.DateTimeFormat('es-AR', {
 }).format(fechaApi(iso)).replace('/', '.')
 export const fechaCorta = (iso) => `${partes(iso).weekday.slice(0, 3).toUpperCase()} ${diaMes(iso)}`
 export const horario = (inicio, fin) => `${hora(inicio)} a ${hora(fin)} h`
+// Día, mes y hora de un momento puntual (por ejemplo, cuándo se usó una entrada): "19/10, 21:03".
+export const fechaYHora = (iso) => new Intl.DateTimeFormat('es-AR', {
+  timeZone: ZONA_CATALOGO, day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+}).format(fechaApi(iso))
 
 // Las solicitudes de edición siguen usando hora local de Buenos Aires, sin offset.
 export const paraInput = (iso) => iso.slice(0, 16)

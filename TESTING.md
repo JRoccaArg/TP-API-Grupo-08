@@ -52,6 +52,17 @@ Las pruebas usan el runner de Node, Fetch simulado y renderizado de componentes 
 No requieren un backend activo. No sustituyen la revisión visual responsive ni la navegación
 integral contra la API.
 
+## Verificación de entradas (QR)
+
+- Back: `TicketVerificacionIntegrationTests` (H2 en memoria, no toca la base real). Cubre consultar un ticket
+  válido con su comprador y evento, que consultar no lo gasta, que se usa una sola vez (409 la segunda),
+  el 404 de un código inexistente y que solo el ADMIN puede verificar. Solo esa clase:
+  `./mvnw test -Dtest=TicketVerificacionIntegrationTests`.
+- Front: `tests/verificacion.test.mjs` (dentro de `npm test`). Cubre el link que guarda el QR, el mensaje para
+  cada estado, los pedidos al back y que las tarjetas muestran el QR real.
+- Manual: comprar una entrada, abrir su QR (o el link `/verificar/<código>`) con una cuenta ADMIN, registrar el
+  ingreso y volver a abrirlo para ver "Entrada ya utilizada".
+
 ## Qué se sube
 
 Se versionan fuentes de tests, configuración necesaria y esta guía. No se versionan credenciales,

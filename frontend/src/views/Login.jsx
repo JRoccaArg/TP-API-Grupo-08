@@ -1,6 +1,6 @@
 import { destinoTrasIngresar } from '../utils/seleccionPendiente.js'
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import Boton from '../components/Boton.jsx'
 import CampoClave from '../components/CampoClave.jsx'
 import CampoLinea from '../components/CampoLinea.jsx'
@@ -11,6 +11,7 @@ import { iniciarSesion } from '../utils/apiAuth.js'
 // Pantalla "/login": valida las credenciales contra el backend y, si son correctas, App guarda la sesión.
 export default function Login({ onIngresar }) {
   const navigate = useNavigate()
+  const { state } = useLocation() // "volverA": la pantalla de verificación que mandó a ingresar (solo la usa el ADMIN)
   const [datos, setDatos] = useState({ email: '', password: '' })
   const [error, setError] = useState('')
   const [enviando, setEnviando] = useState(false)
@@ -23,7 +24,7 @@ export default function Login({ onIngresar }) {
     iniciarSesion(datos.email, datos.password)
       .then((sesion) => {
         onIngresar(sesion)
-        navigate(destinoTrasIngresar(sesion), { replace: true })
+        navigate(sesion.rol === 'ADMIN' && state?.volverA ? state.volverA : destinoTrasIngresar(sesion), { replace: true })
       })
       .catch((fallo) => {
         setError(fallo.message)

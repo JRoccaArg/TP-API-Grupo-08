@@ -15,7 +15,7 @@ Zenoir es una API para publicar eventos, administrar locaciones, tipos de entrad
 - Los endpoints de autenticacion y las consultas del catalogo son publicos.
 - La administracion de eventos, categorias, locaciones, imagenes y tipos de entrada requiere rol `ADMIN`.
 - Los carritos requieren rol `USER` y solamente pueden ser utilizados por su propietario.
-- Las compras y tickets propios pueden ser consultados por el usuario; los QR se consultan y utilizan con rol `ADMIN`.
+- Las compras y tickets propios pueden ser consultados por el usuario; los QR se consultan y utilizan con rol `ADMIN`. El QR de cada entrada lleva a `/verificar/<codigoQr>` en el front: el organizador ve a quien pertenece, el evento y la fecha, y registra el ingreso con un boton (ver [[decisiones]]).
 - Un evento `ACTIVO` es un evento publicado y a la venta (para prepararlo sin publicar se usa `BORRADOR`, que no aparece en el catalogo). Al llegar su fecha de fin pasa solo a `FINALIZADO`: lo hace un proceso programado (`EventoFinalizacionScheduler`, cada `eventos.finalizacion-ms`, por defecto 1 hora) y, ademas, la compra se frena sola desde esa fecha (`409`, "El evento ya finalizo..."). No se pueden cargar entradas a un evento `FINALIZADO` o `CANCELADO` (`409`).
 - Las imagenes de eventos se reciben como archivos multipart y se guardan en la base.
 - Los archivos admitidos deben ser imagenes.

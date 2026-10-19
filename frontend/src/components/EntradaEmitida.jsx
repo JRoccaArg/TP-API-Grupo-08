@@ -1,4 +1,4 @@
-import QRMarcador from './QRMarcador.jsx'
+import CodigoQR from './CodigoQR.jsx'
 import { diaYFecha, horario } from '../utils/fechas.js'
 
 // Entrada de la pantalla "Compra confirmada": datos del evento arriba y QR abajo. Solo muestra datos.
@@ -20,7 +20,7 @@ export default function EntradaEmitida({ entrada, evento }) {
       </div>
       <div className="emitida__corte" aria-hidden="true" />
       <div className="emitida__qr">
-        <QRMarcador lado={150} />
+        <CodigoQR codigoQr={entrada.codigoQr} lado={150} />
         <p>{entrada.codigoQr.slice(0, 8).toUpperCase()}</p>
         <span className="emitida__estado">EMITIDA</span>
       </div>

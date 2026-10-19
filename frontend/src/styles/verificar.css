@@ -1,0 +1,31 @@
+/* Verificación de entradas: lo que ve el organizador al escanear un QR. El sello marca válida (dorado) o no válida (rojizo). */
+.verificacion { max-width: 720px; margin: 0 auto; text-align: center; }
+
+.verificacion__sello {
+  display: grid;
+  place-items: center;
+  width: 112px;
+  height: 112px;
+  margin: 0 auto 32px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  font: 600 60px / 1 var(--fuente-ui);
+}
+
+.verificacion--valida .verificacion__sello { color: var(--oro); background: rgba(216, 188, 120, 0.1); box-shadow: 0 0 70px rgba(216, 188, 120, 0.3); }
+.verificacion--invalida .verificacion__sello { color: var(--peligro); background: rgba(201, 132, 126, 0.1); box-shadow: 0 0 70px rgba(201, 132, 126, 0.25); }
+
+.verificacion__titulo { font: 700 clamp(48px, 9vw, 96px) / 0.95 var(--fuente-titulo); letter-spacing: 0.01em; text-transform: uppercase; }
+.verificacion__mensaje { margin-top: 18px; font: 300 clamp(17px, 2.4vw, 22px) / 1.4 var(--fuente-ui); color: rgba(255, 255, 255, 0.8); }
+
+.verificacion__datos { margin: 44px 0 0; border-top: 1px solid var(--linea); text-align: left; }
+.verificacion__datos div { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 16px; align-items: center; padding: 18px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+.verificacion__datos dt { font: 600 11px var(--fuente-marca); letter-spacing: 0.24em; text-transform: uppercase; color: var(--gris); }
+.verificacion__datos dd { margin: 0; font: 500 clamp(18px, 2.4vw, 24px) / 1.25 var(--fuente-ui); }
+
+.verificacion__acciones { display: flex; flex-direction: column; align-items: center; gap: 18px; margin-top: 40px; }
+.verificacion__error { font: 400 14px / 1.45 var(--fuente-ui); color: var(--peligro); }
+
+@media (max-width: 480px) {
+  .verificacion__datos div { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+}
