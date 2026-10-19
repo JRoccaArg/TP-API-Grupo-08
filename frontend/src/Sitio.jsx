@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom'
 import Navbar from './components/Navbar.jsx'
 import RutasSitio from './RutasSitio.jsx'
 import { agregarVarios, cambiarCantidad, iniciarPago, obtenerCarrito, quitarItem, vaciarCarrito } from './utils/apiCarrito.js'
+import { pagarCarrito } from './utils/apiCompras.js'
 import { ErrorApi, obtenerEventosPorId } from './utils/apiEventos.js'
 import { carritoVacio, idsDeEventos, vencimientoMs } from './utils/carrito.js'
 
@@ -71,7 +72,7 @@ export default function Sitio({ usuario, onIngresar, onSalir }) {
     return nuevo
   })
   // Un 404 puede significar que el tiempo se venció: se le pregunta al back cuál es el carrito que quedó.
-  const aplicarControlando404 = (pedido) => aplicar(pedido).catch((fallo) => {
+  const controlar404 = (pedido) => pedido.catch((fallo) => {
     if (fallo.estado !== 404) throw fallo
     return obtenerCarrito(token).then((actual) => {
       setCarrito(actual)
@@ -96,9 +97,15 @@ export default function Sitio({ usuario, onIngresar, onSalir }) {
   const acciones = {
     agregar,
     cambiar: (itemId, cantidad) =>
-      aplicarControlando404(cantidad > 0 ? cambiarCantidad(token, itemId, cantidad) : quitarItem(token, itemId)),
-    vaciar: () => aplicarControlando404(vaciarCarrito(token)),
-    irAPagar: () => aplicarControlando404(iniciarPago(token)),
+      controlar404(aplicar(cantidad > 0 ? cambiarCantidad(token, itemId, cantidad) : quitarItem(token, itemId))),
+    vaciar: () => controlar404(aplicar(vaciarCarrito(token))),
+    irAPagar: () => controlar404(aplicar(iniciarPago(token))),
+    // Pagar compra el carrito: queda una compra confirmada y el carrito vuelve a empezar vacío.
+    pagar: () => controlar404(pagarCarrito(token).then((compra) => {
+      setCarrito(carritoVacio)
+      setVencido(false)
+      return compra
+    })),
     reintentar: () => {
       setErrorCarga('')
       setReintento((actual) => actual + 1)

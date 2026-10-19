@@ -15,11 +15,16 @@ export default function TarjetaEntrada({ entrada, evento, comprador, numero, tot
         </p>
         <p className={`tarjeta-entrada__tipo ${esVip ? 'oro-relleno brillo' : ''}`}>INVITACIÓN {tipo}</p>
         <h2 className="tarjeta-entrada__titulo">
-          Zenoir: {evento.titulo} {diaMes(evento.fechaHoraInicio)}
+          Zenoir: {evento ? `${evento.titulo} ${diaMes(evento.fechaHoraInicio)}` : entrada.eventoTitulo}
         </h2>
-        <p className="tarjeta-entrada__fecha">
-          {diaYFecha(evento.fechaHoraInicio).toUpperCase()} · {evento.locacionNombre.toUpperCase()}
-        </p>
+        {evento && (
+          <p className="tarjeta-entrada__fecha">
+            {diaYFecha(evento.fechaHoraInicio).toUpperCase()} · {evento.locacionNombre.toUpperCase()}
+          </p>
+        )}
+        {entrada.estado !== 'EMITIDO' && (
+          <p className="tarjeta-entrada__estado">{entrada.estado === 'UTILIZADO' ? 'ENTRADA UTILIZADA' : 'ENTRADA CANCELADA'}</p>
+        )}
         <div className="tarjeta-entrada__qr">
           <QRMarcador />
         </div>

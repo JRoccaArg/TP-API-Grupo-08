@@ -7,14 +7,16 @@ export default function EntradaEmitida({ entrada, evento }) {
     <li className="emitida">
       <div className="emitida__datos">
         <div className="emitida__cabecera">
-          <h2>{evento.titulo}</h2>
+          <h2>{evento ? evento.titulo : entrada.eventoTitulo}</h2>
           <span className="emitida__tipo">{entrada.tipo.toUpperCase()}</span>
         </div>
-        <p>
-          {diaYFecha(evento.fechaHoraInicio)} · {horario(evento.fechaHoraInicio, evento.fechaHoraFin)}
-          <br />
-          {evento.locacionNombre}
-        </p>
+        {evento && (
+          <p>
+            {diaYFecha(evento.fechaHoraInicio)} · {horario(evento.fechaHoraInicio, evento.fechaHoraFin)}
+            <br />
+            {evento.locacionNombre}
+          </p>
+        )}
       </div>
       <div className="emitida__corte" aria-hidden="true" />
       <div className="emitida__qr">

@@ -73,3 +73,5 @@
 @media (prefers-reduced-motion: reduce) {
   .emitida { transition: none; }
 }
+
+.tarjeta-entrada__estado { margin-top: 8px; font: 700 12px var(--fuente-marca); letter-spacing: 0.2em; color: var(--peligro); }
