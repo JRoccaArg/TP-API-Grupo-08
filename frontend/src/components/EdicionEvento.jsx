@@ -7,11 +7,14 @@ import PanelEntradas from './PanelEntradas.jsx'
 import TituloAdmin from './TituloAdmin.jsx'
 import { actualizarEvento, eliminarEvento } from '../utils/apiAdmin.js'
 import { eventoAFormulario, validarEvento } from '../utils/formEvento.js'
+import { guardarEvento } from '../utils/guardarEvento.js'
 
 // Edición de un evento ya cargado: sus datos, sus fotos y sus entradas. Guarda y elimina con lo que responde el back.
+// "opciones" (lugares y categorías) suma lo que se crea al guardar, para no intentar crearlo de nuevo en el próximo guardado.
 export default function EdicionEvento({ evento: inicial, locaciones, categorias, token }) {
   const navigate = useNavigate()
   const [evento, setEvento] = useState(inicial)
+  const [opciones, setOpciones] = useState({ locaciones, categorias })
   const [datos, setDatos] = useState(eventoAFormulario(inicial))
   const [aviso, setAviso] = useState({ tipo: '', texto: '' })
   const [ocupado, setOcupado] = useState(false)
@@ -23,16 +26,17 @@ export default function EdicionEvento({ evento: inicial, locaciones, categorias,
   }
 
   const guardar = () => {
-    const problema = validarEvento(datos)
+    const problema = validarEvento(datos, opciones)
     if (problema) {
       setAviso({ tipo: 'error', texto: problema })
       return
     }
     setOcupado(true)
     setAviso({ tipo: '', texto: '' })
-    actualizarEvento(token, evento.id, datos)
-      .then((actualizado) => {
+    guardarEvento(token, datos, opciones, (conIds) => actualizarEvento(token, evento.id, conIds))
+      .then(({ evento: actualizado, opciones: nuevas }) => {
         setEvento({ ...evento, ...actualizado })
+        setOpciones(nuevas)
         setAviso({ tipo: 'ok', texto: 'Cambios guardados.' })
         setOcupado(false)
       })
@@ -67,7 +71,7 @@ export default function EdicionEvento({ evento: inicial, locaciones, categorias,
       />
       <div className="admin__dos-columnas">
         <div className="admin__columna">
-          <FormularioEvento datos={datos} onCambiar={cambiar} locaciones={locaciones} categorias={categorias} />
+          <FormularioEvento datos={datos} onCambiar={cambiar} locaciones={opciones.locaciones} categorias={opciones.categorias} />
           <ImagenesEvento eventoId={evento.id} titulo={evento.titulo} token={token} inicial={evento.imagenes} />
         </div>
         <PanelEntradas evento={evento} token={token} />

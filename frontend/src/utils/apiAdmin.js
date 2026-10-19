@@ -4,12 +4,13 @@ import { pedir } from './pedir.js'
 // --- lecturas para armar las pantallas de administración ---
 export const obtenerLocaciones = () => consultarPaginas('/locaciones')
 
-// Lo que necesitan los selects del formulario de evento: los lugares y las categorías activas.
+// Lo que necesita el formulario de evento: los lugares y todas las categorías. Se sugieren solo las activas,
+// pero hacen falta todas para reconocer un nombre que ya existe (y no intentar crearlo de nuevo).
 export const cargarOpciones = () =>
   obtenerLocaciones().then((locaciones) =>
     obtenerCategorias().then((categorias) => ({
       locaciones: locaciones.map((locacion) => ({ ...locacion, id: String(locacion.id) })),
-      categorias: categorias.filter((categoria) => categoria.activo !== false),
+      categorias,
     })))
 
 export const cargarEdicion = (id) =>

@@ -2,6 +2,7 @@
 // o sin controlar (valorInicial), según lo que necesite la pantalla.
 // "error" es opcional: con un texto (o '' para reservar el lugar) muestra el aviso debajo del campo.
 // "accion" es opcional: un botón que se dibuja adentro del campo, a la derecha (por ejemplo, el ojo de la contraseña).
+// "sugerencias" es opcional: una lista de textos que el navegador ofrece mientras se escribe (<datalist>).
 export default function CampoLinea({
   etiqueta,
   nombre,
@@ -18,7 +19,9 @@ export default function CampoLinea({
   inputMode,
   autoComplete,
   accion,
+  sugerencias,
 }) {
+  const idSugerencias = sugerencias ? `${nombre}-sugerencias` : undefined
   return (
     <label className={`campo ${error ? 'campo--error' : ''}`}>
       <span className="campo__etiqueta">
@@ -40,7 +43,13 @@ export default function CampoLinea({
           inputMode={inputMode}
           autoComplete={autoComplete}
           aria-invalid={error ? true : undefined}
+          list={idSugerencias}
         />
+        {sugerencias && (
+          <datalist id={idSugerencias}>
+            {sugerencias.map((texto) => <option key={texto} value={texto} />)}
+          </datalist>
+        )}
         {accion}
       </span>
       {error !== undefined && (

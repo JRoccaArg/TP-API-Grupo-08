@@ -7,6 +7,7 @@ import PanelEntradas from '../components/PanelEntradas.jsx'
 import TituloAdmin from '../components/TituloAdmin.jsx'
 import { cargarOpciones, crearEvento } from '../utils/apiAdmin.js'
 import { formularioVacio, validarEvento } from '../utils/formEvento.js'
+import { guardarEvento } from '../utils/guardarEvento.js'
 
 // Pantalla "/admin/nuevo": el mismo formulario que editar, pero vacío. Al crear, pasa a la edición para cargar fotos. Solo ADMIN.
 export default function NuevoEvento({ usuario }) {
@@ -36,14 +37,15 @@ export default function NuevoEvento({ usuario }) {
   }
 
   const guardar = () => {
-    const problema = validarEvento(datos)
+    const problema = validarEvento(datos, opciones)
     if (problema) {
       setAviso(problema)
       return
     }
     setOcupado(true)
-    crearEvento(usuario.token, datos)
-      .then((creado) => navigate(`/admin/${creado.id}`))
+    // Si el lugar o la categoría son nuevos, se crean primero (ver guardarEvento).
+    guardarEvento(usuario.token, datos, opciones, (conIds) => crearEvento(usuario.token, conIds))
+      .then(({ evento }) => navigate(`/admin/${evento.id}`))
       .catch((fallo) => {
         setAviso(fallo.message)
         setOcupado(false)

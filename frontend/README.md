@@ -58,6 +58,7 @@ Recorrido del módulo conectado: Inicio → buscar/filtrar eventos → detalle �
 | `/verificar/:codigo` | `VerificarEntrada` (la abre el QR de una entrada; solo ADMIN) |
 | `/login`, `/registro` | `Login`, `Registro` |
 | `/admin`, `/admin/nuevo`, `/admin/:id` | `GestionarEventos`, `NuevoEvento`, `EditarEvento` (solo ADMIN) |
+| `/admin/categorias` | `GestionarCategorias` (crear, renombrar, activar o desactivar y eliminar; solo ADMIN) |
 | `*` | `Aviso` ("Esta página no existe") |
 
 ## Estructura
@@ -152,5 +153,6 @@ Para poder explicarlas si preguntan:
 - **Variables de entorno de Vite** (`import.meta.env.VITE_URL_PUBLICA`): las que empiezan con `VITE_` llegan al navegador. Se configuran en `.env.local` (ver `.env.example`). Ya se usaba `VITE_API_URL` en `apiEventos.js`.
 - **`state` en un link** (`<Link state>` y `useLocation().state`): el aviso de la verificación le dice al login a dónde volver.
 - **Lista de definiciones `<dl>` / `<dt>` / `<dd>`** (HTML): pares "etiqueta: valor" en el resultado de la verificación.
+- **`<datalist>`** (HTML): sugerencias nativas para un `<input>` (`list="id"`). En el formulario del evento, "Lugar" y "Categoría" sugieren los que ya existen y, si se escribe uno nuevo, se crea al guardar (`utils/guardarEvento.js`).
 
 Dependencias agregadas a lo que trae la plantilla de Vite: `react-router-dom` y `qrcode.react` (QR de las entradas).

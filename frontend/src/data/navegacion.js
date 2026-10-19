@@ -15,8 +15,9 @@ export const enlaces = {
     {
       texto: 'Administrar',
       menu: [
-        { texto: 'Gestionar eventos', ruta: '/admin', excluye: ['/admin/locaciones', '/admin/tipos-entrada'] },
+        { texto: 'Gestionar eventos', ruta: '/admin', excluye: ['/admin/locaciones', '/admin/categorias', '/admin/tipos-entrada'] },
         { texto: 'Locaciones', ruta: '/admin/locaciones' },
+        { texto: 'Categorías', ruta: '/admin/categorias' },
         { texto: 'Tipos de entrada', ruta: '/admin/tipos-entrada' },
       ],
     },
