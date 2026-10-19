@@ -238,3 +238,5 @@
 
 .menu-nav__item:hover { color: var(--oro); background: rgba(216, 188, 120, 0.08); }
 .menu-nav__item--activo { color: var(--oro); }
+
+.mini-carrito__lista .mini-carrito__sin-foto { flex: none; width: 38px; height: 68px; border-radius: 6px; background: rgba(255, 255, 255, 0.06); }

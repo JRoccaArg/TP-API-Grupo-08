@@ -119,3 +119,12 @@ export function conParametros(search, cambios) {
   })
   return nuevos.toString()
 }
+
+// El evento con las entradas elegidas ya descontadas del stock: es lo que queda después de apartarlas en el carrito.
+export const descontarStock = (evento, seleccion) => ({
+  ...evento,
+  ofertas: evento.ofertas.map((oferta) => ({
+    ...oferta,
+    cantidadDisponible: oferta.cantidadDisponible - (seleccion.find((item) => item.ofertaId === oferta.id)?.cantidad ?? 0),
+  })),
+})

@@ -1,21 +1,21 @@
 import { useEffect, useState } from 'react'
-import { useLocation, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import Aviso from '../components/Aviso.jsx'
 import Boton from '../components/Boton.jsx'
 import ContenidoEvento from '../components/ContenidoEvento.jsx'
 import { obtenerEvento, verificarSeleccion } from '../utils/apiEventos.js'
-import { ajustarSeleccion } from '../utils/eventos.js'
+import { ajustarSeleccion, descontarStock } from '../utils/eventos.js'
 import '../styles/detalle-catalogo.css'
 
-// onAgregar pertenece al carrito visual de App: no se usa con IDs reales.
-// El compañero podrá conectar onConfirmarSeleccion cuando el carrito use la API.
-export default function EventoDetalle({ onConfirmarSeleccion }) {
+// onConfirmarSeleccion agrega la selección al carrito del back (lo define Sitio) y devuelve una promesa.
+export default function EventoDetalle({ usuario, onConfirmarSeleccion }) {
   const { id } = useParams()
-  return <DetalleEvento key={id} id={id} onConfirmarSeleccion={onConfirmarSeleccion} />
+  return <DetalleEvento key={id} id={id} usuario={usuario} onConfirmarSeleccion={onConfirmarSeleccion} />
 }
 
-function DetalleEvento({ id, onConfirmarSeleccion }) {
+function DetalleEvento({ id, usuario, onConfirmarSeleccion }) {
   const location = useLocation()
+  const navigate = useNavigate()
   const [evento, setEvento] = useState(null)
   const [error, setError] = useState(null)
   const [cargando, setCargando] = useState(true)
@@ -70,11 +70,21 @@ function DetalleEvento({ id, onConfirmarSeleccion }) {
         return Promise.resolve(onConfirmarSeleccion({
           eventoId: actualizado.id,
           items: nueva.map((item) => ({ eventoTipoEntradaId: item.ofertaId, cantidad: item.cantidad })),
-        })).then(() => { if (activo) setSeleccion([]) })
+        })).then(() => {
+          if (!activo) return
+          // Las entradas quedaron apartadas: se descuentan del stock que se ve, sin volver a pedir el evento.
+          setSeleccion([])
+          setEvento(descontarStock(actualizado, nueva))
+          setAviso('Agregamos las entradas a tu carrito. Las reservamos por 15 minutos.')
+        })
       })
       .then(terminar)
       .catch((fallo) => {
-        if (activo) setAviso(fallo.message || 'No pudimos continuar. Intentá nuevamente.')
+        if (activo) {
+          setAviso(fallo.message || 'No pudimos continuar. Intentá nuevamente.')
+          // Si alguna entrada ya entró al carrito, la selección se limpia para no agregarla dos veces.
+          if (fallo.agregados > 0) { setSeleccion([]); setCargando(true); setIntento((actual) => actual + 1) }
+        }
         terminar()
       })
     return () => { activo = false }
@@ -108,6 +118,14 @@ function DetalleEvento({ id, onConfirmarSeleccion }) {
   }
   const confirmar = () => {
     if (typeof onConfirmarSeleccion !== 'function' || !vigente.length || enviando) return
+    if (!usuario) {
+      navigate('/login')
+      return
+    }
+    if (usuario.rol !== 'USER') {
+      setAviso('Solo los usuarios pueden comprar entradas: el administrador no tiene carrito.')
+      return
+    }
     setEnviando(true)
     setAviso('')
     setConfirmacion({ evento, seleccion: vigente })

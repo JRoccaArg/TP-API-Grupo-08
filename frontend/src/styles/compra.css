@@ -88,3 +88,9 @@
 .comprador p { margin-top: 3px; font: 300 14px var(--fuente-ui); color: var(--gris); }
 .pago__metodo { margin-top: 28px; }
 .pago__volver { margin-top: 34px; }
+
+/* Carrito real: sin flyer todavía, y aviso del botón "Ir a pagar" */
+.linea__sin-foto { flex: none; width: 68px; height: 121px; border-radius: 8px; background: rgba(255, 255, 255, 0.06); }
+.ir-a-pagar { flex: 1; }
+.ir-a-pagar .boton { width: 100%; }
+.ir-a-pagar__aviso { margin-top: 10px; font: 400 13px / 1.4 var(--fuente-ui); color: var(--peligro); }

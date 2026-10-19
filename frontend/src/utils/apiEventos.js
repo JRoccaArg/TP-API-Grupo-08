@@ -133,3 +133,15 @@ export function verificarSeleccion(evento, seleccion) {
       }
     }))
 }
+
+// Un evento con sus imágenes, sin sus entradas: alcanza para mostrarlo en el carrito (flyer, fecha y lugar).
+export const obtenerEventoConImagenes = (id) => consultar(`/eventos/${id}`).then((evento) =>
+  obtenerImagenes(id).catch(() => []).then((imagenes) => ({ ...evento, imagenes })))
+
+// Los eventos de varios ids, de a uno: { id: evento }. Si uno no se puede pedir queda en null y se muestra sin flyer.
+export function obtenerEventosPorId(ids) {
+  if (!ids.length) return Promise.resolve({})
+  const [id, ...resto] = ids
+  return obtenerEventoConImagenes(id).catch(() => null).then((evento) =>
+    obtenerEventosPorId(resto).then((otros) => ({ [id]: evento, ...otros })))
+}

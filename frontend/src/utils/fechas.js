@@ -6,8 +6,10 @@ const UN_MINUTO = 60 * 1000
 
 // Compatibilidad con mocks y servidores anteriores que todavía envían LocalDateTime.
 // La API actual entrega offset explícito; nunca se usa la zona del navegador.
+// Las fechas del carrito traen hasta 7 decimales en los segundos: se recortan a 3 para que cualquier navegador las lea.
+const sinExceso = (iso) => (typeof iso === 'string' ? iso.replace(/(\.\d{3})\d+/, '$1') : iso)
 export const fechaApi = (iso) => new Date(typeof iso === 'string' &&
-  /^\d{4}-\d{2}-\d{2}T/.test(iso) && !/(?:Z|[+-]\d{2}:?\d{2})$/i.test(iso) ? `${iso}-03:00` : iso)
+  /^\d{4}-\d{2}-\d{2}T/.test(iso) && !/(?:Z|[+-]\d{2}:?\d{2})$/i.test(iso) ? `${sinExceso(iso)}-03:00` : sinExceso(iso))
 const partes = (iso) => Object.fromEntries(new Intl.DateTimeFormat('es-AR', {
   timeZone: ZONA_CATALOGO, weekday: 'long', day: 'numeric', month: 'long',
 }).formatToParts(fechaApi(iso)).map(({ type, value }) => [type, value]))
