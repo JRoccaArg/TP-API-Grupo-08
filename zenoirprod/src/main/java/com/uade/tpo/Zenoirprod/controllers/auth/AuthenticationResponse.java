@@ -14,4 +14,9 @@ import lombok.NoArgsConstructor;
 public class AuthenticationResponse {
     @JsonProperty("access_token")
     private String accessToken;
+    // Datos de la cuenta, para que el front sepa quien ingreso y con que rol (el token solo lleva el email).
+    private String role;
+    private String email;
+    private String nombre;
+    private String apellido;
 }
