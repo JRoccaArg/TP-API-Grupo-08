@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { borrarSeleccionPendiente } from './utils/seleccionPendiente.js'
+import { useCallback, useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import Navbar from './components/Navbar.jsx'
 import RutasSitio from './RutasSitio.jsx'
@@ -81,9 +82,11 @@ export default function Sitio({ usuario, onIngresar, onSalir }) {
     })
   })
   // El back agrega de a una entrada: si alguna falla, se avisa cuántas ya quedaron en el carrito.
-  const agregar = (pedido) => {
+  const agregar = useCallback((pedido) => {
     let agregados = 0
     return agregarVarios(token, pedido.items, (nuevo) => {
+      setCargadoPara(token)
+      setErrorCarga('')
       agregados += 1
       setCarrito(nuevo)
       setVencido(false)
@@ -93,7 +96,7 @@ export default function Sitio({ usuario, onIngresar, onSalir }) {
       error.agregados = agregados
       throw error
     })
-  }
+  }, [token])
   const acciones = {
     agregar,
     cambiar: (itemId, cantidad) =>
@@ -113,6 +116,7 @@ export default function Sitio({ usuario, onIngresar, onSalir }) {
   }
   // Al salir, el carrito de esa persona no puede quedar a la vista de la siguiente.
   const salir = () => {
+    borrarSeleccionPendiente()
     setCarrito(carritoVacio)
     setCargadoPara(null)
     setVencido(false)

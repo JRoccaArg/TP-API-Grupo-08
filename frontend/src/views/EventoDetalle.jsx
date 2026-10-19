@@ -1,3 +1,4 @@
+import { borrarSeleccionPendiente, guardarSeleccionPendiente, leerSeleccionPendiente } from '../utils/seleccionPendiente.js'
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import Aviso from '../components/Aviso.jsx'
@@ -8,24 +9,29 @@ import { ajustarSeleccion, descontarStock } from '../utils/eventos.js'
 import '../styles/detalle-catalogo.css'
 
 // onConfirmarSeleccion agrega la selección al carrito del back (lo define Sitio) y devuelve una promesa.
-export default function EventoDetalle({ usuario, onConfirmarSeleccion }) {
+export default function EventoDetalle({ usuario, onConfirmarSeleccion, cargaCarrito }) {
   const { id } = useParams()
-  return <DetalleEvento key={id} id={id} usuario={usuario} onConfirmarSeleccion={onConfirmarSeleccion} />
+  return <DetalleEvento key={id} id={id} cargaCarrito={cargaCarrito} usuario={usuario} onConfirmarSeleccion={onConfirmarSeleccion} />
 }
 
-function DetalleEvento({ id, usuario, onConfirmarSeleccion }) {
+function DetalleEvento({ id, usuario, onConfirmarSeleccion, cargaCarrito }) {
   const location = useLocation()
   const navigate = useNavigate()
   const [evento, setEvento] = useState(null)
   const [error, setError] = useState(null)
   const [cargando, setCargando] = useState(true)
   const [intento, setIntento] = useState(0)
-  const [seleccion, setSeleccion] = useState([])
+  const [pendiente] = useState(() => {
+    const guardada = leerSeleccionPendiente()
+    return String(guardada?.evento.id) === id ? guardada : null
+  })
+  const [seleccion, setSeleccion] = useState(() => pendiente?.seleccion || [])
   const [ahora, setAhora] = useState(Date.now)
   const [enviando, setEnviando] = useState(false)
   const [confirmacion, setConfirmacion] = useState(null)
   const [aviso, setAviso] = useState('')
-  const volverA = /^\/(?:\?|#|$)/.test(location.state?.volverA || '') ? location.state.volverA : '/#fechas'
+  const origen = location.state?.volverA || pendiente?.volverA
+  const volverA = /^\/(?:\?|#|$)/.test(origen || '') ? origen : '/#fechas'
   const idValido = /^\d+$/.test(id) && Number(id) >= 1
 
   useEffect(() => {
@@ -49,6 +55,19 @@ function DetalleEvento({ id, usuario, onConfirmarSeleccion }) {
     const reloj = setInterval(() => setAhora(Date.now()), 1000)
     return () => clearInterval(reloj)
   }, [])
+
+  // La carga inicial del carrito debe terminar antes de agregar entradas.
+  useEffect(() => {
+    if (!pendiente || !evento || usuario?.rol !== 'USER' || cargaCarrito?.cargando) return
+    let activo = true
+    queueMicrotask(() => {
+      if (!activo || !leerSeleccionPendiente()) return
+      borrarSeleccionPendiente()
+      setEnviando(true)
+      setConfirmacion({ evento: pendiente.evento, seleccion: pendiente.seleccion, retomada: true })
+    })
+    return () => { activo = false }
+  }, [pendiente, evento, usuario, cargaCarrito?.cargando, cargaCarrito?.error])
 
   // Al confirmar se vuelven a consultar la disponibilidad y los precios; recién ahí se entrega la selección al carrito.
   useEffect(() => {
@@ -76,6 +95,7 @@ function DetalleEvento({ id, usuario, onConfirmarSeleccion }) {
           setSeleccion([])
           setEvento(descontarStock(actualizado, nueva))
           setAviso('Agregamos las entradas a tu carrito. Las reservamos por 15 minutos.')
+          if (confirmacion.retomada) navigate('/carrito', { replace: true })
         })
       })
       .then(terminar)
@@ -88,7 +108,7 @@ function DetalleEvento({ id, usuario, onConfirmarSeleccion }) {
         terminar()
       })
     return () => { activo = false }
-  }, [confirmacion, onConfirmarSeleccion])
+  }, [confirmacion, onConfirmarSeleccion, navigate])
 
   const reintentar = () => { setCargando(true); setError(null); setIntento(intento + 1) }
 
@@ -119,6 +139,7 @@ function DetalleEvento({ id, usuario, onConfirmarSeleccion }) {
   const confirmar = () => {
     if (typeof onConfirmarSeleccion !== 'function' || !vigente.length || enviando) return
     if (!usuario) {
+      guardarSeleccionPendiente(evento, vigente, volverA)
       navigate('/login')
       return
     }

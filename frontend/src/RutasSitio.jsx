@@ -15,7 +15,7 @@ export default function RutasSitio({ usuario, onIngresar, carrito, carga, vencid
   return (
     <Routes>
       <Route path="/" element={<Inicio />} />
-      <Route path="/eventos/:id" element={<EventoDetalle usuario={usuario} onConfirmarSeleccion={acciones.agregar} />} />
+      <Route path="/eventos/:id" element={<EventoDetalle cargaCarrito={carga} usuario={usuario} onConfirmarSeleccion={acciones.agregar} />} />
       <Route
         path="/carrito"
         element={

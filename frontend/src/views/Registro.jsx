@@ -1,3 +1,4 @@
+import { destinoTrasIngresar } from '../utils/seleccionPendiente.js'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Boton from '../components/Boton.jsx'
@@ -31,7 +32,7 @@ export default function Registro({ onIngresar }) {
     registrarse(datos)
       .then((sesion) => {
         onIngresar(sesion)
-        navigate('/')
+        navigate(destinoTrasIngresar(sesion), { replace: true })
       })
       .catch((fallo) => {
         setError(fallo.message)

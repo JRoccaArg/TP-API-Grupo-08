@@ -1,3 +1,4 @@
+import { destinoTrasIngresar } from '../utils/seleccionPendiente.js'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Boton from '../components/Boton.jsx'
@@ -22,7 +23,7 @@ export default function Login({ onIngresar }) {
     iniciarSesion(datos.email, datos.password)
       .then((sesion) => {
         onIngresar(sesion)
-        navigate(sesion.rol === 'ADMIN' ? '/admin' : '/')
+        navigate(destinoTrasIngresar(sesion), { replace: true })
       })
       .catch((fallo) => {
         setError(fallo.message)
