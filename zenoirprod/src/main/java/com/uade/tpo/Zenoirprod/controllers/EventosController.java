@@ -1,6 +1,7 @@
 package com.uade.tpo.Zenoirprod.controllers;
 
 import java.net.URI;
+import java.math.BigDecimal;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -40,9 +41,16 @@ public class EventosController {
     @GetMapping
     public ResponseEntity<Page<EventoResponse>> getEventos(
             @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer size
-    ) throws PaginacionInvalidaException {
-        Page<Evento> pagina = eventosService.getEventos(PageableFactory.crear(page, size));
+            @RequestParam(required = false) Integer size,
+            @RequestParam(required = false) String nombre,
+            @RequestParam(required = false) Integer categoriaId,
+            @RequestParam(required = false) BigDecimal precioMin,
+            @RequestParam(required = false) BigDecimal precioMax,
+            @RequestParam(defaultValue = "false") boolean catalogo,
+            @RequestParam(defaultValue = "false") boolean proximo
+    ) throws PaginacionInvalidaException, EventoInvalidoException {
+        Page<Evento> pagina = eventosService.getEventos(PageableFactory.crear(page, size),
+                nombre, categoriaId, precioMin, precioMax, catalogo, proximo);
         return ResponseEntity.ok(pagina.map(EventoResponse::fromEntity));
     }
 

@@ -1,7 +1,8 @@
 # Zenoir — Frontend
 
 Frontend de la ticketera de la fiesta **Zenoir** (Recoleta, Palacio Balcarce).
-Es una versión **visual y de navegación**: todavía **no está conectada al backend**. Todo lo que se ve sale de arrays en `src/data/`.
+El **catálogo y el detalle de eventos están conectados al backend**. Login, carrito, checkout, tickets y administración conservan sus maquetas anteriores.
+
 
 ## Cómo correrlo
 
@@ -15,6 +16,23 @@ npm run dev      # http://localhost:5173
 
 Otros comandos: `npm run build` (compila a `dist/`), `npm run lint` (oxlint), `npm run preview`.
 
+
+Ver [guía de catálogo y detalle](GUIA_CATALOGO.md) para el contrato de integración y las pruebas manuales.
+
+## Conexión con el backend
+
+Iniciá el backend siguiendo el README de la raíz del repositorio. El catálogo usa el proxy `/api` de Vite, cuyo destino predeterminado es `http://127.0.0.1:8080`.
+
+Para usar otro destino, copiá `.env.example` a `.env.local`, ajustá `ZENOIR_API_TARGET` y reiniciá Vite. `.env.local` queda fuera de Git. En un despliegue estático, configurá un proxy equivalente o `VITE_API_URL` con el CORS correspondiente.
+
+Pruebas del frontend, desde esta carpeta:
+
+```bash
+node --test tests/*.test.mjs
+```
+
+Las pruebas usan fixtures y respuestas simuladas; no requieren una base de datos ni modifican stock.
+
 ## Cómo navegar (login falso)
 
 No hay autenticación real. El formulario de `/login` (y el de `/registro`) crea un usuario en el estado de `App.jsx`:
@@ -27,7 +45,7 @@ No hay autenticación real. El formulario de `/login` (y el de `/registro`) crea
 
 Como la sesión vive solo en memoria (`useState`), **al recargar la página (F5) o escribir una URL a mano se pierde**. Navegá con los links.
 
-Recorrido sugerido: Inicio → Evento → elegir entradas → Carrito → Pago → Mis entradas. Como admin: Gestionar eventos → Editar / Nuevo evento.
+Recorrido del módulo conectado: Inicio → buscar/filtrar eventos → detalle → elegir entradas. La compra queda pendiente de conectar con el carrito real. Las rutas Carrito → Pago → Mis entradas siguen siendo demostrativas. Como admin: Gestionar eventos → Editar / Nuevo evento.
 
 ### Rutas
 
@@ -56,7 +74,7 @@ src/
     sponsors/     Logos de auspiciantes en SVG (blancos, para fondo negro)
 ```
 
-Ningún archivo JS pasa de ~80 líneas (el más largo tiene 62).
+Los componentes separan consulta, presentación, filtros y selección. Las consultas están en `utils/`, las pantallas en `views/` y la presentación en `components/`.
 
 ## Decisiones de diseño
 
@@ -79,18 +97,18 @@ Ningún archivo JS pasa de ~80 líneas (el más largo tiene 62).
 ## Qué es de mentira
 
 - Login/registro, contraseñas y roles.
-- Eventos, ofertas y entradas compradas (`src/data/`). "Mis entradas" muestra siempre 3 entradas de ejemplo.
+- Los arrays de eventos y ofertas de `src/data/` se conservan para las maquetas de administración y carrito. El catálogo y el detalle consultan la API. "Mis entradas" muestra siempre 3 entradas de ejemplo.
 - El QR es un dibujo, no un código real.
 - Los botones de admin (guardar, crear, eliminar, subir flyer) no persisten nada.
 - El reloj de reserva (15 min) es solo visual y arranca al agregar al carrito.
-- Responsive: hay un ajuste básico bajo 1100 px; el diseño está pensado para escritorio.
+- El catálogo y el detalle tienen ajustes para escritorio y celular; otros módulos conservan sus estilos anteriores.
 
 ## Cómo conectarlo después
 
-1. Crear funciones de fetch en `src/utils/` (por ejemplo `api.js`) y llamarlas desde las vistas con `useEffect`.
-2. Reemplazar cada import de `src/data/...` por el estado que se llena con la respuesta. Agregar estados de carga, vacío y error.
+1. El catálogo ya tiene funciones Fetch en `src/utils/apiEventos.js` y las usa desde las vistas con `useEffect`. Los otros módulos pueden conectar sus propias consultas.
+2. Los módulos restantes deben reemplazar sus imports de `src/data/...` por datos reales y contemplar carga, vacío y error.
 3. Reemplazar `ingresar` en `App.jsx` por el `POST` de login y decidir dónde guardar el JWT (el token solo trae el email; no hay `/me`).
-4. El backend hoy **no tiene CORS**: habilitarlo o usar el proxy de Vite.
+4. El backend hoy **no tiene CORS**: el catálogo usa el proxy `/api` de Vite. `ZENOIR_API_TARGET` permite elegir la API local; sin configuración usa 8080. Para producción hace falta un proxy equivalente o configurar CORS en el servidor.
 5. Carrito real: `/carritos/activo/...`, con `iniciar-pago` y los relojes de armado y de pago.
 
 ## Cosas nuevas (no vistas en clase)

@@ -1,23 +1,20 @@
 import FilaEntrada from './FilaEntrada.jsx'
-import { cantidadDe } from '../utils/carrito.js'
 
-export default function ListaEntradas({ ofertas, seleccion, onCambiar }) {
+export default function ListaEntradas({ evento, seleccion, onCambiar, ahora }) {
   return (
     <section className="entradas">
       <div className="entradas__cabecera">
         <h2>Elegí tus entradas</h2>
-        <span>Precio final, sin cargos</span>
+        <span>Precio final por entrada</span>
       </div>
       <ul className="entradas__lista">
-        {ofertas.map((oferta) => (
-          <FilaEntrada
-            key={oferta.id}
-            oferta={oferta}
-            cantidad={cantidadDe(seleccion, oferta.id)}
-            onCambiar={onCambiar}
-          />
+        {evento.ofertas.map((oferta) => (
+          <FilaEntrada key={oferta.id} oferta={oferta} evento={evento} ahora={ahora}
+            cantidad={seleccion.find((item) => item.ofertaId === oferta.id)?.cantidad || 0}
+            onCambiar={onCambiar} />
         ))}
       </ul>
+      {!evento.ofertas.length && <p className="catalogo-nota">Todavía no hay tipos de entrada publicados para este evento.</p>}
     </section>
   )
 }

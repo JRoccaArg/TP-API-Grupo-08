@@ -1,6 +1,7 @@
 package com.uade.tpo.Zenoirprod.service;
 
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -17,6 +18,10 @@ import com.uade.tpo.Zenoirprod.exceptions.TituloEventoEnUsoException;
 
 public interface EventosService {
         public Page<Evento> getEventos(PageRequest pageRequest);
+
+        public Page<Evento> getEventos(PageRequest pageRequest, String nombre, Integer categoriaId,
+                        BigDecimal precioMin, BigDecimal precioMax, boolean catalogo, boolean proximo)
+                        throws EventoInvalidoException;
 
         public void deleteEvento(Integer id) throws EventoInexistenteException, EventoEnUsoException;
 

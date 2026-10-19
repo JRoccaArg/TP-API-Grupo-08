@@ -1,13 +1,16 @@
+import { useLocation } from 'react-router-dom'
 import Boton from './Boton.jsx'
 import Grano from './Grano.jsx'
 import BarraProximaFecha from './BarraProximaFecha.jsx'
 import { imagenes } from '../data/imagenes.js'
 
-// Portada del inicio: foto del neón, titular, botón y la barra con la próxima fecha.
+// La portada conserva sus imágenes y funciona aunque todavía no haya una próxima fecha.
 export default function Hero({ proximo }) {
+  const { pathname, search } = useLocation()
+  const origen = { volverA: `${pathname}${search}#fechas` }
   return (
     <div className="hero-marco">
-      <section className="hero">
+      <section className={`hero ${proximo ? '' : 'hero--sin-proximo'}`}>
         <img className="hero__foto ken" src={imagenes.neon} alt="Cartel de neón de Zenoir" />
         <div className="hero__barrido" aria-hidden="true" />
         <div className="hero__sombra" aria-hidden="true" />
@@ -19,13 +22,19 @@ export default function Hero({ proximo }) {
             ELEGANTE
           </h1>
           <p className="hero__bajada aparece" style={{ animationDelay: '.25s' }}>
-            Ediciones con barra libre en Recoleta. Elegí tu fecha, reservá y entrá con tu QR.
+            Ediciones con barra libre en Recoleta. Elegí tu fecha y conocé las opciones para tu próxima noche.
           </p>
-          <Boton to={`/eventos/${proximo.id}`} clase="boton--grande aparece">
-            Comprá tus entradas
-          </Boton>
+          {proximo ? (
+            <Boton to={`/eventos/${proximo.id}`} state={origen} clase="boton--grande aparece">
+              Ver próxima fecha
+            </Boton>
+          ) : (
+            <a href="#fechas" className="boton boton--oro oro-relleno brillo boton--grande aparece">
+              Explorar las fechas
+            </a>
+          )}
         </div>
-        <BarraProximaFecha evento={proximo} />
+        {proximo && <BarraProximaFecha evento={proximo} origen={origen} />}
       </section>
     </div>
   )

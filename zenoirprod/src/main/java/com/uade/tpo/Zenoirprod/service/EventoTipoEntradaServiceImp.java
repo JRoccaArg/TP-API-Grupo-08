@@ -2,6 +2,7 @@ package com.uade.tpo.Zenoirprod.service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import com.uade.tpo.Zenoirprod.util.FechaCatalogo;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -200,7 +201,7 @@ public class EventoTipoEntradaServiceImp implements EventoTipoEntradaService {
         }
 
         EventoTipoEntrada entrada = getPorId(id);
-        LocalDateTime ahora = LocalDateTime.now();
+        LocalDateTime ahora = FechaCatalogo.ahora();
 
         boolean entradaActiva = entrada.getEstado() == EstadoEventoTipoEntrada.ACTIVO;
         boolean eventoActivo = "ACTIVO".equalsIgnoreCase(entrada.getEvento().getEstado());
@@ -220,7 +221,7 @@ public class EventoTipoEntradaServiceImp implements EventoTipoEntradaService {
 
         EventoTipoEntrada entrada = eventoTipoEntradaRepository.findByIdForUpdate(id)
                 .orElseThrow(EventoTipoEntradaInexistenteException::new);
-        LocalDateTime ahora = LocalDateTime.now();
+        LocalDateTime ahora = FechaCatalogo.ahora();
 
         boolean entradaActiva = entrada.getEstado() == EstadoEventoTipoEntrada.ACTIVO;
         boolean eventoActivo = "ACTIVO".equalsIgnoreCase(entrada.getEvento().getEstado());

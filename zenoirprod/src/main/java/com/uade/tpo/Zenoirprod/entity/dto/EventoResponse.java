@@ -1,6 +1,8 @@
 package com.uade.tpo.Zenoirprod.entity.dto;
 
 import java.time.LocalDateTime;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.uade.tpo.Zenoirprod.util.FechaCatalogo;
 
 import com.uade.tpo.Zenoirprod.entity.Category;
 import com.uade.tpo.Zenoirprod.entity.Evento;
@@ -29,7 +31,9 @@ public class EventoResponse {
     private Integer categoriaId;
     private String categoriaNombre;
 
+    @JsonSerialize(using = FechaCatalogo.class)
     private LocalDateTime fechaHoraInicio;
+    @JsonSerialize(using = FechaCatalogo.class)
     private LocalDateTime fechaHoraFin;
 
     public static EventoResponse fromEntity(Evento e) {

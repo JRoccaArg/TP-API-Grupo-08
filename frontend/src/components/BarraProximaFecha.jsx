@@ -1,11 +1,18 @@
+import { useEffect, useState } from 'react'
 import Boton from './Boton.jsx'
 import Icono from './Icono.jsx'
 import { cuentaRegresiva, fechaCorta, horario } from '../utils/fechas.js'
 import { dos } from '../utils/formatos.js'
 
 // Franja al pie del hero con la próxima fecha y cuánto falta.
-export default function BarraProximaFecha({ evento }) {
-  const { dias, horas, minutos } = cuentaRegresiva(evento.fechaHoraInicio)
+export default function BarraProximaFecha({ evento, origen }) {
+  const [ahora, setAhora] = useState(() => Date.now())
+
+  useEffect(() => {
+    const intervalo = setInterval(() => setAhora(Date.now()), 1000)
+    return () => clearInterval(intervalo)
+  }, [])
+  const { dias, horas, minutos } = cuentaRegresiva(evento.fechaHoraInicio, ahora)
 
   return (
     <div className="barra-fecha">
@@ -27,7 +34,7 @@ export default function BarraProximaFecha({ evento }) {
         </strong>
         <span className="barra-fecha__unidades">DÍAS · HORAS · MIN</span>
       </div>
-      <Boton to={`/eventos/${evento.id}`} clase="barra-fecha__boton">
+      <Boton to={`/eventos/${evento.id}`} state={origen} clase="barra-fecha__boton">
         Elegir entradas <Icono nombre="diagonal" tamano={18} />
       </Boton>
     </div>

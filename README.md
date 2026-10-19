@@ -18,10 +18,11 @@ Por defecto arranca con el perfil **`sqlsrv`**, que se conecta al **SQL Server l
 base `Zenoir_Prod` creada (ver más abajo). Cada valor se puede pisar con variables de entorno
 (`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`).
 
-### Alternativa sin instalar nada: H2 en memoria
+### Alternativa opcional: H2 en memoria
 
 Si querés levantarlo en una máquina sin SQL Server, está el perfil **`dev`** (base H2 en
-memoria). Los datos se pierden al apagar la aplicación.
+memoria). Los datos se pierden al apagar la aplicación. Este perfil no usa la base ni
+el seed de SQL Server: para verificar el catálogo compartido y sus imágenes, usá `sqlsrv`.
 
 ```bash
 cd zenoirprod
@@ -32,6 +33,11 @@ Para inspeccionar la base: `http://localhost:8080/h2-console`
 (JDBC URL `jdbc:h2:mem:zenoir`, usuario `sa`, contraseña vacía).
 
 ## Usar SQL Server en vez de H2
+
+Para replicar el catálogo completo con ofertas e imágenes, seguí la
+[guía del seed de SQL Server](zenoirprod/database/seed/README.md). La carga es manual
+y requiere una base vacía con las tablas generadas por el backend.
+
 
 El equipo usa esto para tener persistencia real (los datos no se borran al apagar la
 app). Cada integrante usa **su propio SQL Server local**, no uno compartido. Estos pasos
@@ -65,7 +71,7 @@ Mirá el nombre del servidor con el que te conectaste en SSMS (arriba a la izqui
 - **Instancia por defecto** — el nombre es solo la PC, ej. `DESKTOP-ABC123`. Escucha en
   el puerto `1433` de siempre: usá las variables simples del punto 4a.
 - **Instancia con nombre** — el nombre tiene una barra, ej. `DESKTOP-ABC123\SQLEXPRESS01`
-  (así es la tuya). No usa el puerto 1433 fijo: usá la variante del punto 4b.
+  Puede usar un puerto distinto de 1433: usá la variante del punto 4b.
 
 ### 4a. Levantar la app — instancia por defecto
 
