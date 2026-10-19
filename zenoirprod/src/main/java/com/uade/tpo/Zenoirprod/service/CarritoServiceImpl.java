@@ -23,6 +23,8 @@ import com.uade.tpo.Zenoirprod.entity.dto.ItemCarritoRequest;
 import com.uade.tpo.Zenoirprod.exceptions.CarritoActivoInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.CarritoVacioException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoNoDisponibleException;
+import com.uade.tpo.Zenoirprod.util.FechaCatalogo;
+import com.uade.tpo.Zenoirprod.exceptions.EventoFinalizadoException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaNoDisponibleException;
 import com.uade.tpo.Zenoirprod.exceptions.ItemCarritoInexistenteException;
@@ -69,7 +71,7 @@ public class CarritoServiceImpl implements CarritoService {
         // Se bloquea la fila del usuario para que dos pedidos simultaneos no creen dos carritos abiertos.
         User bloqueado = userRepository.findByIdForUpdate(usuario.getId())
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
-        LocalDateTime ahora = LocalDateTime.now();
+        LocalDateTime ahora = FechaCatalogo.ahora();
 
         // El carrito se lee ya bloqueado, para no pisar una compra o un vencimiento que lo este cerrando.
         Optional<Carrito> existente = carritoRepository.findEnCursoForUpdate(bloqueado.getId());
@@ -112,7 +114,7 @@ public class CarritoServiceImpl implements CarritoService {
 
         EventoTipoEntrada ete = bloquearOferta(request.getEventoTipoEntradaId())
                 .orElseThrow(EventoTipoEntradaInexistenteException::new);
-        LocalDateTime ahora = LocalDateTime.now();
+        LocalDateTime ahora = FechaCatalogo.ahora();
 
         // Solo la cantidad nueva necesita stock: lo que el usuario ya tenia en el carrito esta apartado.
         validarVendible(ete, request.getCantidad(), ahora);
@@ -156,7 +158,7 @@ public class CarritoServiceImpl implements CarritoService {
 
         Carrito carrito = carritoAbiertoBloqueado(usuarioId);
         ItemCarrito item = buscarItem(carrito, itemId);
-        LocalDateTime ahora = LocalDateTime.now();
+        LocalDateTime ahora = FechaCatalogo.ahora();
 
         int diferencia = cantidad - item.getCantidad();
         if (diferencia != 0) {
@@ -187,7 +189,7 @@ public class CarritoServiceImpl implements CarritoService {
         if (carrito.getItems().isEmpty()) {
             volverAActivo(carrito);
         }
-        carrito.setFechaActualizacion(LocalDateTime.now());
+        carrito.setFechaActualizacion(FechaCatalogo.ahora());
         return carritoRepository.save(carrito);
     }
 
@@ -199,7 +201,7 @@ public class CarritoServiceImpl implements CarritoService {
         devolverItems(carrito);
         carrito.getItems().clear();
         volverAActivo(carrito);
-        carrito.setFechaActualizacion(LocalDateTime.now());
+        carrito.setFechaActualizacion(FechaCatalogo.ahora());
         return carritoRepository.save(carrito);
     }
 
@@ -208,7 +210,7 @@ public class CarritoServiceImpl implements CarritoService {
     public Carrito abandonar(Integer usuarioId) throws CarritoActivoInexistenteException {
         Carrito carrito = carritoAbiertoBloqueado(usuarioId);
 
-        abandonarYLiberar(carrito, LocalDateTime.now());
+        abandonarYLiberar(carrito, FechaCatalogo.ahora());
         return carrito;
     }
 
@@ -228,7 +230,7 @@ public class CarritoServiceImpl implements CarritoService {
             throw new CarritoVacioException();
         }
 
-        LocalDateTime ahora = LocalDateTime.now();
+        LocalDateTime ahora = FechaCatalogo.ahora();
         // Las entradas ya estan apartadas: solo se avisa ahora si el admin pauso la oferta o cancelo el evento.
         for (ItemCarrito item : carrito.getItems()) {
             validarVenta(item.getEventoTipoEntrada(), ahora);
@@ -243,7 +245,7 @@ public class CarritoServiceImpl implements CarritoService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void abandonarSiVencido(Integer carritoId) {
-        LocalDateTime ahora = LocalDateTime.now();
+        LocalDateTime ahora = FechaCatalogo.ahora();
         // Se vuelve a mirar el estado ya con el carrito bloqueado: puede haber sido pagado o abandonado mientras tanto.
         carritoRepository.findByIdForUpdate(carritoId)
                 .filter(carrito -> EstadoCarrito.EN_CURSO.contains(carrito.getEstado()) && !carrito.estaVigente(ahora))
@@ -255,7 +257,7 @@ public class CarritoServiceImpl implements CarritoService {
     private Carrito carritoAbiertoBloqueado(Integer usuarioId) throws CarritoActivoInexistenteException {
         Carrito carrito = carritoRepository.findEnCursoForUpdate(usuarioId)
                 .orElseThrow(CarritoActivoInexistenteException::new);
-        if (!carrito.estaVigente(LocalDateTime.now())) {
+        if (!carrito.estaVigente(FechaCatalogo.ahora())) {
             throw new CarritoActivoInexistenteException();
         }
         return carrito;
@@ -277,6 +279,9 @@ public class CarritoServiceImpl implements CarritoService {
         if (!EVENTO_ACTIVO.equalsIgnoreCase(ete.getEvento().getEstado())) {
             throw new EventoNoDisponibleException();
         }
+        if (ete.getEvento().haFinalizado(FechaCatalogo.ahora())) {
+            throw new EventoFinalizadoException();
+        }
         if (ete.getEstado() == EstadoEventoTipoEntrada.AGOTADO) {
             throw sinStock(ete);
         }
@@ -295,6 +300,9 @@ public class CarritoServiceImpl implements CarritoService {
             throws EventoNoDisponibleException, EventoTipoEntradaNoDisponibleException, VentaNoHabilitadaException {
         if (!EVENTO_ACTIVO.equalsIgnoreCase(ete.getEvento().getEstado())) {
             throw new EventoNoDisponibleException();
+        }
+        if (ete.getEvento().haFinalizado(FechaCatalogo.ahora())) {
+            throw new EventoFinalizadoException();
         }
         if (ete.getEstado() != EstadoEventoTipoEntrada.ACTIVO && ete.getEstado() != EstadoEventoTipoEntrada.AGOTADO) {
             throw new EventoTipoEntradaNoDisponibleException();

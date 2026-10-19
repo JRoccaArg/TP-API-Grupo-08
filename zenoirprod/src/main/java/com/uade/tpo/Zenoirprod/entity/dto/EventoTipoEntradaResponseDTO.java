@@ -25,11 +25,13 @@ public class EventoTipoEntradaResponseDTO {
 
     private Integer tipoEntradaId;
     private String tipoEntradaNombre;
+    private String tipoEntradaDescripcion;
 
     private BigDecimal precio;
     private BigDecimal porcentajeDescuento;
     private BigDecimal precioFinal;
 
+    private Integer cantidadTotal;
     private Integer cantidadDisponible;
 
     @JsonSerialize(using = FechaCatalogo.class)

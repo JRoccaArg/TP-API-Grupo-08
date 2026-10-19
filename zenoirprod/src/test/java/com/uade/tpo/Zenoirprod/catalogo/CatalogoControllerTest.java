@@ -34,7 +34,7 @@ class CatalogoControllerTest {
     }
     @Test void enviaFiltrosYDevuelvePaginaConTotales() throws Exception {
         Evento e = new Evento(); e.setId(7); e.setTitulo("Jazz");
-        when(service.getEventos(PageRequest.of(1,6), "Jazz", 2, new BigDecimal("0"), new BigDecimal("9000"), true, false))
+        when(service.getEventos(PageRequest.of(1,6), "Jazz", 2, new BigDecimal("0"), new BigDecimal("9000"), true, false, false))
             .thenReturn(new PageImpl<>(List.of(e), PageRequest.of(1,6), 7));
         mvc.perform(get("/eventos").param("page","1").param("size","6").param("nombre","Jazz")
                 .param("categoriaId","2").param("precioMin","0").param("precioMax","9000").param("catalogo","true"))
@@ -65,13 +65,13 @@ class CatalogoControllerTest {
             .andExpect(jsonPath("$.imagenes").doesNotExist());
     }
     @Test void traduceValidacionDelServicioA400() throws Exception {
-        when(service.getEventos(any(), any(), any(), any(), any(), anyBoolean(), anyBoolean()))
+        when(service.getEventos(any(), any(), any(), any(), any(), anyBoolean(), anyBoolean(), anyBoolean()))
             .thenThrow(new EventoInvalidoException());
         mvc.perform(get("/eventos").param("precioMin","10").param("precioMax","1"))
             .andExpect(status().isBadRequest()).andExpect(jsonPath("$.path").value("/eventos"));
     }
     @Test void sinResultadosDevuelveListaVaciaYTotalCero() throws Exception {
-        when(service.getEventos(any(), any(), any(), any(), any(), anyBoolean(), anyBoolean()))
+        when(service.getEventos(any(), any(), any(), any(), any(), anyBoolean(), anyBoolean(), anyBoolean()))
             .thenReturn(new PageImpl<Evento>(List.of(), PageRequest.of(0,6), 0));
         mvc.perform(get("/eventos").param("page","0").param("size","6"))
             .andExpect(status().isOk()).andExpect(jsonPath("$.content").isEmpty())

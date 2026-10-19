@@ -47,10 +47,15 @@ public class EventosController {
             @RequestParam(required = false) BigDecimal precioMin,
             @RequestParam(required = false) BigDecimal precioMax,
             @RequestParam(defaultValue = "false") boolean catalogo,
-            @RequestParam(defaultValue = "false") boolean proximo
+            @RequestParam(defaultValue = "false") boolean proximo,
+            @RequestParam(defaultValue = "lejanos") String orden
     ) throws PaginacionInvalidaException, EventoInvalidoException {
+        // Solo afecta al catalogo: "lejanos" = la fecha mas futura primero; "antiguos" = la mas antigua primero.
+        if (!orden.equals("lejanos") && !orden.equals("antiguos")) {
+            throw new PaginacionInvalidaException("El orden debe ser 'lejanos' o 'antiguos'.");
+        }
         Page<Evento> pagina = eventosService.getEventos(PageableFactory.crear(page, size),
-                nombre, categoriaId, precioMin, precioMax, catalogo, proximo);
+                nombre, categoriaId, precioMin, precioMax, catalogo, proximo, orden.equals("antiguos"));
         return ResponseEntity.ok(pagina.map(EventoResponse::fromEntity));
     }
 

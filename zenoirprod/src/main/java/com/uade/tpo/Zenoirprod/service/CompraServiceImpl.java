@@ -32,6 +32,8 @@ import com.uade.tpo.Zenoirprod.exceptions.CompraInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.CompraNoCancelableException;
 import com.uade.tpo.Zenoirprod.exceptions.DevolucionNoPermitidaException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoNoDisponibleException;
+import com.uade.tpo.Zenoirprod.util.FechaCatalogo;
+import com.uade.tpo.Zenoirprod.exceptions.EventoFinalizadoException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaNoDisponibleException;
 import com.uade.tpo.Zenoirprod.exceptions.VentaNoHabilitadaException;
@@ -62,7 +64,7 @@ public class CompraServiceImpl implements CompraService {
             EventoTipoEntradaInexistenteException, EventoTipoEntradaNoDisponibleException,
             VentaNoHabilitadaException, EventoNoDisponibleException {
 
-        LocalDateTime ahora = LocalDateTime.now();
+        LocalDateTime ahora = FechaCatalogo.ahora();
 
         // La compra sale siempre del carrito abierto del usuario autenticado: no se recibe nada del cliente.
         Carrito carrito = carritoRepository.findEnCursoForUpdate(usuario.getId())
@@ -172,7 +174,7 @@ public class CompraServiceImpl implements CompraService {
         }
 
         compra.setEstado(EstadoCompra.CANCELADA);
-        compra.setFechaCancelacion(LocalDateTime.now());
+        compra.setFechaCancelacion(FechaCatalogo.ahora());
         return compraRepository.save(compra);
     }
 
@@ -193,6 +195,9 @@ public class CompraServiceImpl implements CompraService {
 
         if (!EVENTO_ACTIVO.equalsIgnoreCase(ete.getEvento().getEstado())) {
             throw new EventoNoDisponibleException();
+        }
+        if (ete.getEvento().haFinalizado(FechaCatalogo.ahora())) {
+            throw new EventoFinalizadoException();
         }
         if (ete.getEstado() != EstadoEventoTipoEntrada.ACTIVO
                 && ete.getEstado() != EstadoEventoTipoEntrada.AGOTADO) {

@@ -63,4 +63,8 @@ public class Evento {
     @ToString.Exclude
     private List<ImagenEvento> imagenes = new ArrayList<>();
 
+    // Un evento termina cuando llega su fecha de fin. No es un getter, asi que no viaja en el JSON.
+    public boolean haFinalizado(LocalDateTime ahora) {
+        return fechaHoraFin != null && !ahora.isBefore(fechaHoraFin);
+    }
 }

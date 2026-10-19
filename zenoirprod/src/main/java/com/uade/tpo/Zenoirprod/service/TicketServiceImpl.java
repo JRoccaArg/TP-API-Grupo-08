@@ -12,6 +12,7 @@ import com.uade.tpo.Zenoirprod.entity.Ticket.EstadoTicket;
 import com.uade.tpo.Zenoirprod.exceptions.TicketInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.TicketNoUtilizableException;
 import com.uade.tpo.Zenoirprod.repository.TicketRepository;
+import com.uade.tpo.Zenoirprod.util.FechaCatalogo;
 
 @Service
 public class TicketServiceImpl implements TicketService {
@@ -37,7 +38,7 @@ public class TicketServiceImpl implements TicketService {
             throw new TicketNoUtilizableException();
         }
         ticket.setEstado(EstadoTicket.UTILIZADO);
-        ticket.setFechaUtilizacion(LocalDateTime.now());
+        ticket.setFechaUtilizacion(FechaCatalogo.ahora());
         return ticketRepository.save(ticket);
     }
 }

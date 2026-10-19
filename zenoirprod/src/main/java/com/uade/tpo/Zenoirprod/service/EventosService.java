@@ -20,8 +20,18 @@ public interface EventosService {
         public Page<Evento> getEventos(PageRequest pageRequest);
 
         public Page<Evento> getEventos(PageRequest pageRequest, String nombre, Integer categoriaId,
+                        BigDecimal precioMin, BigDecimal precioMax, boolean catalogo, boolean proximo,
+                        boolean antiguosPrimero) throws EventoInvalidoException;
+
+        // Orden por defecto del catalogo: la fecha mas futura primero.
+        default Page<Evento> getEventos(PageRequest pageRequest, String nombre, Integer categoriaId,
                         BigDecimal precioMin, BigDecimal precioMax, boolean catalogo, boolean proximo)
-                        throws EventoInvalidoException;
+                        throws EventoInvalidoException {
+                return getEventos(pageRequest, nombre, categoriaId, precioMin, precioMax, catalogo, proximo, false);
+        }
+
+        // Pasa a FINALIZADO los eventos activos cuya fecha de fin ya llego. Devuelve cuantos cambio.
+        public int finalizarVencidos();
 
         public void deleteEvento(Integer id) throws EventoInexistenteException, EventoEnUsoException;
 

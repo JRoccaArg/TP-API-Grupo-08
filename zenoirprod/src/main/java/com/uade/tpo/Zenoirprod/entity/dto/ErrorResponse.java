@@ -1,5 +1,6 @@
 package com.uade.tpo.Zenoirprod.entity.dto;
 
+import com.uade.tpo.Zenoirprod.util.FechaCatalogo;
 import java.time.LocalDateTime;
 
 import org.springframework.http.HttpStatus;
@@ -23,7 +24,7 @@ public class ErrorResponse {
 
     public static ErrorResponse of(HttpStatus status, String message, String path) {
         return ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
+                .timestamp(FechaCatalogo.ahora())
                 .status(status.value())
                 .error(status.getReasonPhrase())
                 .message(message)

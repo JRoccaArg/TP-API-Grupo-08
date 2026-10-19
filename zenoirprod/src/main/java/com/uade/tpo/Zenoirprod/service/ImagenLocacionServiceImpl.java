@@ -15,6 +15,7 @@ import com.uade.tpo.Zenoirprod.exceptions.ImagenLocacionInvalidaException;
 import com.uade.tpo.Zenoirprod.exceptions.LocacionInexsistenteException;
 import com.uade.tpo.Zenoirprod.repository.ImagenLocacionRepository;
 import com.uade.tpo.Zenoirprod.repository.LocationRepository;
+import com.uade.tpo.Zenoirprod.util.FechaCatalogo;
 
 @Service
 public class ImagenLocacionServiceImpl implements ImagenLocacionService {
@@ -59,7 +60,7 @@ public class ImagenLocacionServiceImpl implements ImagenLocacionService {
         imagenLocacion.setTextoAlternativo(textoAlternativo);
         imagenLocacion.setLocacion(locacionRepository.findById(locacionId).get());
         imagenLocacion.setOrden(orden);
-        imagenLocacion.setFechaCreacion(LocalDateTime.now());
+        imagenLocacion.setFechaCreacion(FechaCatalogo.ahora());
         return imagenLocacionRepository.save(imagenLocacion);
     }
 

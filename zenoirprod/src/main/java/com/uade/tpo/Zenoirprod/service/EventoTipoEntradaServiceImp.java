@@ -20,6 +20,7 @@ import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaDuplicadoException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaEnUsoException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaInvalidoException;
+import com.uade.tpo.Zenoirprod.exceptions.EventoCerradoException;
 import com.uade.tpo.Zenoirprod.exceptions.StockInsuficienteException;
 import com.uade.tpo.Zenoirprod.exceptions.TipoEntradaInexistenteException;
 import com.uade.tpo.Zenoirprod.util.PrecioCalculator;
@@ -74,6 +75,10 @@ public class EventoTipoEntradaServiceImp implements EventoTipoEntradaService {
 
         Evento evento = eventosService.getEventoPorId(request.getEventoId())
                 .orElseThrow(EventoInexistenteException::new);
+        if ("FINALIZADO".equalsIgnoreCase(evento.getEstado()) || "CANCELADO".equalsIgnoreCase(evento.getEstado())
+                || evento.haFinalizado(FechaCatalogo.ahora())) {
+            throw new EventoCerradoException();
+        }
         TipoEntrada tipoEntrada = tipoEntradaService.getTipoEntradaPorId(request.getTipoEntradaId());
 
         if (Boolean.FALSE.equals(tipoEntrada.getActivo())) {
