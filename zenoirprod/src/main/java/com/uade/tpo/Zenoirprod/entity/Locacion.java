@@ -32,9 +32,6 @@ public class Locacion {
     @Column(nullable = false, length = 255)
     private String direccion;
 
-    @Column(name = "capacidad_max", nullable = false)
-    private Integer capacidadMax;
-
     @OneToMany(mappedBy = "locacion", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     @EqualsAndHashCode.Exclude

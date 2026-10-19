@@ -10,6 +10,4 @@ public class LocacionRequest {
     private String nombre;
 
     private String direccion;
-
-    private Integer capacidadMax;
 }

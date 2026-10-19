@@ -32,29 +32,27 @@ public class LocacionServiceImp implements LocacionService {
                 .orElseThrow(LocacionInexsistenteException::new);
     }
 
-    public Locacion crearLocacion(String nombre, String direccion, Integer capacidadMax)
+    public Locacion crearLocacion(String nombre, String direccion)
             throws LocacionInvalidaException, LocacionDuplicadaException {
-        validarDatos(nombre, direccion, capacidadMax);
+        validarDatos(nombre, direccion);
         if (locacionRepository.existsByNombreIgnoreCase(nombre.trim())) {
             throw new LocacionDuplicadaException();
         }
         Locacion locacion = new Locacion();
         locacion.setNombre(nombre.trim());
         locacion.setDireccion(direccion.trim());
-        locacion.setCapacidadMax(capacidadMax);
         return locacionRepository.save(locacion);
     }
 
-    public Locacion updateLocacion(Integer id, String nombre, String direccion, Integer capacidadMax)
+    public Locacion updateLocacion(Integer id, String nombre, String direccion)
             throws LocacionInexsistenteException, LocacionInvalidaException, LocacionDuplicadaException {
         Locacion locacion = getLocacionPorId(id);
-        validarDatos(nombre, direccion, capacidadMax);
+        validarDatos(nombre, direccion);
         if (locacionRepository.existsByNombreIgnoreCaseAndIdNot(nombre.trim(), id)) {
             throw new LocacionDuplicadaException();
         }
         locacion.setNombre(nombre.trim());
         locacion.setDireccion(direccion.trim());
-        locacion.setCapacidadMax(capacidadMax);
         return locacionRepository.save(locacion);
     }
 
@@ -69,11 +67,10 @@ public class LocacionServiceImp implements LocacionService {
         locacionRepository.deleteById(id);
     }
 
-    private void validarDatos(String nombre, String direccion, Integer capacidadMax)
+    private void validarDatos(String nombre, String direccion)
             throws LocacionInvalidaException {
         if (nombre == null || nombre.isBlank()
-                || direccion == null || direccion.isBlank()
-                || capacidadMax == null || capacidadMax <= 0) {
+                || direccion == null || direccion.isBlank()) {
             throw new LocacionInvalidaException();
         }
     }

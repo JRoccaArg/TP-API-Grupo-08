@@ -54,8 +54,7 @@ public class LocacionesController {
             throws LocacionInvalidaException, LocacionDuplicadaException {
         Locacion creada = locacionService.crearLocacion(
                 locacionRequest.getNombre(),
-                locacionRequest.getDireccion(),
-                locacionRequest.getCapacidadMax());
+                locacionRequest.getDireccion());
         return ResponseEntity.created(URI.create("/locaciones/" + creada.getId()))
                 .body(LocacionResponse.fromEntity(creada));
     }
@@ -68,8 +67,7 @@ public class LocacionesController {
         Locacion actualizada = locacionService.updateLocacion(
                 id,
                 locacionRequest.getNombre(),
-                locacionRequest.getDireccion(),
-                locacionRequest.getCapacidadMax());
+                locacionRequest.getDireccion());
         return ResponseEntity.ok(LocacionResponse.fromEntity(actualizada));
     }
 

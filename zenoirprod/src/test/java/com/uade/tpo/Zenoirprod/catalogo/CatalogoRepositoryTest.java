@@ -37,7 +37,7 @@ class CatalogoRepositoryTest {
     @BeforeEach void preparar() {
         musica = em.persist(new Category("Música", true));
         cine = em.persist(new Category("Cine", true));
-        lugar = new Locacion(); lugar.setNombre("Palacio"); lugar.setDireccion("Quintana 161"); lugar.setCapacidadMax(800);
+        lugar = new Locacion(); lugar.setNombre("Palacio"); lugar.setDireccion("Quintana 161");
         em.persist(lugar);
     }
     Evento evento(String nombre, String estado, Category categoria) {

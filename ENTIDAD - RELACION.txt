@@ -19,7 +19,6 @@
 - direccion: NVARCHAR(255)
 - ciudad: NVARCHAR(100)
 - provincia: NVARCHAR(100)
-- capacidad_maxima: INT
 - descripcion: NVARCHAR(MAX)
 - activo: BIT
 
