@@ -14,10 +14,10 @@ public interface LocacionService {
 
     public Locacion getLocacionPorId(Integer id) throws LocacionInexsistenteException;
 
-    public Locacion crearLocacion(String nombre, String direccion, Integer capacidadMax)
+    public Locacion crearLocacion(String nombre, String direccion)
             throws LocacionInvalidaException, LocacionDuplicadaException;
 
-    public Locacion updateLocacion(Integer id, String nombre, String direccion, Integer capacidadMax)
+    public Locacion updateLocacion(Integer id, String nombre, String direccion)
             throws LocacionInexsistenteException, LocacionInvalidaException, LocacionDuplicadaException;
 
     public void deleteLocacion(Integer id) throws LocacionInexsistenteException, LocacionEnUsoException;

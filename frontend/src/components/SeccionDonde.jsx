@@ -1,23 +1,24 @@
-import FilaDonde from './FilaDonde.jsx'
-import { filasDonde } from '../data/landing.js'
+import TarjetaLugar from './TarjetaLugar.jsx'
+import { lugares } from '../data/landing.js'
 
+// Cabecera (título a la izquierda, bajada a la derecha) y una tarjeta por cada lugar.
 export default function SeccionDonde() {
   return (
     <section id="donde" className="donde">
-      <div>
-        <p className="donde__etiqueta">Dónde</p>
-        <h2 className="titulo-seccion">
-          TODO PASA
-          <br />
-          <span className="oro-texto">EN RECOLETA</span>
-        </h2>
-        <p className="donde__bajada">
-          Av. Quintana 161. Cada edición cambia de clima; la casa y la barra libre se quedan.
-        </p>
+      <div className="donde__cabecera">
+        <div>
+          <p className="donde__etiqueta">Dónde</p>
+          <h2 className="titulo-seccion">
+            NUESTROS
+            <br />
+            <span className="oro-texto">LUGARES</span>
+          </h2>
+        </div>
+        <p className="donde__bajada">Cada edición cambia de clima y a veces de casa. Cada fecha indica su lugar.</p>
       </div>
-      <div className="donde__filas">
-        {filasDonde.map((fila) => (
-          <FilaDonde key={fila.id} fila={fila} />
+      <div className="donde__lugares">
+        {lugares.map((lugar) => (
+          <TarjetaLugar key={lugar.id} lugar={lugar} />
         ))}
       </div>
     </section>

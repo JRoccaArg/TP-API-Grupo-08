@@ -147,12 +147,15 @@ public class EventoTipoEntradaController {
 
                 .tipoEntradaId(entrada.getTipoEntrada().getId())
                 .tipoEntradaNombre(entrada.getTipoEntrada().getNombre())
+                .tipoEntradaDescripcion(entrada.getTipoEntrada().getDescripcionBase())
 
                 .precio(entrada.getPrecio())
                 .porcentajeDescuento(
                         entrada.getPorcentajeDescuento()
                 )
                 .precioFinal(precioFinal)
+
+                .cantidadTotal(entrada.getCantidadTotal())
 
                 .cantidadDisponible(
                         entrada.getCantidadDisponible()

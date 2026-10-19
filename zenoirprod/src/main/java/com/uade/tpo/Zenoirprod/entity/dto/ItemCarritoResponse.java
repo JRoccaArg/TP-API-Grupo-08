@@ -20,9 +20,14 @@ public class ItemCarritoResponse {
 
     private Integer id;
     private Integer eventoTipoEntradaId;
+    // Para que el front pueda mostrar el evento (flyer, fecha y lugar) sin consultar cada entrada por separado.
+    private Integer eventoId;
     private String eventoTitulo;
     private String tipoEntradaNombre;
     private Integer cantidad;
+    // Precio de lista y porcentaje de descuento vigentes, por si la pantalla quiere mostrar el precio tachado.
+    private BigDecimal precioOriginal;
+    private BigDecimal porcentajeDescuento;
     // Precio de una entrada con el descuento vigente aplicado, y su subtotal. Se calculan con la misma formula que
     // la compra (PrecioCalculator), por eso lo que se muestra en la pantalla de pago es lo que se cobra.
     private BigDecimal precioUnitario;
@@ -38,9 +43,12 @@ public class ItemCarritoResponse {
         return ItemCarritoResponse.builder()
                 .id(i.getId())
                 .eventoTipoEntradaId(ete != null ? ete.getId() : null)
+                .eventoId(ete != null && ete.getEvento() != null ? ete.getEvento().getId() : null)
                 .eventoTitulo(ete != null && ete.getEvento() != null ? ete.getEvento().getTitulo() : null)
                 .tipoEntradaNombre(ete != null && ete.getTipoEntrada() != null ? ete.getTipoEntrada().getNombre() : null)
                 .cantidad(i.getCantidad())
+                .precioOriginal(ete != null ? PrecioCalculator.normalizar(ete.getPrecio()) : null)
+                .porcentajeDescuento(ete != null ? ete.getPorcentajeDescuento() : null)
                 .precioUnitario(precioUnitario)
                 .subtotal(precioUnitario != null ? PrecioCalculator.subtotal(precioUnitario, i.getCantidad()) : null)
                 .fechaAgregado(i.getFechaAgregado())

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import com.uade.tpo.Zenoirprod.entity.Carrito.EstadoCarrito;
 import com.uade.tpo.Zenoirprod.repository.CarritoRepository;
+import com.uade.tpo.Zenoirprod.util.FechaCatalogo;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,7 +24,7 @@ public class CarritoVencimientoScheduler {
 
     @Scheduled(fixedDelayString = "${carrito.limpieza-ms:60000}")
     public void abandonarVencidos() {
-        for (Integer carritoId : carritoRepository.findIdsVencidos(EstadoCarrito.EN_CURSO, LocalDateTime.now())) {
+        for (Integer carritoId : carritoRepository.findIdsVencidos(EstadoCarrito.EN_CURSO, FechaCatalogo.ahora())) {
             try {
                 carritoService.abandonarSiVencido(carritoId);
             } catch (RuntimeException e) {

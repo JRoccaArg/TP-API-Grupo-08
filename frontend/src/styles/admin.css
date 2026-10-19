@@ -95,6 +95,51 @@
 
 /* Acciones del pie */
 .acciones-admin { display: flex; align-items: center; justify-content: space-between; margin-top: 64px; padding-top: 28px; border-top: 1px solid rgba(255, 255, 255, 0.14); }
-.acciones-admin__derecha { display: flex; align-items: center; gap: 30px; }
-.acciones-admin__cancelar { border-bottom: 1px solid #5a5a5a; font: 500 15px var(--fuente-ui); color: var(--gris-claro); }
-.acciones-admin__eliminar { padding: 0; border: 0; background: transparent; color: var(--peligro); font: 500 15px var(--fuente-ui); text-decoration: underline; }
+.acciones-admin__derecha { display: flex; align-items: center; gap: 14px; }
+
+/* Avisos, carga y columna de la edición */
+.admin__columna { display: flex; flex-direction: column; gap: 56px; min-width: 0; }
+.admin__cargando { padding: 40px 0; color: var(--gris); }
+.admin__aviso { margin-top: 28px; padding: 13px 16px; border-radius: 12px; font: 400 14px / 1.45 var(--fuente-ui); }
+.admin__aviso--error { border: 1px solid rgba(201, 132, 126, 0.55); background: rgba(201, 132, 126, 0.08); color: var(--peligro); }
+.admin__aviso--ok { border: 1px solid var(--oro-borde); background: rgba(216, 188, 120, 0.08); color: var(--oro); }
+.fila-admin__sin-foto { display: flex; align-items: center; justify-content: center; width: 72px; height: 128px; border: 1px dashed rgba(255, 255, 255, 0.25); border-radius: 8px; color: var(--gris); font: 400 12px var(--fuente-ui); text-align: center; }
+
+/* Fotos del evento */
+.fotos-admin { display: flex; flex-direction: column; gap: 18px; }
+.fotos-admin__nota, .fotos-admin__vacia { font: 300 15px / 1.5 var(--fuente-ui); color: var(--gris); }
+.fotos-admin__lista { border-top: 1px solid var(--linea); }
+.foto-admin { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; gap: 16px; align-items: center; padding: 16px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+.foto-admin img { width: 64px; height: 114px; object-fit: cover; border-radius: 8px; }
+.foto-admin__etiqueta { font: 700 11px var(--fuente-marca); letter-spacing: 0.2em; color: var(--gris); }
+.foto-admin__nombre { margin-top: 6px; font: 400 14px var(--fuente-ui); color: #c9c9c9; overflow-wrap: anywhere; }
+.foto-admin__acciones { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; }
+.foto-admin__mover { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; padding: 0; border: 1px solid rgba(255, 255, 255, 0.22); border-radius: 50%; background: transparent; color: var(--gris-claro); transition: color 0.2s, border-color 0.2s; }
+.foto-admin__mover:hover:not(:disabled) { border-color: var(--oro); color: var(--oro); }
+.foto-admin__mover:disabled { opacity: 0.3; cursor: not-allowed; }
+.fotos-admin__subir { position: relative; cursor: pointer; }
+.fotos-admin__subir input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.fotos-admin__subir:focus-within { outline: 2px solid var(--oro); outline-offset: 3px; }
+.fotos-admin__subir--ocupado { opacity: 0.6; cursor: wait; }
+
+/* Locaciones */
+.admin__columna--sola { max-width: 760px; margin-top: 56px; }
+.fila-admin--locacion { grid-template-columns: 128px minmax(0, 2fr) 120px 150px; }
+.fila-admin--locacion img, .fila-admin--locacion .fila-admin__sin-foto { width: 128px; height: 80px; }
+.form-evento__nota { margin-top: -18px; font: 300 14px var(--fuente-ui); color: var(--gris); }
+.foto-admin--horizontal { grid-template-columns: 120px minmax(0, 1fr) auto; }
+.foto-admin--horizontal img { width: 120px; height: 80px; }
+
+/* Tipos de entrada y entradas del evento */
+.fila-tipo { display: grid; grid-template-columns: minmax(0, 1fr) 110px auto; align-items: center; gap: 30px; padding: 24px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+.fila-tipo h3 { font: 700 34px / 1 var(--fuente-titulo); text-transform: uppercase; }
+.fila-tipo__datos p { margin-top: 8px; font: 300 15px var(--fuente-ui); color: #a8a8a8; }
+.fila-tipo__aviso { grid-column: 1 / -1; margin-top: 0; }
+.fila-tipo--edicion { display: flex; flex-direction: column; align-items: stretch; gap: 26px; }
+.form-tipo { display: flex; flex-direction: column; gap: 26px; }
+.nuevo-tipo { display: flex; flex-direction: column; gap: 22px; margin: 28px 0; padding: 24px; border: 1px dashed rgba(216, 188, 120, 0.5); border-radius: 16px; background: rgba(216, 188, 120, 0.04); }
+.nuevo-tipo__acciones, .form-entrada__acciones { display: flex; justify-content: flex-end; gap: 12px; }
+.form-entrada__tipo { font: 700 28px / 1 var(--fuente-titulo); text-transform: uppercase; }
+.form-entrada__acciones { margin-top: 4px; }
+.form-entrada__nota { margin-top: 12px; font: 300 13px / 1.4 var(--fuente-ui); color: var(--gris); }
+.oferta-admin .oferta-admin__aviso { margin-top: 10px; font-size: 13px; color: var(--peligro); }

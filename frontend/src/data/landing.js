@@ -1,22 +1,22 @@
 // Textos fijos de la página de inicio.
 import { imagenes } from './imagenes.js'
 
-export const cinta = ['Zenoir', 'After Palace', 'Haunted Edition', 'Barra libre', 'Recoleta']
-
-export const filasDonde = [
+// Los lugares donde se hacen las ediciones (fijos, no salen de la base).
+export const lugares = [
   {
     id: 1,
-    titulo: 'Palacio Balcarce',
-    texto: 'Recoleta, Av. Quintana 161. Ahí abren las puertas todas las ediciones de Zenoir.',
+    nombre: 'Palacio Balcarce',
+    barrio: 'Recoleta',
+    direccion: 'Av. Quintana 161',
     imagen: imagenes.fachada,
     alt: 'Fachada del Palacio Balcarce',
-    enlace: { texto: 'Ver fechas', ancla: 'fechas' },
   },
   {
     id: 2,
-    titulo: 'Barra libre',
-    texto: 'Todas las ediciones incluyen barra libre. Mirá el detalle de cada fecha antes de comprar.',
-    imagen: imagenes.barraVaso,
-    alt: 'Barra de Zenoir con un vaso naranja',
+    nombre: 'Círculo Italiano de Buenos Aires',
+    barrio: 'Recoleta',
+    direccion: 'Libertad 1264',
+    imagen: imagenes.circuloItaliano,
+    alt: 'Entrada del Círculo Italiano de Buenos Aires',
   },
 ]

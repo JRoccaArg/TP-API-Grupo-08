@@ -1,27 +1,34 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Boton from '../components/Boton.jsx'
+import CampoClave from '../components/CampoClave.jsx'
 import CampoLinea from '../components/CampoLinea.jsx'
 import LayoutAcceso from '../components/LayoutAcceso.jsx'
 import { imagenes } from '../data/imagenes.js'
+import { iniciarSesion } from '../utils/apiAuth.js'
 
-// Pantalla "/login". La sesión es de mentira: App crea el usuario con el email que se escribe.
+// Pantalla "/login": valida las credenciales contra el backend y, si son correctas, App guarda la sesión.
 export default function Login({ onIngresar }) {
   const navigate = useNavigate()
   const [datos, setDatos] = useState({ email: '', password: '' })
-  const [verClave, setVerClave] = useState(false)
+  const [error, setError] = useState('')
+  const [enviando, setEnviando] = useState(false)
 
   const cambiar = (evento) => setDatos({ ...datos, [evento.target.name]: evento.target.value })
   const enviar = (evento) => {
     evento.preventDefault()
-    const usuario = onIngresar(datos.email)
-    navigate(usuario.rol === 'ADMIN' ? '/admin' : '/')
+    setError('')
+    setEnviando(true)
+    iniciarSesion(datos.email, datos.password)
+      .then((sesion) => {
+        onIngresar(sesion)
+        navigate(sesion.rol === 'ADMIN' ? '/admin' : '/')
+      })
+      .catch((fallo) => {
+        setError(fallo.message)
+        setEnviando(false)
+      })
   }
-  const botonMostrar = (
-    <button type="button" className="campo__accion" onClick={() => setVerClave(!verClave)}>
-      {verClave ? 'Ocultar' : 'Mostrar'}
-    </button>
-  )
 
   return (
     <LayoutAcceso
@@ -33,10 +40,13 @@ export default function Login({ onIngresar }) {
       <p className="acceso__bajada">Entrá para reservar tus entradas y ver tus QR.</p>
       <form className="acceso__form" onSubmit={enviar}>
         <CampoLinea etiqueta="EMAIL" nombre="email" tipo="email" valor={datos.email}
-          onChange={cambiar} placeholder="tu@email.com" requerido />
-        <CampoLinea etiqueta="CONTRASEÑA" nombre="password" tipo={verClave ? 'text' : 'password'}
-          valor={datos.password} onChange={cambiar} placeholder="Tu contraseña" requerido extra={botonMostrar} />
-        <Boton tipo="submit" clase="boton--ancho boton--grande">Ingresar</Boton>
+          onChange={cambiar} placeholder="tu@email.com" autoComplete="email" requerido />
+        <CampoClave nombre="password" valor={datos.password} onChange={cambiar} placeholder="Tu contraseña"
+          autoComplete="current-password" requerido />
+        {error && <p className="acceso__error" role="alert">{error}</p>}
+        <Boton tipo="submit" deshabilitado={enviando} clase="boton--ancho boton--grande">
+          {enviando ? 'Ingresando...' : 'Ingresar'}
+        </Boton>
       </form>
       <p className="acceso__pie">
         ¿No tenés cuenta? <Link to="/registro" className="enlace-oro">Creá una</Link>

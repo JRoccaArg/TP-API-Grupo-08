@@ -10,13 +10,17 @@
   left: 0;
   right: 0;
   z-index: 30;
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-template-rows: 44px; /* altura fija: el logo y los enlaces no suben ni bajan según lo que haya a la derecha */
   align-items: center;
-  justify-content: space-between;
+  column-gap: 72px;
   padding: 40px 56px;
 }
 
-.navbar__nav {
+/* Los enlaces arrancan siempre en el mismo lugar, a continuación del logo. */
+.navbar__nav,
+.navbar__acciones {
   display: flex;
   align-items: center;
   gap: 38px;
@@ -24,6 +28,10 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
+
+/* Casilleros de ancho fijo: el contenido nace siempre en el mismo lugar. */
+.navbar__carrito { flex: none; width: 84px; }
+.navbar__cuenta { flex: none; width: 250px; }
 
 .navbar__separador { width: 1px; height: 22px; background: rgba(255, 255, 255, 0.28); }
 
@@ -37,7 +45,7 @@
 .enlace-nav--activo { border-bottom-color: var(--oro); }
 
 /* Cuenta */
-.cuenta { display: flex; align-items: center; gap: 10px; text-transform: none; letter-spacing: 0; }
+.cuenta { display: flex; align-items: center; gap: 10px; width: 100%; text-transform: none; letter-spacing: 0; }
 
 .cuenta__avatar {
   display: flex;
@@ -51,8 +59,24 @@
   color: var(--oro);
 }
 
-.cuenta__nombre { font: 500 15px var(--fuente-ui); }
-.cuenta__salir { padding: 0; border: 0; background: transparent; color: var(--gris); font: 400 13px var(--fuente-ui); text-decoration: underline; }
+.cuenta__nombre { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 500 15px var(--fuente-ui); }
+.cuenta__avatar, .cuenta__salir { flex: none; }
+.cuenta__salir {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--gris-claro);
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+
+.cuenta__salir:hover { border-color: var(--oro); color: var(--oro); background: rgba(216, 188, 120, 0.08); }
+.cuenta__salir:focus-visible { outline: 2px solid var(--oro); outline-offset: 3px; }
 
 /* Carrito del header */
 .carrito-chip { position: relative; }
@@ -62,6 +86,7 @@
   display: inline-flex;
   align-items: center;
   gap: 12px;
+  min-width: 84px; /* lugar reservado para el reloj: el ícono no se corre cuando aparece */
   height: 44px;
   padding: 0;
   border: 0;
@@ -98,17 +123,20 @@
   transform-origin: calc(100% - 52px) 0;
 }
 
-.mini-carrito::before {
+/* Flecha del desplegable: sale del chip (no del panel) para apuntar siempre al ícono, que es lo primero del botón. */
+.carrito-chip--abierto::after {
   content: '';
   position: absolute;
-  top: -8px;
-  right: 60px;
+  top: calc(100% + 8px);
+  left: 12px;
+  z-index: 1;
   width: 14px;
   height: 14px;
   background: #101010;
   border-left: 1px solid var(--oro-borde);
   border-top: 1px solid var(--oro-borde);
-  transform: rotate(45deg);
+  transform: translateX(-50%) rotate(45deg);
+  animation: surgir 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both; /* mismo tiempo que el panel (desplegar) */
 }
 
 .mini-carrito__cabecera { display: flex; align-items: baseline; justify-content: space-between; }
@@ -152,3 +180,63 @@
 .mini-carrito__total strong { font: 700 44px / 1 var(--fuente-titulo); letter-spacing: 0; }
 .mini-carrito__acciones { display: flex; gap: 10px; margin-top: 20px; }
 .mini-carrito__acciones .boton { flex: 1; height: 50px; padding: 0; font-size: 12px; letter-spacing: 0.14em; }
+
+/* Menú desplegable del header (el admin agrupa ahí sus pantallas) */
+.menu-nav { position: relative; }
+
+.menu-nav__boton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 0 6px;
+  border: 0;
+  border-bottom: 1px solid transparent;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+  transition: color 0.2s;
+  position: relative;
+  z-index: 2; /* por encima del fondo: se puede volver a tocar para cerrar */
+}
+
+.menu-nav__boton:hover, .menu-nav__boton[aria-expanded="true"] { color: var(--oro); }
+.menu-nav__boton--activo { border-bottom-color: var(--oro); }
+.menu-nav__boton:focus-visible { outline: 2px solid var(--oro); outline-offset: 4px; }
+.menu-nav__boton svg { transition: transform 0.2s; }
+.menu-nav__boton[aria-expanded="true"] svg { transform: rotate(180deg); }
+
+.menu-nav__panel {
+  position: absolute;
+  top: calc(100% + 16px);
+  left: -20px;
+  min-width: 240px;
+  padding: 10px;
+  border-radius: 16px;
+  background: #101010;
+  border: 1px solid var(--oro-borde);
+  box-shadow: 0 40px 90px rgba(0, 0, 0, 0.75);
+  text-transform: none;
+  letter-spacing: 0;
+  transform-origin: 40px 0;
+  z-index: 2;
+}
+
+/* Fondo invisible que ocupa toda la pantalla mientras el menú está abierto: tocarlo cierra el menú. */
+.menu-nav__fondo { position: fixed; inset: 0; z-index: 1; padding: 0; border: 0; background: transparent; cursor: default; }
+
+.menu-nav__item {
+  display: block;
+  padding: 13px 16px;
+  border-radius: 10px;
+  font: 500 15px var(--fuente-ui);
+  color: var(--blanco);
+  transition: color 0.2s, background 0.2s;
+}
+
+.menu-nav__item:hover { color: var(--oro); background: rgba(216, 188, 120, 0.08); }
+.menu-nav__item--activo { color: var(--oro); }
+
+.mini-carrito__lista .mini-carrito__sin-foto { flex: none; width: 38px; height: 68px; border-radius: 6px; background: rgba(255, 255, 255, 0.06); }

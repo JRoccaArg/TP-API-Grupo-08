@@ -6,8 +6,10 @@ const UN_MINUTO = 60 * 1000
 
 // Compatibilidad con mocks y servidores anteriores que todavía envían LocalDateTime.
 // La API actual entrega offset explícito; nunca se usa la zona del navegador.
+// Las fechas del carrito traen hasta 7 decimales en los segundos: se recortan a 3 para que cualquier navegador las lea.
+const sinExceso = (iso) => (typeof iso === 'string' ? iso.replace(/(\.\d{3})\d+/, '$1') : iso)
 export const fechaApi = (iso) => new Date(typeof iso === 'string' &&
-  /^\d{4}-\d{2}-\d{2}T/.test(iso) && !/(?:Z|[+-]\d{2}:?\d{2})$/i.test(iso) ? `${iso}-03:00` : iso)
+  /^\d{4}-\d{2}-\d{2}T/.test(iso) && !/(?:Z|[+-]\d{2}:?\d{2})$/i.test(iso) ? `${sinExceso(iso)}-03:00` : sinExceso(iso))
 const partes = (iso) => Object.fromEntries(new Intl.DateTimeFormat('es-AR', {
   timeZone: ZONA_CATALOGO, weekday: 'long', day: 'numeric', month: 'long',
 }).formatToParts(fechaApi(iso)).map(({ type, value }) => [type, value]))
@@ -42,3 +44,8 @@ export const esperaProximaFecha = (iso, ahora = Date.now()) => {
   return Number.isFinite(diferencia) && diferencia >= 0
     ? Math.min(diferencia + 1, 2147483647) : UN_MINUTO
 }
+
+// "Ahora" en hora de Buenos Aires, con el formato de los campos de fecha ("2026-11-15T23:00").
+export const ahoraParaInput = (ahora = Date.now()) => new Intl.DateTimeFormat('sv-SE', {
+  timeZone: ZONA_CATALOGO, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+}).format(ahora).replace(' ', 'T')

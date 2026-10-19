@@ -8,10 +8,15 @@ Zenoir es una API para publicar eventos, administrar locaciones, tipos de entrad
 - Tambien levanta con el perfil `dev` y una base H2 en memoria.
 - Existe registro e inicio de sesion mediante JWT.
 - Los usuarios nuevos se registran con el rol `USER`.
+- El registro y el inicio de sesion devuelven `access_token` y tambien `role`, `email`, `nombre` y `apellido` (el token solo lleva el email). El front los usa para mostrar el nombre y decidir por rol.
+- El front (React) guarda la sesion `{ token, email, nombre, rol }` en `localStorage` (`zenoir.sesion`): sobrevive a recargar la pagina y se descarta si el token ya vencio. Un admin se crea registrando la cuenta y cambiando `rol` a `ADMIN` en la base.
+- El panel de administracion del front (`/admin`) ya usa el back real: lista todos los eventos, crea, edita y elimina eventos, y administra sus fotos (subir varias, elegir la portada, reordenar y quitar). El back no obliga a tener una sola portada ni orden unico: el front lo cuida (la portada anterior pasa a `GALERIA` y el orden se numera de 1 en adelante). En la pantalla de edicion de un evento tambien se administran sus entradas (agregar, editar precio/descuento/cupo/fechas/estado y quitar), y `/admin/tipos-entrada` administra los tipos de entrada (nombre y descripcion; ver [[decisiones]]).
+- El front tambien administra locaciones (`/admin/locaciones`): lista con su primera foto, crear, editar (nombre y direccion), eliminar y fotos (subir varias, reordenar y quitar; sin portada, solo orden). Eliminar una locacion con eventos devuelve 409 y el front lo avisa. Las locaciones ya no tienen capacidad (ver [[decisiones]]). El carrito y el boton "Ir a pagar" usan el back real (`Sitio.jsx` guarda el carrito y `RutasSitio.jsx` lleva las rutas). El pago (`POST /compras`), la confirmacion (`/compra/:id`) y "Mis entradas" tambien usan el back real; el front ya no tiene datos de ejemplo de eventos, entradas ni compras.
 - Los endpoints de autenticacion y las consultas del catalogo son publicos.
 - La administracion de eventos, categorias, locaciones, imagenes y tipos de entrada requiere rol `ADMIN`.
 - Los carritos requieren rol `USER` y solamente pueden ser utilizados por su propietario.
 - Las compras y tickets propios pueden ser consultados por el usuario; los QR se consultan y utilizan con rol `ADMIN`.
+- Un evento `ACTIVO` es un evento publicado y a la venta (para prepararlo sin publicar se usa `BORRADOR`, que no aparece en el catalogo). Al llegar su fecha de fin pasa solo a `FINALIZADO`: lo hace un proceso programado (`EventoFinalizacionScheduler`, cada `eventos.finalizacion-ms`, por defecto 1 hora) y, ademas, la compra se frena sola desde esa fecha (`409`, "El evento ya finalizo..."). No se pueden cargar entradas a un evento `FINALIZADO` o `CANCELADO` (`409`).
 - Las imagenes de eventos se reciben como archivos multipart y se guardan en la base.
 - Los archivos admitidos deben ser imagenes.
 - La subida de una imagen devuelve `201 Created` y los listados se ordenan por el campo `orden` de forma ascendente.

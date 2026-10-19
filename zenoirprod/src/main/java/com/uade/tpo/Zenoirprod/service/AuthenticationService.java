@@ -20,6 +20,7 @@ import com.uade.tpo.Zenoirprod.exceptions.DatosAutenticacionInvalidosException;
 import com.uade.tpo.Zenoirprod.exceptions.DniEnUsoException;
 import com.uade.tpo.Zenoirprod.exceptions.EmailEnUsoException;
 import com.uade.tpo.Zenoirprod.repository.UserRepository;
+import com.uade.tpo.Zenoirprod.util.FechaCatalogo;
 
 import lombok.RequiredArgsConstructor;
 
@@ -39,7 +40,7 @@ public class AuthenticationService {
                 || request.getLastname() == null || request.getLastname().isBlank()
                 || request.getDni() == null || request.getDni().isBlank()
                 || request.getFechaNacimiento() == null
-                || request.getFechaNacimiento().isAfter(LocalDate.now())
+                || request.getFechaNacimiento().isAfter(FechaCatalogo.ahora().toLocalDate())
                 || request.getEmail() == null || request.getEmail().isBlank()
                 || !request.getEmail().contains("@")
                 || request.getPassword() == null || request.getPassword().isBlank()) {
@@ -61,15 +62,13 @@ public class AuthenticationService {
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.USER)
-                .fechaRegistro(LocalDateTime.now())
+                .fechaRegistro(FechaCatalogo.ahora())
                 .activo(true)
                 .build();
 
         repository.save(user);
 
-        return AuthenticationResponse.builder()
-                .accessToken(jwtService.generateToken(user))
-                .build();
+        return respuesta(user);
     }
 
     public AuthenticationResponse authenticate(AuthenticationRequest request)
@@ -93,8 +92,17 @@ public class AuthenticationService {
         User user = repository.findByEmail(request.getEmail())
                 .orElseThrow(CredencialesInvalidasException::new);
 
+        return respuesta(user);
+    }
+
+    // Datos que viajan junto al token: el front los usa para mostrar el nombre y decidir por rol.
+    private AuthenticationResponse respuesta(User user) {
         return AuthenticationResponse.builder()
                 .accessToken(jwtService.generateToken(user))
+                .role(user.getRole().name())
+                .email(user.getEmail())
+                .nombre(user.getFirstName())
+                .apellido(user.getLastName())
                 .build();
     }
 }

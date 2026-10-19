@@ -5,8 +5,11 @@ const estado = (valor) => (valor || '').toUpperCase()
 const tienePrecio = (oferta) => Number.isFinite(oferta.precioFinal) && oferta.precioFinal >= 0
 const normalizar = (texto) => String(texto || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
 
+// El back pasa el evento a FINALIZADO con un pequeño retraso; mientras tanto, si ya llegó su fecha de fin, se muestra como finalizado.
+const eventoTerminado = (evento, ahora) => Boolean(evento.fechaHoraFin) && ahora >= fechaApi(evento.fechaHoraFin).getTime()
+
 export function estadoOferta(oferta, evento, ahora = Date.now()) {
-  const estadoEvento = estado(evento.estado)
+  const estadoEvento = eventoTerminado(evento, ahora) && estado(evento.estado) === 'ACTIVO' ? 'FINALIZADO' : estado(evento.estado)
   if (estadoEvento !== 'ACTIVO') {
     return ['FINALIZADO', 'CANCELADO', 'REPROGRAMADO'].includes(estadoEvento) ? estadoEvento : 'PAUSADO'
   }
@@ -25,7 +28,8 @@ export function resumenEntradas(evento, ahora = Date.now()) {
   const estados = ofertas.map((oferta) => estadoOferta(oferta, evento, ahora))
   const enVenta = ofertas.filter((oferta, indice) => estados[indice] === 'EN_VENTA')
   let situacion = 'SIN_ENTRADAS'
-  if (estado(evento.estado) !== 'ACTIVO') situacion = estado(evento.estado)
+  if (eventoTerminado(evento, ahora) && estado(evento.estado) === 'ACTIVO') situacion = 'FINALIZADO'
+  else if (estado(evento.estado) !== 'ACTIVO') situacion = estado(evento.estado)
   else if (evento.errorOfertas) situacion = 'ERROR'
   else if (enVenta.length) situacion = 'EN_VENTA'
   else if (estados.includes('PROXIMAMENTE')) situacion = 'PROXIMAMENTE'
@@ -99,7 +103,28 @@ export function leerFiltrosCatalogo(parametros) {
   const pedida = Number(parametros.get('pagina'))
   return {
     busqueda: parametros.get('q') || '', categoria: parametros.get('categoria') || '', precioMin, precioMax,
+    // "lejanos" (por defecto): la fecha más futura primero. "antiguos": la más antigua primero.
+    orden: parametros.get('orden') === 'antiguos' ? 'antiguos' : 'lejanos',
     pagina: Number.isSafeInteger(pedida) && pedida > 0 ? pedida : 1,
     errorPrecio: validarRangoPrecios(precioMin, precioMax),
   }
 }
+
+// La parte "?..." de la URL con los parámetros cambiados. Un valor vacío quita el parámetro.
+export function conParametros(search, cambios) {
+  const nuevos = new URLSearchParams(search)
+  Object.entries(cambios).forEach(([clave, valor]) => {
+    if (valor === '') nuevos.delete(clave)
+    else nuevos.set(clave, valor)
+  })
+  return nuevos.toString()
+}
+
+// El evento con las entradas elegidas ya descontadas del stock: es lo que queda después de apartarlas en el carrito.
+export const descontarStock = (evento, seleccion) => ({
+  ...evento,
+  ofertas: evento.ofertas.map((oferta) => ({
+    ...oferta,
+    cantidadDisponible: oferta.cantidadDisponible - (seleccion.find((item) => item.ofertaId === oferta.id)?.cantidad ?? 0),
+  })),
+})

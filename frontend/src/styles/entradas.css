@@ -45,3 +45,33 @@
 .tarjeta-entrada__codigo { margin-top: 8px; font: 500 10px var(--fuente-marca); letter-spacing: 0.18em; color: var(--gris-oscuro); }
 .tarjeta-entrada__acciones { display: flex; gap: 12px; margin-top: 18px; }
 .tarjeta-entrada__acciones .boton { flex: 1; height: 52px; font-size: 13px; letter-spacing: 0.16em; }
+
+/* Compra confirmada */
+.compra-ok { display: flex; flex-wrap: wrap; align-items: center; gap: 28px 36px; margin-top: 56px; }
+.compra-ok > div { flex: 1 1 420px; min-width: 0; }
+.compra-ok__check { display: grid; flex: none; place-items: center; width: 88px; height: 88px; border-radius: 50%; box-shadow: 0 0 60px rgba(216, 188, 120, 0.3); }
+.compra-ok p { margin-top: 16px; font: 300 18px / 1.5 var(--fuente-ui); color: var(--gris-claro); }
+.compra-ok b { color: var(--blanco); font-weight: 600; }
+.compra-ok__entradas { margin-top: 64px; }
+.compra-ok__botones { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 56px; }
+.compra-ok__botones + .resumen__nota { margin-top: 28px; }
+
+.emitidas { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-top: 22px; }
+.emitida { display: flex; flex-direction: column; border: 1px solid rgba(255, 255, 255, 0.18); background: rgba(255, 255, 255, 0.03); transition: border-color 0.2s, transform 0.2s; }
+.emitida:hover { border-color: rgba(216, 188, 120, 0.6); transform: translateY(-4px); }
+.emitida__datos { padding: 24px 24px 20px; }
+.emitida__cabecera { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.emitida h2 { font: 700 32px / 1.02 var(--fuente-titulo); letter-spacing: 0.02em; text-transform: uppercase; }
+.emitida__tipo, .emitida__estado { flex: none; padding: 3px 10px; border: 1px solid var(--oro-borde); color: var(--oro); font: 600 12px var(--fuente-ui); letter-spacing: 0.14em; }
+.emitida__datos p { margin-top: 12px; font: 300 15px / 1.55 var(--fuente-ui); color: var(--gris); }
+.emitida__corte { margin: 0 24px; border-top: 2px dashed rgba(255, 255, 255, 0.2); }
+.emitida__qr { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 24px; }
+.emitida__qr svg { padding: 12px; background: #f4f1e8; box-sizing: content-box; }
+.emitida__qr p { font: 600 14px var(--fuente-ui); letter-spacing: 0.22em; color: var(--gris-claro); }
+.emitida__estado { padding: 4px 14px; letter-spacing: 0.16em; }
+
+@media (prefers-reduced-motion: reduce) {
+  .emitida { transition: none; }
+}
+
+.tarjeta-entrada__estado { margin-top: 8px; font: 700 12px var(--fuente-marca); letter-spacing: 0.2em; color: var(--peligro); }

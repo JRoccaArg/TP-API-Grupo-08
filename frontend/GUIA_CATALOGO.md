@@ -61,19 +61,20 @@ Usá los eventos disponibles en la base configurada, sin asumir nombres, IDs, ca
 | `nombre` | Coincidencia parcial por título, sin distinguir mayúsculas ni tildes habituales en español. |
 | `categoriaId` | ID obtenido desde `GET /categories`. |
 | `precioMin`, `precioMax` | Límites inclusivos y no negativos sobre el precio final de una misma oferta actualmente en venta. |
-| `catalogo=true` | Excluye borradores y ordena los eventos activos primero, luego por ID. Sin este parámetro se conservan los estados del listado general. |
+| `catalogo=true` | Excluye borradores y ordena por fecha de inicio descendente (primero el evento con la fecha más futura). Sin este parámetro se conservan los estados del listado general. |
 | `proximo=true` | Filtra eventos activos futuros y ordena por fecha para consultar la próxima fecha de portada. |
+| `orden` | Solo con `catalogo=true`. `lejanos` (por defecto): la fecha más futura primero. `antiguos`: la fecha más antigua primero. Otro valor responde `400`. |
 
 El Service valida el rango y normaliza la búsqueda; el Repository filtra antes de paginar. La consulta de precio respeta el descuento y su redondeo, el stock, el estado y las fechas de venta. Las ofertas no duplican eventos en los resultados.
 
-React solicita seis eventos por página y completa únicamente las ofertas e imágenes de esa página. Los filtros y la página se conservan en la URL; al cambiar un filtro se vuelve a la primera página. Las categorías se consultan por separado y la portada obtiene la próxima fecha global con una consulta de tamaño uno. En escritorio hay seis tarjetas por fila, en tablet dos y en celular una.
+React solicita cuatro eventos por página y completa únicamente las ofertas e imágenes de esa página. Los filtros y la página se conservan en la URL; al cambiar un filtro se vuelve a la primera página. Las categorías se consultan por separado y la portada obtiene la próxima fecha global con una consulta de tamaño uno. En escritorio se ven cuatro tarjetas por fila, en tablet dos y en celular una.
 
 ### Pruebas en Insomnia o un cliente HTTP
 
 Creá solicitudes GET sobre la URL del backend configurado, usando los IDs y precios de esa base:
 
 1. `/eventos`: devuelve Page y conserva el listado general.
-2. `/eventos?page=0&size=6&catalogo=true`: devuelve hasta seis eventos públicos y sus totales.
+2. `/eventos?page=0&size=4&catalogo=true`: devuelve hasta cuatro eventos públicos y sus totales.
 3. Repetí con `page=1`: cambia la página sin repetir los eventos de la anterior, si hay suficientes registros.
 4. Agregá por separado `nombre`, `categoriaId`, `precioMin` o `precioMax`, y luego combinalos: los totales corresponden al conjunto filtrado antes de paginar.
 5. Usá un nombre inexistente: devuelve `content=[]` y total cero.
@@ -81,7 +82,7 @@ Creá solicitudes GET sobre la URL del backend configurado, usando los IDs y pre
 7. Enviá un mínimo mayor que el máximo o un precio negativo: responde 400.
 8. Enviá sólo `page` sin `size`: responde 400.
 
-En el navegador comprobá los mismos filtros, avanzar y retroceder, abrir el detalle y volver, además de los estados de carga, vacío y error. En Network, la consulta del catálogo debe enviar `size=6`; no debe recorrer todas las páginas para filtrar. En desarrollo, StrictMode puede iniciar y cancelar solicitudes adicionales.
+En el navegador comprobá los mismos filtros, avanzar y retroceder, abrir el detalle y volver, además de los estados de carga, vacío y error. En Network, la consulta del catálogo debe enviar `size=4`; no debe recorrer todas las páginas para filtrar. En desarrollo, StrictMode puede iniciar y cancelar solicitudes adicionales.
 
 ### Comprobar los campos de precio
 
@@ -102,7 +103,7 @@ mientras sus ofertas sigan vigentes, limpiá los filtros antes de cada caso:
 
 | Mínimo | Máximo | Resultado esperado |
 | --- | --- | --- |
-| vacío | vacío | 20 eventos públicos, seis por página. |
+| vacío | vacío | 20 eventos públicos, cuatro por página. |
 | 18000 | vacío | Cuatro eventos; Tango muestra $42.499,99, la entrada que cumple el mínimo. |
 | vacío | 30000 | Diez eventos; al avanzar se muestran 7–10 y se conserva el máximo. |
 | 8500 | 8500 | Noche de Jazz en el Palacio, $8.500. |
@@ -118,7 +119,7 @@ Después de avanzar de página, cambiar un límite vuelve a la primera página.
 En Insomnia, los parámetros numéricos usan punto decimal; por ejemplo:
 
 ```text
-GET /eventos?page=0&size=6&catalogo=true&precioMin=42499.99&precioMax=42499.99
+GET /eventos?page=0&size=4&catalogo=true&precioMin=42499.99&precioMax=42499.99
 ```
 
 ## Zona horaria del catálogo

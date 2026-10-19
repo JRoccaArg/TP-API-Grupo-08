@@ -143,6 +143,17 @@ ALTER TABLE Carritos ADD CONSTRAINT CK_Carritos_estado
     CHECK (estado IN ('ACTIVO', 'EN_PAGO', 'CONVERTIDO', 'ABANDONADO'));
 ```
 
+### Si tu base de SQL Server ya estaba creada (columna `capacidad_max` de las locaciones)
+
+La capacidad de la locación se eliminó (no se usaba para nada). `ddl-auto=update` no borra columnas: en una base ya creada
+la columna `capacidad_max` sigue siendo `NOT NULL` y, sin este paso, crear una locación falla. Se corre **una sola vez** por base
+(en una base nueva, o con el perfil `dev`, no hace falta) y se puede repetir sin problema. Reemplazá `Zenoir_Prod` por el nombre de tu base:
+
+```sql
+USE Zenoir_Prod;
+IF COL_LENGTH('Locaciones', 'capacidad_max') IS NOT NULL ALTER TABLE Locaciones DROP COLUMN capacidad_max;
+```
+
 ## Endpoints actuales
 
 | Método | Ruta | Descripción |
@@ -177,8 +188,8 @@ ALTER TABLE Carritos ADD CONSTRAINT CK_Carritos_estado
 | `POST` | `/carritos/activo/vaciar` | Vaciar el carrito (devuelve las entradas) |
 | `POST` | `/carritos/activo/abandonar` | Abandonar el carrito (devuelve las entradas y lo vacía) |
 | `POST` | `/compras` | Botón de pagar (simulado, sin pasarela): exige haber iniciado el pago |
-| `POST` | `/api/v1/auth/register` | Registrar usuario |
-| `POST` | `/api/v1/auth/authenticate` | Iniciar sesión |
+| `POST` | `/api/v1/auth/register` | Registrar usuario. Responde `201` con `access_token`, `role`, `email`, `nombre` y `apellido` |
+| `POST` | `/api/v1/auth/authenticate` | Iniciar sesión. Responde con los mismos campos que el registro |
 
 ## Estructura
 

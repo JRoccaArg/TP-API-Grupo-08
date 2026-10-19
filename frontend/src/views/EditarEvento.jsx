@@ -1,37 +1,34 @@
-import { useNavigate, useParams } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { useParams } from 'react-router-dom'
 import Aviso from '../components/Aviso.jsx'
-import BarraAcciones from '../components/BarraAcciones.jsx'
-import FormularioEvento from '../components/FormularioEvento.jsx'
-import PanelEntradas from '../components/PanelEntradas.jsx'
-import TituloAdmin from '../components/TituloAdmin.jsx'
-import { eventos } from '../data/eventos.js'
-import { ofertas } from '../data/ofertas.js'
+import EdicionEvento from '../components/EdicionEvento.jsx'
+import { cargarEdicion } from '../utils/apiAdmin.js'
 
-// Pantalla "/admin/:id": datos del evento a la izquierda y sus entradas a la derecha. Solo ADMIN.
+// Pantalla "/admin/:id": carga el evento (y las listas de lugares y categorías) y se lo pasa a EdicionEvento. Solo ADMIN.
 export default function EditarEvento({ usuario }) {
   const { id } = useParams()
-  const navigate = useNavigate()
-  const evento = eventos.find((e) => e.id === Number(id))
+  const [carga, setCarga] = useState({ estado: 'cargando' })
+  const esAdmin = usuario?.rol === 'ADMIN'
 
-  if (usuario?.rol !== 'ADMIN') {
+  useEffect(() => {
+    if (!esAdmin) return undefined
+    let activo = true
+    cargarEdicion(id)
+      .then((resultado) => { if (activo) setCarga({ estado: 'listo', ...resultado }) })
+      .catch((fallo) => {
+        if (activo) setCarga({ estado: 'error', mensaje: fallo.message, noExiste: fallo.estado === 404 })
+      })
+    return () => { activo = false }
+  }, [id, esAdmin])
+
+  if (!esAdmin) {
     return <Aviso mensaje="Esta sección es solo para administradores." boton="Ingresar" to="/login" />
   }
-  if (!evento) return <Aviso mensaje="No encontramos este evento." boton="Volver" to="/admin" />
-
-  const volver = () => navigate('/admin')
-
-  return (
-    <main className="pagina admin">
-      <TituloAdmin
-        migas={[{ texto: 'Gestionar eventos', ruta: '/admin' }, { texto: evento.titulo }]}
-        titulo="Editar"
-        resaltado="evento"
-      />
-      <div className="admin__dos-columnas">
-        <FormularioEvento evento={evento} />
-        <PanelEntradas ofertas={ofertas.filter((o) => o.eventoId === evento.id)} />
-      </div>
-      <BarraAcciones textoGuardar="Guardar cambios" onGuardar={volver} onEliminar={volver} />
-    </main>
-  )
+  if (carga.estado === 'cargando') {
+    return <main className="pagina admin"><p className="admin__cargando" role="status">Cargando evento…</p></main>
+  }
+  if (carga.estado === 'error') {
+    return <Aviso mensaje={carga.noExiste ? 'No encontramos este evento.' : carga.mensaje} boton="Volver" to="/admin" />
+  }
+  return <EdicionEvento evento={carga.evento} locaciones={carga.locaciones} categorias={carga.categorias} token={usuario.token} />
 }

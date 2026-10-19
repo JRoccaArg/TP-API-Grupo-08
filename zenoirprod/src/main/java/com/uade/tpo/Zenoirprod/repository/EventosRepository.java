@@ -1,6 +1,7 @@
 package com.uade.tpo.Zenoirprod.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Repository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -15,6 +16,8 @@ import com.uade.tpo.Zenoirprod.entity.Evento;
 public interface EventosRepository extends JpaRepository<Evento, Integer> {
 
     // EXISTS evita duplicar eventos por sus distintas ofertas. WHERE se ejecuta antes de LIMIT/OFFSET.
+    // Orden: catalogo -> fecha de inicio descendente (primero la mas futura) o, con antiguosPrimero, ascendente
+    // (primero la mas antigua); proximo -> fecha ascendente; resto -> id.
     // El precio final replica precio - descuento redondeado (PrecioCalculator), no el precio base.
     @Query("""
             select e from Evento e
@@ -33,12 +36,26 @@ public interface EventosRepository extends JpaRepository<Evento, Integer> {
                   and (:precioMax is null or o.precio - round(o.precio * o.porcentajeDescuento / 100, 2) <= :precioMax)
               )))
             order by case when :proximo = true then e.fechaHoraInicio else null end,
-                case when :catalogo = true and e.estado = 'ACTIVO' then 0 else 1 end, e.id
+                case when :catalogo = true and :proximo = false and :antiguosPrimero = false then e.fechaHoraInicio else null end desc,
+                case when :catalogo = true and :proximo = false and :antiguosPrimero = true then e.fechaHoraInicio else null end asc,
+                e.id
             """)
     Page<Evento> buscar(@Param("nombre") String nombre, @Param("categoriaId") Integer categoriaId,
             @Param("precioMin") BigDecimal precioMin, @Param("precioMax") BigDecimal precioMax,
             @Param("catalogo") boolean catalogo, @Param("proximo") boolean proximo,
+            @Param("antiguosPrimero") boolean antiguosPrimero,
             @Param("ahora") LocalDateTime ahora, Pageable pageable);
+
+    // Orden del catalogo por defecto: la fecha mas futura primero.
+    default Page<Evento> buscar(String nombre, Integer categoriaId, BigDecimal precioMin, BigDecimal precioMax,
+            boolean catalogo, boolean proximo, LocalDateTime ahora, Pageable pageable) {
+        return buscar(nombre, categoriaId, precioMin, precioMax, catalogo, proximo, false, ahora, pageable);
+    }
+
+    // Pasa a FINALIZADO los eventos ACTIVOS cuya fecha de fin ya llego. Devuelve cuantos cambio.
+    @Modifying(clearAutomatically = true)
+    @Query("update Evento e set e.estado = 'FINALIZADO' where e.estado = 'ACTIVO' and e.fechaHoraFin <= :ahora")
+    int finalizarVencidos(@Param("ahora") LocalDateTime ahora);
 
     boolean existsByLocacion_Id(Integer locacionId);
 

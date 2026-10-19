@@ -34,11 +34,11 @@ class CatalogoServiceTest {
     }
     @Test void combinaFiltrosNormalizaYEscapaComodines() throws Exception {
         when(repository.buscar(eq("%musica!%!_!!![%"), eq(3), eq(BigDecimal.ZERO), eq(BigDecimal.TEN),
-                eq(true), eq(false), any(LocalDateTime.class), eq(pagina))).thenReturn(Page.empty(pagina));
+                eq(true), eq(false), eq(false), any(LocalDateTime.class), eq(pagina))).thenReturn(Page.empty(pagina));
         Page<Evento> resultado = service.getEventos(pagina, " MÚSICA%_![ ", 3, BigDecimal.ZERO, BigDecimal.TEN, true, false);
         assertThat(resultado).isNotNull();
         verify(repository).buscar(eq("%musica!%!_!!![%"), eq(3), eq(BigDecimal.ZERO), eq(BigDecimal.TEN),
-                eq(true), eq(false), any(LocalDateTime.class), eq(pagina));
+                eq(true), eq(false), eq(false), any(LocalDateTime.class), eq(pagina));
         verifyNoMoreInteractions(repository);
     }
     @ParameterizedTest

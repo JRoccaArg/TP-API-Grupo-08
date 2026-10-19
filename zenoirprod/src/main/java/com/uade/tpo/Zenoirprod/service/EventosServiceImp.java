@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.uade.tpo.Zenoirprod.entity.Evento;
 import com.uade.tpo.Zenoirprod.exceptions.CategoryInexistenteException;
@@ -49,7 +50,7 @@ public class EventosServiceImp implements EventosService {
 
     // La llamada histórica conserva sus resultados, estados y paginación.
     public Page<Evento> getEventos(PageRequest pageRequest, String nombre, Integer categoriaId,
-            BigDecimal precioMin, BigDecimal precioMax, boolean catalogo, boolean proximo)
+            BigDecimal precioMin, BigDecimal precioMax, boolean catalogo, boolean proximo, boolean antiguosPrimero)
             throws EventoInvalidoException {
         if ((precioMin != null && precioMin.signum() < 0)
                 || (precioMax != null && precioMax.signum() < 0)
@@ -66,7 +67,12 @@ public class EventosServiceImp implements EventosService {
         // Los caracteres de LIKE se buscan literalmente, igual que en el filtro anterior.
         String patron = "%" + busqueda.replace("!", "!!").replace("%", "!%").replace("_", "!_").replace("[", "![") + "%";
         return eventosRepository.buscar(patron, categoriaId, precioMin, precioMax,
-                catalogo, proximo, FechaCatalogo.ahora(), pageRequest);
+                catalogo, proximo, antiguosPrimero, FechaCatalogo.ahora(), pageRequest);
+    }
+
+    @Transactional
+    public int finalizarVencidos() {
+        return eventosRepository.finalizarVencidos(FechaCatalogo.ahora());
     }
 
     public Optional<Evento> getEventoPorId(Integer id) throws EventoInexistenteException {

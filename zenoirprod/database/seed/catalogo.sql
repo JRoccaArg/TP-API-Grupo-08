@@ -37,9 +37,9 @@ DBCC CHECKIDENT ('dbo.categorias', RESEED, 39) WITH NO_INFOMSGS;
 
 -- locaciones
 SET IDENTITY_INSERT [dbo].[locaciones] ON;
-INSERT INTO [dbo].[locaciones] ([id],[capacidad_max],[direccion],[nombre]) VALUES (1,800,N'Av. Quintana 161',N'Palacio Balcarce');
-INSERT INTO [dbo].[locaciones] ([id],[capacidad_max],[direccion],[nombre]) VALUES (33,1000,N'Defensa 789, CABA',N'Patio Cultural San Telmo');
-INSERT INTO [dbo].[locaciones] ([id],[capacidad_max],[direccion],[nombre]) VALUES (34,1000,N'Av. de los Italianos 500, CABA',N'Centro Cultural Puerto');
+INSERT INTO [dbo].[locaciones] ([id],[direccion],[nombre]) VALUES (1,N'Av. Quintana 161',N'Palacio Balcarce');
+INSERT INTO [dbo].[locaciones] ([id],[direccion],[nombre]) VALUES (33,N'Defensa 789, CABA',N'Patio Cultural San Telmo');
+INSERT INTO [dbo].[locaciones] ([id],[direccion],[nombre]) VALUES (34,N'Av. de los Italianos 500, CABA',N'Centro Cultural Puerto');
 SET IDENTITY_INSERT [dbo].[locaciones] OFF;
 DBCC CHECKIDENT ('dbo.locaciones', RESEED, 34) WITH NO_INFOMSGS;
 -- Filas: 3

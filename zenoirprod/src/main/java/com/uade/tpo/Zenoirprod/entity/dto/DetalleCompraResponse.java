@@ -19,6 +19,8 @@ public class DetalleCompraResponse {
 
     private Integer id;
     private Integer eventoTipoEntradaId;
+    // Para que el front muestre el evento (flyer, fecha y lugar) de cada entrada comprada.
+    private Integer eventoId;
     private String eventoTitulo;
     private String tipoEntradaNombre;
     private Integer cantidad;
@@ -32,6 +34,7 @@ public class DetalleCompraResponse {
         return DetalleCompraResponse.builder()
                 .id(d.getId())
                 .eventoTipoEntradaId(ete != null ? ete.getId() : null)
+                .eventoId(ete != null && ete.getEvento() != null ? ete.getEvento().getId() : null)
                 .eventoTitulo(ete != null && ete.getEvento() != null ? ete.getEvento().getTitulo() : null)
                 .tipoEntradaNombre(ete != null && ete.getTipoEntrada() != null ? ete.getTipoEntrada().getNombre() : null)
                 .cantidad(d.getCantidad())

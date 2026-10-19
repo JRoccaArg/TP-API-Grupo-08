@@ -13,12 +13,13 @@ export default function BarraCompra({ seleccion, ofertas, onConfirmar, conectado
           <strong className="barra-compra__total oro-texto">{precio(totalSeleccion(seleccion, ofertas))}</strong>
         </div>
         <Boton onClick={onConfirmar} deshabilitado={!conectado || cantidad === 0 || enviando} clase="boton--grande">
-          {enviando ? 'Verificando…' : conectado ? 'Continuar con la selección' : 'Compra no disponible'}
+          {enviando ? 'Verificando…' : conectado ? 'Agregar al carrito' : 'Compra no disponible'}
         </Boton>
       </div>
       <p className="barra-compra__nota">
-        Seleccionar entradas no reserva stock.
-        {!conectado && ' La compra todavía no está habilitada.'}
+        {conectado
+          ? 'Las entradas se reservan al agregarlas al carrito: tenés 15 minutos para pagar.'
+          : 'Seleccionar entradas no reserva stock. La compra todavía no está habilitada.'}
       </p>
     </>
   )
