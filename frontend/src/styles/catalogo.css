@@ -49,6 +49,9 @@
 /* Cuatro tarjetas por página: se reparten el ancho (sin desplazamiento horizontal); en pantallas chicas pasan a 2 y a 1 columna. */
 .catalogo-eventos .fechas__fila { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; margin-top: 24px; padding: 12px 0 24px; overflow: visible; }
 .catalogo-eventos .flyer { width: 100%; min-width: 0; }
+.catalogo-eventos .flyer__titulo { margin: 0 0 14px; color: var(--blanco); font: 600 22px / 1.25 var(--fuente-ui); letter-spacing: -.025em; overflow-wrap: anywhere; }
+.catalogo-eventos .flyer__titulo a { color: inherit; }
+.catalogo-eventos .flyer__titulo a:hover { color: var(--oro); }
 .catalogo-eventos .flyer__imagen { width: 100%; height: auto; aspect-ratio: 340 / 604; }
 .catalogo-eventos .flyer__visual { display: flex; width: 100%; height: 100%; object-fit: cover; }
 .catalogo-eventos .flyer__visual img { width: 100%; height: 100%; object-fit: cover; }

@@ -42,6 +42,7 @@ export default function TarjetaFlyer({ evento, ahora, indice = 0, filtroPrecio =
         <span className="flyer__fecha">{evento.fechaHoraInicio ? fechaLarga(evento.fechaHoraInicio) : 'Fecha a confirmar'}</span>
       </Link>
       <div className="flyer__pie">
+        <h3 className="flyer__titulo"><Link to={destino} state={origen}>{evento.titulo || 'Evento sin título'}</Link></h3>
         <p className="flyer__lugar">
           <strong>{evento.locacionNombre || 'Lugar a confirmar'}</strong>
           {evento.locacionDireccion && <span>{evento.locacionDireccion}</span>}
