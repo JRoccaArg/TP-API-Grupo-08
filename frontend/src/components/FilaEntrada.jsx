@@ -18,6 +18,7 @@ export default function FilaEntrada({ oferta, evento, cantidad, onCambiar, ahora
         <h3>{oferta.tipoEntradaNombre}
           {conDescuento && <span className="fila-entrada__descuento oro-texto">−{oferta.porcentajeDescuento}%</span>}
         </h3>
+        {oferta.tipoEntradaDescripcion && <p className="fila-entrada__descripcion">{oferta.tipoEntradaDescripcion}</p>}
         <p>{estadoVenta === 'EN_VENTA' ? `${oferta.cantidadDisponible} disponibles` : 'Disponibilidad sujeta al estado de venta'}</p>
         {oferta.fechaFinVenta && <p>Venta hasta {fechaCorta(oferta.fechaFinVenta)}</p>}
       </div>

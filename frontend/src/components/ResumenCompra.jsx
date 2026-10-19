@@ -4,7 +4,7 @@ import { totalDetalle } from '../utils/carrito.js'
 import { precio } from '../utils/formatos.js'
 
 // Cuadro lateral del carrito: renglones, total y botón para ir a pagar.
-export default function ResumenCompra({ lineas }) {
+export default function ResumenCompra({ lineas, onIrAPagar }) {
   return (
     <aside className="resumen" aria-label="Resumen">
       <p className="rotulo">RESUMEN</p>
@@ -26,7 +26,7 @@ export default function ResumenCompra({ lineas }) {
         <span className="rotulo">TOTAL</span>
         <strong className="oro-texto">{precio(totalDetalle(lineas))}</strong>
       </p>
-      <Boton to="/pago" clase="boton--ancho boton--grande">
+      <Boton to="/pago" onClick={onIrAPagar} clase="boton--ancho boton--grande">
         Ir a pagar <Icono nombre="flecha" />
       </Boton>
       <p className="resumen__nota">Al continuar abrís el pago y tenés 15 minutos más para completarlo.</p>

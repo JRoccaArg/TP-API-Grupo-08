@@ -1,11 +1,10 @@
-import { Link } from 'react-router-dom'
 import Aviso from '../components/Aviso.jsx'
+import Boton from '../components/Boton.jsx'
 import TarjetaEntrada from '../components/TarjetaEntrada.jsx'
-import { entradasCompradas } from '../data/entradasCompradas.js'
 import { eventos } from '../data/eventos.js'
 
 // Pantalla "/mis-entradas": las entradas compradas, con su QR.
-export default function MisEntradas({ usuario }) {
+export default function MisEntradas({ usuario, entradas }) {
   if (usuario?.rol !== 'USER') {
     return <Aviso mensaje="Ingresá para ver tus entradas." boton="Ingresar" to="/login" />
   }
@@ -21,19 +20,19 @@ export default function MisEntradas({ usuario }) {
           </h1>
           <p className="mis-entradas__bajada">Mostrá el QR en la puerta: cada código se usa una sola vez.</p>
         </div>
-        <Link to="/" className="enlace-oro">
+        <Boton to="/" variante="contorno" clase="boton--chico">
           Volver al inicio
-        </Link>
+        </Boton>
       </div>
       <div className="mis-entradas__grilla">
-        {entradasCompradas.map((entrada, indice) => (
+        {entradas.map((entrada, indice) => (
           <TarjetaEntrada
             key={entrada.id}
             entrada={entrada}
             evento={eventos.find((evento) => evento.id === entrada.eventoId)}
             comprador={usuario.nombre}
             numero={indice + 1}
-            total={entradasCompradas.length}
+            total={entradas.length}
           />
         ))}
       </div>

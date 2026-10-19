@@ -1,10 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-
-const estaActivo = (enlace, pathname) => {
-  if (enlace.activaEn) return pathname.startsWith(enlace.activaEn)
-  if (enlace.ancla) return false
-  return enlace.ruta === '/' ? pathname === '/' : pathname.startsWith(enlace.ruta)
-}
+import { estaActivo } from '../utils/enlaces.js'
 
 // Un enlace del header. En el inicio, los que tienen "ancla" bajan a su sección;
 // en las otras pantallas llevan al inicio.

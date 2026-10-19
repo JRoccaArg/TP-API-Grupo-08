@@ -1,12 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Link, useLocation, useParams } from 'react-router-dom'
+import { useLocation, useParams } from 'react-router-dom'
 import Aviso from '../components/Aviso.jsx'
 import Boton from '../components/Boton.jsx'
-import BarraCompra from '../components/BarraCompra.jsx'
-import DatosEvento from '../components/DatosEvento.jsx'
-import FlyerEvento from '../components/FlyerEvento.jsx'
-import Footer from '../components/Footer.jsx'
-import ListaEntradas from '../components/ListaEntradas.jsx'
+import ContenidoEvento from '../components/ContenidoEvento.jsx'
 import { obtenerEvento, verificarSeleccion } from '../utils/apiEventos.js'
 import { ajustarSeleccion } from '../utils/eventos.js'
 import '../styles/detalle-catalogo.css'
@@ -30,60 +26,63 @@ function DetalleEvento({ id, onConfirmarSeleccion }) {
   const [confirmacion, setConfirmacion] = useState(null)
   const [aviso, setAviso] = useState('')
   const volverA = /^\/(?:\?|#|$)/.test(location.state?.volverA || '') ? location.state.volverA : '/#fechas'
+  const idValido = /^\d+$/.test(id) && Number(id) >= 1
 
   useEffect(() => {
-    const control = new AbortController()
-    if (!/^\d+$/.test(id) || Number(id) < 1) {
-      return () => control.abort()
-    }
-    obtenerEvento(id, control.signal).then((datos) => {
-      if (control.signal.aborted) return
+    if (!idValido) return undefined
+    let activo = true
+    obtenerEvento(id).then((datos) => {
+      if (!activo) return
       setEvento(datos)
       setAhora(Date.now())
       setSeleccion((actual) => ajustarSeleccion(actual, datos.ofertas, datos))
+      setCargando(false)
     }).catch((fallo) => {
-      if (!control.signal.aborted) setError(fallo)
-    }).finally(() => {
-      if (!control.signal.aborted) setCargando(false)
+      if (!activo) return
+      setError(fallo)
+      setCargando(false)
     })
-    return () => control.abort()
-  }, [id, intento])
+    return () => { activo = false }
+  }, [id, idValido, intento])
 
   useEffect(() => {
-    window.scrollTo(0, 0)
     const reloj = setInterval(() => setAhora(Date.now()), 1000)
     return () => clearInterval(reloj)
   }, [])
 
-
+  // Al confirmar se vuelven a consultar la disponibilidad y los precios; recién ahí se entrega la selección al carrito.
   useEffect(() => {
-    if (!confirmacion || typeof onConfirmarSeleccion !== 'function') return
-    const control = new AbortController()
-    verificarSeleccion(confirmacion.evento, confirmacion.seleccion, control.signal)
+    if (!confirmacion || typeof onConfirmarSeleccion !== 'function') return undefined
+    let activo = true
+    const terminar = () => {
+      if (activo) { setEnviando(false); setConfirmacion(null) }
+    }
+    verificarSeleccion(confirmacion.evento, confirmacion.seleccion)
       .then(({ evento: actualizado, seleccion: nueva, cambio }) => {
-        if (control.signal.aborted) return
+        if (!activo) return undefined
         setEvento(actualizado)
         setSeleccion(nueva)
         setAhora(Date.now())
         if (cambio) {
           setAviso('La disponibilidad o los precios cambiaron. Revisá la selección actualizada.')
-          return
+          return undefined
         }
         return Promise.resolve(onConfirmarSeleccion({
           eventoId: actualizado.id,
           items: nueva.map((item) => ({ eventoTipoEntradaId: item.ofertaId, cantidad: item.cantidad })),
-        })).then(() => { if (!control.signal.aborted) setSeleccion([]) })
-      }).catch((fallo) => {
-        if (!control.signal.aborted) setAviso(fallo.message || 'No pudimos continuar. Intentá nuevamente.')
-      }).finally(() => {
-        if (!control.signal.aborted) { setEnviando(false); setConfirmacion(null) }
+        })).then(() => { if (activo) setSeleccion([]) })
       })
-    return () => control.abort()
+      .then(terminar)
+      .catch((fallo) => {
+        if (activo) setAviso(fallo.message || 'No pudimos continuar. Intentá nuevamente.')
+        terminar()
+      })
+    return () => { activo = false }
   }, [confirmacion, onConfirmarSeleccion])
 
   const reintentar = () => { setCargando(true); setError(null); setIntento(intento + 1) }
 
-  if (!/^\d+$/.test(id) || Number(id) < 1) return <Aviso mensaje="No encontramos este evento." boton="Volver al catálogo" to={volverA} />
+  if (!idValido) return <Aviso mensaje="No encontramos este evento." boton="Volver al catálogo" to={volverA} />
   if (cargando) return <main className="pagina aviso detalle-catalogo" role="status"><h1>Cargando evento…</h1></main>
   if (error?.estado === 404 || evento?.estado?.toUpperCase() === 'BORRADOR') {
     return <Aviso mensaje="No encontramos este evento." boton="Volver al catálogo" to={volverA} />
@@ -92,7 +91,7 @@ function DetalleEvento({ id, onConfirmarSeleccion }) {
     <main className="pagina aviso detalle-catalogo">
       <h1>No pudimos cargar el evento.</h1><p role="alert">{error.message}</p>
       <Boton onClick={reintentar}>Reintentar</Boton>
-      <Link className="enlace-oro" to={volverA}>Volver al catálogo</Link>
+      <Boton to={volverA} variante="contorno">Volver al catálogo</Boton>
     </main>
   )
 
@@ -114,40 +113,18 @@ function DetalleEvento({ id, onConfirmarSeleccion }) {
     setConfirmacion({ evento, seleccion: vigente })
   }
 
-  const estados = {
-    FINALIZADO: 'Esta edición ya finalizó.', CANCELADO: 'Este evento fue cancelado.',
-    REPROGRAMADO: 'Este evento fue reprogramado. La venta no está habilitada.',
-  }
   return (
-    <div className="detalle-catalogo">
-      <main className="pagina">
-        <Link className="enlace-oro detalle-catalogo__volver" to={volverA}>← Volver al catálogo</Link>
-        <div className="evento">
-          <FlyerEvento evento={evento} />
-          <div className="evento__contenido">
-            <DatosEvento evento={evento} />
-            {evento.estado?.toUpperCase() !== 'ACTIVO' && (
-              <p className="evento__finalizado">{estados[evento.estado?.toUpperCase()] || 'La venta no está habilitada.'}</p>
-            )}
-            <button type="button" className="enlace-oro detalle-catalogo__actualizar" onClick={actualizar} disabled={enviando}>
-              Actualizar disponibilidad e imágenes
-            </button>
-            {evento.errorOfertas ? (
-              <p className="catalogo-nota" role="alert">No pudimos consultar las entradas. Reintentá actualizando la disponibilidad.</p>
-            ) : (
-              <>
-                <ListaEntradas evento={evento} seleccion={vigente} onCambiar={cambiar} ahora={ahora} />
-                {evento.estado?.toUpperCase() === 'ACTIVO' && evento.ofertas.length > 0 && (
-                  <BarraCompra seleccion={vigente} ofertas={evento.ofertas} onConfirmar={confirmar}
-                    conectado={typeof onConfirmarSeleccion === 'function'} enviando={enviando} />
-                )}
-              </>
-            )}
-            {aviso && <p className="catalogo-nota" role="status">{aviso}</p>}
-          </div>
-        </div>
-      </main>
-      <Footer />
-    </div>
+    <ContenidoEvento
+      evento={evento}
+      seleccion={vigente}
+      ahora={ahora}
+      volverA={volverA}
+      aviso={aviso}
+      enviando={enviando}
+      conectado={typeof onConfirmarSeleccion === 'function'}
+      onCambiar={cambiar}
+      onActualizar={actualizar}
+      onConfirmar={confirmar}
+    />
   )
 }

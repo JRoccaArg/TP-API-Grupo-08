@@ -1,0 +1,74 @@
+/* Pago con tarjeta: tarjeta que gira, formulario y pantalla de tiempo agotado */
+.pago-tarjeta { display: flex; flex-wrap: wrap; gap: 40px; align-items: flex-start; margin-top: 24px; }
+
+/* El giro 3D: "perspective" da la profundidad, "preserve-3d" deja que las dos caras existan en 3D
+   y "backface-visibility: hidden" oculta cada cara cuando está de espaldas. */
+.tarjeta-visual { flex: 1 1 340px; max-width: 420px; perspective: 1400px; }
+.tarjeta-visual__giro { position: relative; width: 100%; aspect-ratio: 1.586 / 1; transform-style: preserve-3d; transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.tarjeta-visual__giro--girada { transform: rotateY(180deg); }
+
+.tarjeta-visual__cara {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border: 1px solid rgba(216, 188, 120, 0.45);
+  border-radius: 18px;
+  background: linear-gradient(145deg, #1d1d1d, #0b0b0b);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65);
+  backface-visibility: hidden;
+}
+
+.tarjeta-visual__frente {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 22px 24px;
+  background: radial-gradient(circle at 88% 6%, rgba(216, 188, 120, 0.3), transparent 46%), linear-gradient(145deg, #1d1d1d, #0b0b0b);
+}
+
+.tarjeta-visual__dorso { transform: rotateY(180deg); }
+.tarjeta-visual__fila { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
+.tarjeta-visual__logo { align-self: center; font: 800 15px var(--fuente-marca); letter-spacing: 0.34em; color: var(--oro); }
+.tarjeta-visual__chip { width: 50px; height: 38px; border-radius: 7px; background: linear-gradient(90deg, transparent 32%, rgba(0, 0, 0, 0.28) 33%, transparent 35%, transparent 65%, rgba(0, 0, 0, 0.28) 66%, transparent 68%), linear-gradient(0deg, transparent 48%, rgba(0, 0, 0, 0.28) 49%, transparent 52%), var(--oro-relleno); }
+
+/* El dato que se está escribiendo se subraya en la tarjeta */
+.tarjeta-visual__dato { padding-bottom: 4px; border-bottom: 1px solid transparent; font: 500 15px var(--fuente-ui); letter-spacing: 0.08em; font-variant-numeric: tabular-nums; transition: border-color 0.2s; }
+.tarjeta-visual__dato--activo { border-bottom-color: rgba(216, 188, 120, 0.85); }
+.tarjeta-visual__numero { font-size: 23px; letter-spacing: 0.12em; white-space: nowrap; }
+.tarjeta-visual__titular { flex: 1; min-width: 0; }
+.tarjeta-visual__titular span:last-child { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.tarjeta-visual__rotulo { display: block; margin-bottom: 4px; font: 600 10px var(--fuente-ui); letter-spacing: 0.18em; color: var(--gris); }
+.tarjeta-visual__rotulo--der { margin: 22px 24px 0; text-align: right; }
+
+.tarjeta-visual__banda { height: 48px; margin-top: 26px; background: #000; }
+.tarjeta-visual__firma { display: flex; height: 44px; margin: 6px 24px 0; }
+.tarjeta-visual__rayas { flex: 1; background: repeating-linear-gradient(135deg, #e9e4d6 0 6px, #cfc8b3 6px 12px); }
+.tarjeta-visual__cvv { display: grid; place-items: center; min-width: 76px; padding: 0 14px; background: var(--blanco); color: var(--tinta-oro); font: italic 600 19px var(--fuente-ui); letter-spacing: 0.12em; }
+.tarjeta-visual__aviso { margin: 22px 24px 0; font: 400 11px / 1.5 var(--fuente-ui); color: var(--gris-oscuro); }
+
+/* Marca (Visa, Mastercard, Amex) */
+.marca-tarjeta { display: grid; place-items: center; min-width: 64px; height: 34px; color: var(--oro); }
+.marca-tarjeta--visa { font: italic 800 32px var(--fuente-titulo); letter-spacing: 0.04em; color: var(--blanco); }
+.marca-tarjeta--amex { align-self: center; justify-self: end; height: auto; min-width: 0; padding: 3px 8px; border: 2px solid var(--blanco); font: 800 15px var(--fuente-ui); letter-spacing: 0.08em; color: var(--blanco); }
+.marca-tarjeta--mastercard { position: relative; width: 54px; }
+.marca-tarjeta--mastercard span { position: absolute; top: 1px; width: 32px; height: 32px; border-radius: 50%; }
+.marca-tarjeta--mastercard span:first-child { left: 0; background: #d94a3d; }
+.marca-tarjeta--mastercard span:last-child { right: 0; background: #e8a23a; opacity: 0.9; }
+
+/* Formulario */
+.form-tarjeta { display: flex; flex: 1 1 340px; flex-direction: column; gap: 6px; min-width: 0; }
+.form-tarjeta__fila { display: flex; flex-wrap: wrap; gap: 0 28px; }
+.form-tarjeta__fila .campo { flex: 1 1 140px; }
+.form-tarjeta__prueba { align-self: flex-start; margin-top: 14px; }
+
+/* Tiempo agotado */
+.agotado { max-width: 560px; margin: 56px auto 0; padding: 44px 40px; border: 1px solid rgba(201, 132, 126, 0.6); background: var(--negro-suave); box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7); text-align: center; }
+.agotado__icono { display: inline-grid; place-items: center; width: 64px; height: 64px; border: 1px solid rgba(201, 132, 126, 0.6); border-radius: 50%; color: var(--peligro); }
+.agotado h1 { margin-top: 20px; font: 700 40px var(--fuente-titulo); letter-spacing: 0.03em; text-transform: uppercase; }
+.agotado p { margin-top: 12px; font: 300 16px / 1.6 var(--fuente-ui); color: var(--gris-claro); }
+.agotado .agotado__nota { margin-bottom: 30px; font-size: 14px; color: var(--gris); }
+.agotado__botones { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .tarjeta-visual__giro, .reserva__progreso { transition: none; }
+}

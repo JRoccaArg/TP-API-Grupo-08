@@ -11,7 +11,8 @@
     linear-gradient(90deg, rgba(10, 10, 10, 0) 70%, #0a0a0a 100%);
 }
 
-.acceso__logo { position: absolute; left: 48px; top: 40px; z-index: 2; }
+/* Mismo lugar que el logo del header: sangría del header y mitad de la diferencia entre su fila (44px) y el logo (32px). */
+.acceso__logo { position: absolute; left: 56px; top: 46px; z-index: 2; }
 
 .acceso__titulo {
   position: absolute;
@@ -25,12 +26,13 @@
 }
 
 .acceso__panel { position: relative; display: flex; flex-direction: column; justify-content: center; padding: 80px 110px; }
-.acceso__volver { position: absolute; right: 48px; top: 44px; border-bottom: 1px solid #5a5a5a; font: 500 14px var(--fuente-ui); color: var(--gris); }
+.acceso__volver { position: absolute; right: 48px; top: 40px; }
 .acceso__contenido { width: 100%; max-width: 560px; }
 .acceso__encabezado { font: 600 68px / 1 var(--fuente-ui); letter-spacing: -0.05em; }
 .acceso__bajada { margin-top: 16px; font: 300 18px / 1.4 var(--fuente-ui); color: rgba(255, 255, 255, 0.7); }
 .acceso__form { display: flex; flex-direction: column; gap: 34px; margin-top: 44px; }
 .acceso__doble { display: grid; grid-template-columns: 1fr 1fr; gap: 34px 30px; }
 .acceso__form .boton { margin-top: 10px; }
+.acceso__error { margin: 0; padding: 13px 16px; border: 1px solid rgba(201, 132, 126, 0.55); border-radius: 12px; background: rgba(201, 132, 126, 0.08); color: var(--peligro); font: 400 14px / 1.45 var(--fuente-ui); }
 .acceso__pie { margin-top: 28px; font: 300 16px var(--fuente-ui); color: rgba(255, 255, 255, 0.75); }
 .acceso__nota { margin-top: 46px; padding-top: 22px; border-top: 1px solid rgba(255, 255, 255, 0.12); font: 300 14px / 1.5 var(--fuente-ui); color: var(--gris-oscuro); }

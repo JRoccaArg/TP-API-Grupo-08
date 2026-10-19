@@ -4,7 +4,7 @@ import { cantidadItems, detalleCarrito, totalDetalle } from '../utils/carrito.js
 import { precio } from '../utils/formatos.js'
 
 // Carrito desplegable que se abre desde el header.
-export default function MiniCarrito({ carrito, onCerrar }) {
+export default function MiniCarrito({ carrito, onCerrar, onIrAPagar }) {
   const lineas = detalleCarrito(carrito.items)
 
   return (
@@ -45,7 +45,13 @@ export default function MiniCarrito({ carrito, onCerrar }) {
             <Boton to="/carrito" variante="contorno" onClick={onCerrar}>
               Ver carrito
             </Boton>
-            <Boton to="/pago" onClick={onCerrar}>
+            <Boton
+              to="/pago"
+              onClick={() => {
+                onIrAPagar()
+                onCerrar()
+              }}
+            >
               Ir a pagar
             </Boton>
           </div>

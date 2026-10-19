@@ -10,9 +10,6 @@ export default function SeccionFotos() {
           <br />
           <span className="oro-texto">ZENOIR</span>
         </h2>
-        <a href="#fotos" className="enlace-oro">
-          Ver todas las fotos
-        </a>
       </div>
       <CintaFotos fotos={filaVertical} formato="vertical" />
       <CintaFotos fotos={filaHorizontal} formato="horizontal" inversa />

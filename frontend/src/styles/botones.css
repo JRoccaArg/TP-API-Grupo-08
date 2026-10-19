@@ -39,3 +39,11 @@
 .boton--chico { height: 44px; padding: 0 24px; font-size: 12px; letter-spacing: 0.14em; }
 .boton--grande { height: 60px; padding: 0 38px; font-size: 15px; }
 .boton--ancho { width: 100%; }
+
+.boton--peligro {
+  background: transparent;
+  border: 1px solid rgba(201, 132, 126, 0.6);
+  color: var(--peligro);
+}
+
+.boton--peligro:hover:not(:disabled) { background: rgba(201, 132, 126, 0.08); }

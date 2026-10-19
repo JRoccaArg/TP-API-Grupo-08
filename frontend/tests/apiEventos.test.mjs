@@ -24,12 +24,11 @@ function simularFetch(resolver) {
   }
   return llamadas
 }
-function verificarGetPaginados(llamadas, signal) {
+function verificarGetPaginados(llamadas) {
   for (const { url, opciones } of llamadas) {
     assert.equal(opciones.method ?? 'GET', 'GET')
     assert.equal(opciones.headers.Accept, 'application/json')
     assert.equal(opciones.headers.Authorization, undefined)
-    assert.equal(opciones.signal, signal)
     if (url.search) {
       assert.match(url.searchParams.get('page'), /^\d+$/)
       assert.equal(url.searchParams.get('size'), '100')
@@ -42,25 +41,23 @@ afterEach(() => { globalThis.fetch = fetchOriginal })
 
 // Cada prueba restaura fetch y se ejecuta secuencialmente: ningún mock alcanza la API real.
 describe('consultas públicas del catálogo', { concurrency: false }, () => {
-  test('pide sólo seis eventos al servidor, envía filtros y completa únicamente esa página', async () => {
-    const eventos = Array.from({ length: 6 }, (_, i) => evento(100 - i))
-    const signal = new AbortController().signal
+  test('pide sólo cuatro eventos al servidor, envía filtros y completa únicamente esa página', async () => {
+    const eventos = Array.from({ length: 4 }, (_, i) => evento(100 - i))
     const llamadas = simularFetch((url) => {
       if (url.pathname === '/api/eventos') {
         assert.deepEqual(Object.fromEntries(url.searchParams), {
-          page: '2', size: '6', catalogo: 'true', nombre: 'Café & Jazz', categoriaId: '5', precioMin: '0', precioMax: '8500.50',
+          page: '2', size: '4', catalogo: 'true', nombre: 'Café & Jazz', categoriaId: '5', precioMin: '0', precioMax: '8500.50',
         })
-        return responder({ content: eventos, totalElements: 205, totalPages: 35, number: 2, size: 6 })
+        return responder({ content: eventos, totalElements: 205, totalPages: 52, number: 2, size: 4 })
       }
       return responder(pagina([]))
     })
-    const catalogo = await obtenerCatalogo(signal, { busqueda: ' Café & Jazz ', categoria: '5', precioMin: '0', precioMax: '8500.50', pagina: 3 })
+    const catalogo = await obtenerCatalogo({ busqueda: ' Café & Jazz ', categoria: '5', precioMin: '0', precioMax: '8500.50', pagina: 3 })
     assert.equal(catalogo.totalElements, 205)
-    assert.equal(catalogo.totalPages, 35)
+    assert.equal(catalogo.totalPages, 52)
     assert.deepEqual(catalogo.content.map(e => e.id), eventos.map(e => e.id))
     assert.equal(llamadas.filter(l => l.url.pathname === '/api/eventos').length, 1)
-    assert.equal(llamadas.length, 1 + 6 * 2)
-    assert.ok(llamadas.every(l => l.opciones.signal === signal))
+    assert.equal(llamadas.length, 1 + 4 * 2)
   })
 
   test('reúne todas las ofertas e imágenes y ordena portada antes que galería y luego orden', async () => {
@@ -94,7 +91,7 @@ describe('consultas públicas del catálogo', { concurrency: false }, () => {
 
   test('propaga el error de la página solicitada sin consultar otras páginas', async () => {
     const llamadas = simularFetch(() => responder({ message: 'Servicio temporalmente no disponible' }, 503))
-    await assert.rejects(obtenerCatalogo(undefined, { pagina: 4 }), error =>
+    await assert.rejects(obtenerCatalogo({ pagina: 4 }), error =>
       error instanceof ErrorApi && error.estado === 503 && error.message === 'Servicio temporalmente no disponible')
     assert.equal(llamadas.length, 1)
     assert.equal(llamadas[0].url.searchParams.get('page'), '3')
@@ -129,18 +126,6 @@ describe('consultas públicas del catálogo', { concurrency: false }, () => {
     assert.equal(e.errorImagenes, '')
   })
 
-  test('propaga AbortError auxiliar sin convertir una cancelación en un catálogo parcial', async () => {
-    const abortado = new DOMException('Solicitud cancelada', 'AbortError')
-    const signal = new AbortController().signal
-    const llamadas = simularFetch((url) => {
-      if (url.pathname === '/api/eventos') return responder(pagina([evento(8)]))
-      if (url.pathname.includes('eventosTiposEntrada')) throw abortado
-      return responder(pagina([]))
-    })
-    await assert.rejects(obtenerCatalogo(signal), error => error === abortado)
-    verificarGetPaginados(llamadas.filter(l => l.url.pathname !== '/api/eventos'), signal)
-  })
-
   test('normaliza errores de red y conserva el mensaje HTTP del backend', async () => {
     simularFetch(() => { throw new TypeError('Network failure') })
     await assert.rejects(consultar('/eventos/1'), error =>
@@ -159,15 +144,12 @@ describe('consultas públicas del catálogo', { concurrency: false }, () => {
       error instanceof ErrorApi && error.estado === 502 && /consultar el servidor/.test(error.message))
   })
 
-  test('rechaza páginas con estructura inválida y propaga la cancelación de la consulta principal', async () => {
+  test('rechaza páginas con estructura inválida', async () => {
     for (const datos of [{ content: {}, totalPages: 1 }, { content: [], totalPages: -1 }, { content: [], totalPages: 1.5 }]) {
       simularFetch(() => responder(datos))
       await assert.rejects(consultarPaginas('/eventos'), error =>
         error instanceof ErrorApi && /formato inesperado/.test(error.message))
     }
-    const abortado = new DOMException('Solicitud cancelada', 'AbortError')
-    simularFetch(() => { throw abortado })
-    await assert.rejects(consultar('/eventos/1'), error => error === abortado)
   })
 })
 
@@ -177,9 +159,7 @@ test('antes de integrar detecta cambios de precio aunque el total de dos ofertas
     { id: 2, estado: 'ACTIVO', cantidadDisponible: 10, precioFinal: 20 },
   ]
   const actualizadas = [{ ...ofertas[0], precioFinal: 11 }, { ...ofertas[1], precioFinal: 19 }]
-  const signal = new AbortController().signal
-  simularFetch((url, opciones) => {
-    assert.equal(opciones.signal, signal)
+  simularFetch((url) => {
     if (url.pathname === '/api/eventos/1') return responder(evento(1))
     if (url.pathname.endsWith('/imagenes')) return responder(pagina([]))
     if (url.pathname.endsWith('/disponibilidad')) {
@@ -191,7 +171,7 @@ test('antes de integrar detecta cambios de precio aunque el total de dos ofertas
   })
   const resultado = await verificarSeleccion({ ...evento(1), ofertas }, [
     { ofertaId: 1, cantidad: 1 }, { ofertaId: 2, cantidad: 1 },
-  ], signal)
+  ])
   assert.equal(resultado.cambio, true)
 })
 
@@ -210,7 +190,7 @@ test('antes de integrar vuelve a consultar stock y detecta una cantidad ya no di
 
 test('conserva el orden que entrega el servidor y los totales aun cuando la página está vacía', async () => {
   simularFetch(() => responder({ content: [], totalPages: 4, totalElements: 20, number: 99 }))
-  const resultado = await obtenerCatalogo(undefined, { pagina: 100 })
+  const resultado = await obtenerCatalogo({ pagina: 100 })
   assert.equal(resultado.number, 99)
   assert.equal(resultado.totalPages, 4)
   assert.equal(resultado.totalElements, 20)
@@ -227,7 +207,7 @@ test('no acepta un catálogo sin metadatos de paginación válidos', async () =>
 
 test('envía precios con coma como decimales para Spring sin perder el filtro de cero', async () => {
   const llamadas = simularFetch(() => responder({ content: [], totalPages: 0, totalElements: 0, number: 0 }))
-  await obtenerCatalogo(undefined, { precioMin: '0', precioMax: '8500,50' })
+  await obtenerCatalogo({ precioMin: '0', precioMax: '8500,50' })
   assert.equal(llamadas[0].url.searchParams.get('precioMin'), '0')
   assert.equal(llamadas[0].url.searchParams.get('precioMax'), '8500.50')
 })

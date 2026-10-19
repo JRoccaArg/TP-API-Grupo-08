@@ -1,22 +1,21 @@
-import { Link } from 'react-router-dom'
 import Boton from './Boton.jsx'
 
-// Pie del formulario de evento: eliminar (solo al editar), cancelar y guardar.
-export default function BarraAcciones({ textoGuardar, onGuardar, onEliminar }) {
+// Pie del formulario de evento: eliminar (solo al editar), cancelar y guardar. "ocupado" bloquea los botones mientras se guarda.
+export default function BarraAcciones({ textoGuardar, textoEliminar = 'Eliminar evento', volverA = '/admin', ocupado = false, onGuardar, onEliminar }) {
   return (
     <div className="acciones-admin">
       {onEliminar ? (
-        <button type="button" className="acciones-admin__eliminar" onClick={onEliminar}>
-          Eliminar evento
-        </button>
+        <Boton variante="peligro" deshabilitado={ocupado} onClick={onEliminar}>
+          {textoEliminar}
+        </Boton>
       ) : (
         <span />
       )}
       <div className="acciones-admin__derecha">
-        <Link to="/admin" className="acciones-admin__cancelar">
+        <Boton to={volverA} variante="contorno">
           Cancelar
-        </Link>
-        <Boton onClick={onGuardar} clase="boton--grande">
+        </Boton>
+        <Boton onClick={onGuardar} deshabilitado={ocupado} clase="boton--grande">
           {textoGuardar}
         </Boton>
       </div>

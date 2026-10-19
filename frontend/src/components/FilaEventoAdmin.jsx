@@ -1,15 +1,19 @@
 import Boton from './Boton.jsx'
-import Icono from './Icono.jsx'
 import { diaYFecha, horario } from '../utils/fechas.js'
 
-// Un evento en la lista del administrador, con sus ventas y el botón para editarlo.
+// Un evento real en la lista del administrador: su portada, cuándo y dónde es, su estado y sus entradas.
 export default function FilaEventoAdmin({ evento }) {
-  const { tipos, vendidas, total } = evento.ventas
   const activo = evento.estado === 'ACTIVO'
+  const portada = evento.imagenes?.[0]
+  const disponibles = evento.ofertas.reduce((total, oferta) => total + oferta.cantidadDisponible, 0)
 
   return (
     <li className={`fila-admin ${activo ? '' : 'fila-admin--pasada'}`}>
-      <img src={evento.flyer} alt={`Flyer de ${evento.titulo}`} />
+      {portada ? (
+        <img src={portada.url} alt={`Portada de ${evento.titulo}`} />
+      ) : (
+        <span className="fila-admin__sin-foto">Sin foto</span>
+      )}
       <div>
         <h3>{evento.titulo}</h3>
         <p>
@@ -19,21 +23,19 @@ export default function FilaEventoAdmin({ evento }) {
       </div>
       <p className={`fila-admin__estado ${activo ? 'oro-texto' : ''}`}>{evento.estado}</p>
       <div className="fila-admin__ventas">
-        <p>{tipos} tipos de entrada</p>
-        <div className="fila-admin__barra">
-          <span className="oro-relleno" style={{ width: `${(vendidas / total) * 100}%` }} />
-        </div>
-        <strong>
-          {vendidas} vendidas de {total}
-        </strong>
+        {evento.errorOfertas ? (
+          <p>Entradas sin confirmar</p>
+        ) : (
+          <>
+            <p>{evento.ofertas.length} tipos de entrada</p>
+            <strong>{disponibles} disponibles</strong>
+          </>
+        )}
       </div>
       <div className="fila-admin__acciones">
         <Boton to={`/admin/${evento.id}`} variante="contorno" clase="boton--chico">
           Editar
         </Boton>
-        <button type="button" className="fila-admin__mas" aria-label={`Más acciones para ${evento.titulo}`}>
-          <Icono nombre="puntos" />
-        </button>
       </div>
     </li>
   )

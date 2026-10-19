@@ -1,5 +1,5 @@
-import { Link } from 'react-router-dom'
 import Aviso from '../components/Aviso.jsx'
+import Boton from '../components/Boton.jsx'
 import BannerReserva from '../components/BannerReserva.jsx'
 import LineaCarrito from '../components/LineaCarrito.jsx'
 import PasosCompra from '../components/PasosCompra.jsx'
@@ -7,12 +7,13 @@ import ResumenCompra from '../components/ResumenCompra.jsx'
 import { detalleCarrito } from '../utils/carrito.js'
 
 // Pantalla "/carrito": paso 2 de la compra.
-export default function Carrito({ usuario, carrito, onCambiar, onVaciar }) {
+export default function Carrito({ usuario, carrito, vencido, onCambiar, onVaciar, onIrAPagar }) {
   const lineas = detalleCarrito(carrito.items)
 
   if (usuario?.rol !== 'USER') {
     return <Aviso mensaje="Ingresá para ver tu carrito." boton="Ingresar" to="/login" />
   }
+  if (vencido) return <Aviso mensaje="Se terminó el tiempo y liberamos tus entradas." boton="Ver fechas" to="/" />
   if (lineas.length === 0) return <Aviso mensaje="Tu carrito está vacío." boton="Ver fechas" to="/" />
 
   return (
@@ -31,15 +32,15 @@ export default function Carrito({ usuario, carrito, onCambiar, onVaciar }) {
             ))}
           </ul>
           <div className="compra__acciones">
-            <Link to="/" className="enlace-oro">
+            <Boton to="/" variante="contorno" clase="boton--chico">
               Seguir comprando
-            </Link>
-            <button type="button" className="compra__vaciar" onClick={onVaciar}>
+            </Boton>
+            <Boton variante="peligro" clase="boton--chico" onClick={onVaciar}>
               Vaciar carrito
-            </button>
+            </Boton>
           </div>
         </section>
-        <ResumenCompra lineas={lineas} />
+        <ResumenCompra lineas={lineas} onIrAPagar={onIrAPagar} />
       </div>
     </main>
   )

@@ -22,7 +22,7 @@ export default function Hero({ proximo }) {
             ELEGANTE
           </h1>
           <p className="hero__bajada aparece" style={{ animationDelay: '.25s' }}>
-            Ediciones con barra libre en Recoleta. Elegí tu fecha y conocé las opciones para tu próxima noche.
+            Elegí tu fecha y conocé las opciones para tu próxima noche.
           </p>
           {proximo ? (
             <Boton to={`/eventos/${proximo.id}`} state={origen} clase="boton--grande aparece">

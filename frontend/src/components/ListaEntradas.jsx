@@ -5,7 +5,6 @@ export default function ListaEntradas({ evento, seleccion, onCambiar, ahora }) {
     <section className="entradas">
       <div className="entradas__cabecera">
         <h2>Elegí tus entradas</h2>
-        <span>Precio final por entrada</span>
       </div>
       <ul className="entradas__lista">
         {evento.ofertas.map((oferta) => (

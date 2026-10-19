@@ -34,6 +34,20 @@
   animation: oroMover 8s ease-in-out infinite alternate, vaciar 40s linear infinite alternate;
 }
 
+.reserva--urgente { border-color: rgba(201, 132, 126, 0.6); }
+.reserva--urgente .reserva__tiempo { color: var(--peligro); }
+
+.reserva__progreso {
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  height: 2px;
+  background: var(--oro-relleno);
+  transition: width 1s linear;
+}
+
+.reserva--urgente .reserva__progreso { background: var(--peligro); }
+
 /* Estructura de carrito y pago */
 .compra__grilla { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 64px; align-items: start; margin-top: 52px; }
 .lineas { margin-top: 34px; border-top: 1px solid rgba(255, 255, 255, 0.16); }
@@ -47,8 +61,7 @@
 .linea__unidad s { color: #6f6f6f; }
 .linea__unidad b { color: var(--blanco); font-weight: 600; }
 .linea__subtotal { width: 124px; text-align: right; font: 700 38px / 1 var(--fuente-titulo); }
-.linea__quitar, .compra__vaciar { padding: 0; border: 0; background: transparent; color: var(--gris); font: 400 14px var(--fuente-ui); text-decoration: underline; }
-.compra__vaciar { color: var(--peligro); }
+.linea__quitar { padding: 0; border: 0; background: transparent; color: var(--gris); font: 400 14px var(--fuente-ui); text-decoration: underline; }
 .compra__acciones { display: flex; align-items: center; justify-content: space-between; margin-top: 26px; }
 
 /* Resumen y total */
@@ -61,23 +74,17 @@
 .resumen__total strong { font: 700 60px / 1 var(--fuente-titulo); }
 .resumen__gran-total { display: block; margin: 12px 0 6px; font: 700 80px / 1 var(--fuente-titulo); }
 .resumen__nota { margin-top: 16px; font: 300 13px / 1.45 var(--fuente-ui); color: var(--gris); }
+.resumen__nota--icono { display: flex; gap: 10px; }
+.resumen__nota--icono svg { flex: none; margin-top: 2px; color: var(--oro); }
+.resumen__lista--separada { margin: 22px 0 0; padding-top: 18px; border-top: 1px solid var(--linea); font-size: 15px; }
+.resumen__lista--separada li { gap: 12px; }
 .resumen .boton { margin-top: 28px; }
 
 /* Pago */
-.lista-compra { margin-top: 34px; border-top: 1px solid rgba(255, 255, 255, 0.16); }
-.lista-compra__cabecera { display: flex; align-items: center; justify-content: space-between; padding: 22px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.12); }
-.lista-compra li { display: flex; align-items: center; gap: 18px; padding: 20px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.12); }
-.lista-compra img { width: 42px; height: 75px; object-fit: cover; border-radius: 6px; }
-.lista-compra li div { flex: 1; }
-.lista-compra h3 { font: 700 26px / 1 var(--fuente-titulo); text-transform: uppercase; }
-.lista-compra p { margin-top: 5px; font: 300 14px var(--fuente-ui); color: var(--gris); }
-.lista-compra li strong { font: 700 32px var(--fuente-titulo); }
 .bloque-pago { margin-top: 34px; }
 .comprador { display: flex; align-items: center; gap: 16px; margin-top: 16px; }
 .comprador .cuenta__avatar { width: 46px; height: 46px; font-size: 14px; }
 .comprador strong { font: 500 20px var(--fuente-ui); }
-.comprador p, .metodo p { margin-top: 3px; font: 300 14px var(--fuente-ui); color: var(--gris); }
-.metodo { display: flex; align-items: center; gap: 18px; margin-top: 16px; padding: 22px 24px; border: 1px solid rgba(216, 188, 120, 0.6); border-radius: 14px; background: rgba(216, 188, 120, 0.05); }
-.metodo__punto { flex: none; width: 12px; height: 12px; border-radius: 50%; box-shadow: 0 0 0 5px rgba(216, 188, 120, 0.2); }
-.metodo strong { font: 500 19px var(--fuente-ui); }
-.metodo p { color: var(--gris-claro); }
+.comprador p { margin-top: 3px; font: 300 14px var(--fuente-ui); color: var(--gris); }
+.pago__metodo { margin-top: 28px; }
+.pago__volver { margin-top: 34px; }

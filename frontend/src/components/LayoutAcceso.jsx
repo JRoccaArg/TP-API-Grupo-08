@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import Boton from './Boton.jsx'
 import Logo from './Logo.jsx'
 
 // Estructura de login y registro: foto con el logo a la izquierda y el formulario a la derecha.
@@ -12,9 +12,9 @@ export default function LayoutAcceso({ foto, alt, titulo, children }) {
         <p className="acceso__titulo aparece">{titulo}</p>
       </div>
       <div className="acceso__panel">
-        <Link to="/" className="acceso__volver">
+        <Boton to="/" variante="contorno" clase="boton--chico acceso__volver">
           Volver al inicio
-        </Link>
+        </Boton>
         <div className="acceso__contenido">{children}</div>
       </div>
     </div>

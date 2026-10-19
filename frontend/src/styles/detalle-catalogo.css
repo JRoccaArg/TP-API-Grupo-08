@@ -20,7 +20,7 @@
 .galeria-evento__opciones .imagen-evento__vacia { min-height: 0; padding: 5px; gap: 4px; }
 .galeria-evento__opciones .imagen-evento__vacia span { font-size: 8px; }
 .galeria-evento__opciones .imagen-evento__vacia small { font-size: 8px; }
-.detalle-catalogo__actualizar { border: 0; background: transparent; padding: 0 0 3px; margin-top: 30px; font-size: 14px; text-decoration: underline; }
+.detalle-catalogo__actualizar { margin-top: 24px; }
 .detalle-catalogo__actualizar:disabled { opacity: .5; cursor: wait; }
 .catalogo-nota { margin-top: 18px; color: var(--gris-claro); font-size: 15px; line-height: 1.5; }
 .detalle-catalogo .fila-entrada { flex-wrap: wrap; padding: 20px; gap: 16px; }

@@ -42,3 +42,8 @@ export const esperaProximaFecha = (iso, ahora = Date.now()) => {
   return Number.isFinite(diferencia) && diferencia >= 0
     ? Math.min(diferencia + 1, 2147483647) : UN_MINUTO
 }
+
+// "Ahora" en hora de Buenos Aires, con el formato de los campos de fecha ("2026-11-15T23:00").
+export const ahoraParaInput = (ahora = Date.now()) => new Intl.DateTimeFormat('sv-SE', {
+  timeZone: ZONA_CATALOGO, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+}).format(ahora).replace(' ', 'T')

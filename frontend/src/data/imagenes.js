@@ -5,6 +5,7 @@ import flyerHaunted from '../assets/flyer-haunted.jpg'
 import flyerGolden from '../assets/flyer-golden.jpg'
 import flyerVol4 from '../assets/flyer-vol4.jpg'
 import fachada from '../assets/fachada.jpg'
+import circuloItaliano from '../assets/circulo-italiano.webp'
 import barraVaso from '../assets/barra-vaso.jpg'
 import arana from '../assets/arana.jpg'
 import salonArana from '../assets/salon-arana.jpg'
@@ -19,7 +20,7 @@ import cupAzul from '../assets/cup-azul.jpg'
 import botella from '../assets/botella.jpg'
 
 export const imagenes = {
-  neon, flyerAfter, flyerHaunted, flyerGolden, flyerVol4, fachada, barraVaso,
+  neon, flyerAfter, flyerHaunted, flyerGolden, flyerVol4, fachada, circuloItaliano, barraVaso,
   arana, salonArana, lollipop, barraLuz, amigas, manos, pulsera, dj, perfil,
   cupAzul, botella,
 }
