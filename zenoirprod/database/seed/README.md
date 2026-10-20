@@ -1,21 +1,26 @@
 # Replicar el catálogo en SQL Server
 
-Esta instantánea del 18/10/2026 reproduce los datos del catálogo: IDs, relaciones,
-fechas, textos, estados, precios, descuentos, stock y archivos de imagen originales.
+Esta instantánea del 20/10/2026 reproduce los datos del catálogo tal como están en la base
+de desarrollo: IDs, relaciones, fechas, textos, estados, precios, descuentos, stock y
+archivos de imagen originales (flyer y dos fotos de galería por evento, y fotos de las locaciones).
 No requiere dependencias nuevas ni archivos externos al repositorio.
 
 | Tabla | Filas |
 | --- | ---: |
-| categorias | 9 |
-| locaciones | 3 |
-| tipos_entrada | 10 |
-| eventos | 21 |
-| eventos_tipos_entrada | 28 |
-| imagenes_eventos | 26 |
+| categorias | 7 |
+| locaciones | 2 |
+| tipos_entrada | 5 |
+| eventos | 8 |
+| eventos_tipos_entrada | 13 |
+| imagenes_eventos | 24 |
+| imagenes_locacion | 2 |
 
-Las tablas de usuarios, carritos, compras, tickets e imágenes de locaciones estaban
-vacías y deben permanecer vacías al replicar este estado. El catálogo incluye datos
-ficticios para pruebas. No se crean cuentas ni contraseñas de acceso a la aplicación.
+Las tablas de usuarios, carritos, compras y tickets quedan vacías: no se copian cuentas,
+contraseñas ni compras. Como las compras no se copian, el stock de cada entrada es el que
+tenía antes de comprar: Preventa 1 de After Palace, que en la base de desarrollo está agotada por una compra
+de sus 2 entradas, queda activa con 2 disponibles.
+Para tener un administrador: registrá una cuenta desde el front y, en la base, ejecutá
+`UPDATE usuarios SET rol = 'ADMIN' WHERE email = 'tu_email';`.
 
 ## 1. Preparar una base vacía
 
@@ -71,7 +76,7 @@ Ajustá servidor, puerto, usuario y base a tu instalación. En WSL puede ser nec
 usar `/opt/mssql-tools18/bin/sqlcmd` como comando. Las rutas de los ejemplos son
 relativas a la raíz del repositorio; no dependen de una máquina particular.
 
-El script ocupa aproximadamente 67 MiB porque incluye las 26 imágenes en hexadecimal,
+El script ocupa aproximadamente 16 MiB porque incluye las 26 imágenes en hexadecimal,
 con sus metadatos y bytes originales. No hay que copiar flyers a ninguna carpeta:
 la API los sirve desde la base, como hace actualmente. La carga puede tardar unos segundos.
 
@@ -94,7 +99,7 @@ las cantidades de las 13 tablas y el tamaño y SHA-256 de cada una de las 26 im�
 
 Volvé a iniciar el backend con las mismas variables y el comando del paso 1.
 `GET http://localhost:8080/eventos?catalogo=true&page=0&size=6` debe devolver seis
-eventos y `totalElements: 20`: hay un evento en borrador entre los 21 almacenados.
+eventos y `totalElements: 8` (con las fechas de la instantánea, al 20/10/2026).
 
 Para iniciar el frontend, en otra terminal desde la raíz del repositorio:
 
@@ -104,10 +109,9 @@ npm install
 npm run dev
 ```
 
-Abrí la URL indicada por Vite y entrá a Fechas. Deben aparecer los flyers y seis
-eventos por página. Probá nombre `Noche`, categoría `Música` y precios 8000–9000:
-debe quedar `Noche de Jazz en el Palacio`, con precio final $8.500. Limpiá los filtros
-y avanzá a la página siguiente: debe mostrar los eventos 7–12.
+Abrí la URL indicada por Vite. En el inicio deben aparecer los flyers (y, dentro de cada evento, su galería de fotos), la próxima fecha
+(After Palace), la cinta con los nombres de los eventos y los dos lugares con su foto.
+Entrá a Fechas y probá nombre `Velvet` con categoría `Rock`: debe quedar `Velvet Ritual`.
 
 El proxy usa la API en 8080 por defecto; si tenés un `.env.local` previo, revisá que
 `ZENOIR_API_TARGET` apunte al backend que acabás de iniciar.
