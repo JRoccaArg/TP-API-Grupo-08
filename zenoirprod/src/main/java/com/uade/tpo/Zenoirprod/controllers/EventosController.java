@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.uade.tpo.Zenoirprod.entity.Evento;
+import com.uade.tpo.Zenoirprod.entity.dto.EstadisticasEventoResponse;
 import com.uade.tpo.Zenoirprod.entity.dto.EventoRequest;
 import com.uade.tpo.Zenoirprod.entity.dto.EventoResponse;
 import com.uade.tpo.Zenoirprod.exceptions.EventoInexistenteException;
@@ -21,6 +22,7 @@ import com.uade.tpo.Zenoirprod.exceptions.FechaEventoInvalidaException;
 import com.uade.tpo.Zenoirprod.exceptions.LocacionInexsistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.PaginacionInvalidaException;
 import com.uade.tpo.Zenoirprod.exceptions.TituloEventoEnUsoException;
+import com.uade.tpo.Zenoirprod.service.EstadisticasService;
 import com.uade.tpo.Zenoirprod.service.EventosService;
 import com.uade.tpo.Zenoirprod.util.PageableFactory;
 
@@ -37,6 +39,17 @@ import org.springframework.web.bind.annotation.RequestBody;
 public class EventosController {
     @Autowired
     private EventosService eventosService;
+
+    @Autowired
+    private EstadisticasService estadisticasService;
+
+    // Como viene el evento (ventas, recaudado, compras e ingresos): lo usa el resumen del evento en el panel del admin.
+    @GetMapping("/{id}/estadisticas")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<EstadisticasEventoResponse> getEstadisticas(@PathVariable Integer id)
+            throws EventoInexistenteException {
+        return ResponseEntity.ok(estadisticasService.getEstadisticas(id));
+    }
 
     @GetMapping
     public ResponseEntity<Page<EventoResponse>> getEventos(

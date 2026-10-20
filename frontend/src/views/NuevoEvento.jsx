@@ -45,7 +45,7 @@ export default function NuevoEvento({ usuario }) {
     setOcupado(true)
     // Si el lugar o la categoría son nuevos, se crean primero (ver guardarEvento).
     guardarEvento(usuario.token, datos, opciones, (conIds) => crearEvento(usuario.token, conIds))
-      .then(({ evento }) => navigate(`/admin/${evento.id}`))
+      .then(({ evento }) => navigate(`/admin/${evento.id}/editar`))
       .catch((fallo) => {
         setAviso(fallo.message)
         setOcupado(false)

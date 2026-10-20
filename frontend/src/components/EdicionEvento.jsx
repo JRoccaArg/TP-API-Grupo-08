@@ -65,7 +65,7 @@ export default function EdicionEvento({ evento: inicial, locaciones, categorias,
   return (
     <main className="pagina admin">
       <TituloAdmin
-        migas={[{ texto: 'Gestionar eventos', ruta: '/admin' }, { texto: evento.titulo }]}
+        migas={[{ texto: 'Gestionar eventos', ruta: '/admin' }, { texto: evento.titulo, ruta: `/admin/${evento.id}` }, { texto: 'Editar' }]}
         titulo="Editar"
         resaltado="evento"
       />

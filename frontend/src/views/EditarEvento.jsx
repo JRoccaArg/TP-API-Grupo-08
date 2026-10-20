@@ -4,7 +4,7 @@ import Aviso from '../components/Aviso.jsx'
 import EdicionEvento from '../components/EdicionEvento.jsx'
 import { cargarEdicion } from '../utils/apiAdmin.js'
 
-// Pantalla "/admin/:id": carga el evento (y las listas de lugares y categorías) y se lo pasa a EdicionEvento. Solo ADMIN.
+// Pantalla "/admin/:id/editar": carga el evento (y las listas de lugares y categorías) y se lo pasa a EdicionEvento. Solo ADMIN.
 export default function EditarEvento({ usuario }) {
   const { id } = useParams()
   const [carga, setCarga] = useState({ estado: 'cargando' })

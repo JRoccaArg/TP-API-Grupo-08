@@ -34,7 +34,7 @@ export default function FilaEventoAdmin({ evento }) {
       </div>
       <div className="fila-admin__acciones">
         <Boton to={`/admin/${evento.id}`} variante="contorno" clase="boton--chico">
-          Editar
+          Ver evento
         </Boton>
       </div>
     </li>

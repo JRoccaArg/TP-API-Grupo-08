@@ -8,8 +8,10 @@ import GestionarLocaciones from './views/GestionarLocaciones.jsx'
 import GestionarTiposEntrada from './views/GestionarTiposEntrada.jsx'
 import NuevaLocacion from './views/NuevaLocacion.jsx'
 import NuevoEvento from './views/NuevoEvento.jsx'
+import ResumenEvento from './views/ResumenEvento.jsx'
 
 // Las pantallas del administrador, todas bajo "/admin". Cada una vuelve a revisar que el usuario sea ADMIN.
+// Un evento: "/admin/:id" es su resumen (ventas y acciones) y "/admin/:id/editar" su edición.
 export default function RutasAdmin({ usuario }) {
   return (
     <Routes>
@@ -20,7 +22,8 @@ export default function RutasAdmin({ usuario }) {
       <Route path="locaciones/:id" element={<EditarLocacion usuario={usuario} />} />
       <Route path="categorias" element={<GestionarCategorias usuario={usuario} />} />
       <Route path="tipos-entrada" element={<GestionarTiposEntrada usuario={usuario} />} />
-      <Route path=":id" element={<EditarEvento usuario={usuario} />} />
+      <Route path=":id" element={<ResumenEvento usuario={usuario} />} />
+      <Route path=":id/editar" element={<EditarEvento usuario={usuario} />} />
       <Route path="*" element={<Aviso mensaje="Esta página no existe." boton="Ir al inicio" to="/" />} />
     </Routes>
   )

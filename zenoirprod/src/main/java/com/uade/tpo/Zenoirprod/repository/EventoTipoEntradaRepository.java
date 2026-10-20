@@ -1,5 +1,6 @@
 package com.uade.tpo.Zenoirprod.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -18,6 +19,8 @@ public interface EventoTipoEntradaRepository extends JpaRepository<EventoTipoEnt
     boolean existsByEvento_IdAndTipoEntrada_Id(Integer eventoId, Integer tipoEntradaId);
 
     Page<EventoTipoEntrada> findByEvento_Id(Integer eventoId, Pageable pageable);
+
+    List<EventoTipoEntrada> findByEvento_IdOrderByIdAsc(Integer eventoId);
 
     boolean existsByEvento_Id(Integer eventoId);
 
