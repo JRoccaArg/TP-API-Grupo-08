@@ -51,6 +51,7 @@ public class CompraServiceImpl implements CompraService {
     private static final String EVENTO_ACTIVO = "ACTIVO";
 
     private static final String EVENTO_CANCELADO = "CANCELADO";
+    private static final String EVENTO_REPROGRAMADO = "REPROGRAMADO";
 
     @Autowired private CompraRepository compraRepository;
     @Autowired private EventoTipoEntradaRepository eventoTipoEntradaRepository;
@@ -152,7 +153,8 @@ public class CompraServiceImpl implements CompraService {
 
         for (DetalleCompra detalle : compra.getDetalles()) {
             String estadoEvento = detalle.getEventoTipoEntrada().getEvento().getEstado();
-            if (!EVENTO_CANCELADO.equalsIgnoreCase(estadoEvento)) {
+            // La devolucion (reembolso) se permite solo si el evento fue cancelado o reprogramado.
+            if (!EVENTO_CANCELADO.equalsIgnoreCase(estadoEvento) && !EVENTO_REPROGRAMADO.equalsIgnoreCase(estadoEvento)) {
                 throw new DevolucionNoPermitidaException();
             }
         }
