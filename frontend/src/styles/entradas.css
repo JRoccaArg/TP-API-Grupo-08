@@ -1,8 +1,9 @@
 .fondo-dorado { background: radial-gradient(70% 38% at 50% 0%, rgba(216, 188, 120, 0.1), rgba(216, 188, 120, 0) 70%); }
 
-.mis-entradas__cabecera { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 40px; }
+.mis-entradas__cabecera { scroll-margin-top: 150px; display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 40px; }
 .mis-entradas__cabecera .titulo-grande { margin-top: 16px; }
 .mis-entradas__bajada { margin-top: 22px; font: 300 18px var(--fuente-ui); color: rgba(255, 255, 255, 0.75); }
+.mis-entradas__eventos { display: flex; flex-wrap: wrap; gap: 28px; margin-top: 64px; }
 .mis-entradas__grilla { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 30px; align-items: start; margin-top: 64px; }
 
 .tarjeta-entrada {
