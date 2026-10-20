@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import Aviso from '../components/Aviso.jsx'
+import AvisoGuardado from '../components/AvisoGuardado.jsx'
 import Boton from '../components/Boton.jsx'
 import DatoResumen from '../components/DatoResumen.jsx'
 import TituloAdmin from '../components/TituloAdmin.jsx'
@@ -49,6 +50,7 @@ export default function ResumenEvento({ usuario }) {
           <Boton to={`/admin/${evento.id}/escanear`} variante="contorno" clase="boton--grande">Escanear QR</Boton>
         </div>
       </div>
+      <AvisoGuardado />
       <ul className="resumen__datos">
         {datosDelResumen(estadisticas).map((dato) => <DatoResumen key={dato.etiqueta} {...dato} />)}
       </ul>

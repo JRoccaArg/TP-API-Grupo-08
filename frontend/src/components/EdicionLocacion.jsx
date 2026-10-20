@@ -7,11 +7,10 @@ import TituloAdmin from './TituloAdmin.jsx'
 import { actualizarLocacion, eliminarLocacion } from '../utils/apiAdmin.js'
 import { locacionAFormulario, validarLocacion } from '../utils/formLocacion.js'
 
-// Edición de una locación ya cargada: sus datos y sus fotos. Guarda y elimina con lo que responde el back.
-export default function EdicionLocacion({ locacion: inicial, token }) {
+// Edición de una locación ya cargada: sus datos y sus fotos. Al guardar o eliminar vuelve a la lista de locaciones.
+export default function EdicionLocacion({ locacion, token }) {
   const navigate = useNavigate()
-  const [locacion, setLocacion] = useState(inicial)
-  const [datos, setDatos] = useState(locacionAFormulario(inicial))
+  const [datos, setDatos] = useState(locacionAFormulario(locacion))
   const [aviso, setAviso] = useState({ tipo: '', texto: '' })
   const [ocupado, setOcupado] = useState(false)
   const [confirmando, setConfirmando] = useState(false)
@@ -30,11 +29,8 @@ export default function EdicionLocacion({ locacion: inicial, token }) {
     setOcupado(true)
     setAviso({ tipo: '', texto: '' })
     actualizarLocacion(token, locacion.id, datos)
-      .then((actualizada) => {
-        setLocacion({ ...locacion, ...actualizada })
-        setAviso({ tipo: 'ok', texto: 'Cambios guardados.' })
-        setOcupado(false)
-      })
+      // Al guardar se vuelve a la lista de locaciones, que muestra la confirmación.
+      .then((actualizada) => navigate('/admin/locaciones', { state: { aviso: `Guardaste los cambios de "${actualizada.nombre}".` } }))
       .catch((fallo) => {
         setAviso({ tipo: 'error', texto: fallo.estado === 409 ? 'Ya existe otra locación con ese nombre.' : fallo.message })
         setOcupado(false)
@@ -49,7 +45,7 @@ export default function EdicionLocacion({ locacion: inicial, token }) {
     }
     setOcupado(true)
     eliminarLocacion(token, locacion.id)
-      .then(() => navigate('/admin/locaciones'))
+      .then(() => navigate('/admin/locaciones', { state: { aviso: `Eliminaste la locación "${locacion.nombre}".` } }))
       .catch((fallo) => {
         setConfirmando(false)
         setOcupado(false)

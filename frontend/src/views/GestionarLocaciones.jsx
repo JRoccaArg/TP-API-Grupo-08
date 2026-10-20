@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import Aviso from '../components/Aviso.jsx'
+import AvisoGuardado from '../components/AvisoGuardado.jsx'
 import Boton from '../components/Boton.jsx'
 import FilaLocacionAdmin from '../components/FilaLocacionAdmin.jsx'
 import Icono from '../components/Icono.jsx'
@@ -33,6 +34,7 @@ export default function GestionarLocaciones({ usuario }) {
           <Icono nombre="mas" tamano={18} grosor={2.4} /> Nueva locación
         </Boton>
       </div>
+      <AvisoGuardado />
       {error && <p className="admin__aviso admin__aviso--error" role="alert">{error}</p>}
       {!lista && !error && <p className="admin__cargando" role="status">Cargando locaciones…</p>}
       {lista && (

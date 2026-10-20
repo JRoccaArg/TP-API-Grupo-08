@@ -9,13 +9,11 @@ import { actualizarEvento, eliminarEvento } from '../utils/apiAdmin.js'
 import { eventoAFormulario, validarEvento } from '../utils/formEvento.js'
 import { guardarEvento } from '../utils/guardarEvento.js'
 
-// Edición de un evento ya cargado: sus datos, sus fotos y sus entradas. Guarda y elimina con lo que responde el back.
-// "opciones" (lugares y categorías) suma lo que se crea al guardar, para no intentar crearlo de nuevo en el próximo guardado.
-export default function EdicionEvento({ evento: inicial, locaciones, categorias, token }) {
+// Edición de un evento ya cargado: sus datos, sus fotos y sus entradas. Al guardar los datos vuelve al resumen del evento.
+export default function EdicionEvento({ evento, locaciones, categorias, token }) {
   const navigate = useNavigate()
-  const [evento, setEvento] = useState(inicial)
-  const [opciones, setOpciones] = useState({ locaciones, categorias })
-  const [datos, setDatos] = useState(eventoAFormulario(inicial))
+  const opciones = { locaciones, categorias }
+  const [datos, setDatos] = useState(eventoAFormulario(evento))
   const [aviso, setAviso] = useState({ tipo: '', texto: '' })
   const [ocupado, setOcupado] = useState(false)
   const [confirmando, setConfirmando] = useState(false)
@@ -34,12 +32,8 @@ export default function EdicionEvento({ evento: inicial, locaciones, categorias,
     setOcupado(true)
     setAviso({ tipo: '', texto: '' })
     guardarEvento(token, datos, opciones, (conIds) => actualizarEvento(token, evento.id, conIds))
-      .then(({ evento: actualizado, opciones: nuevas }) => {
-        setEvento({ ...evento, ...actualizado })
-        setOpciones(nuevas)
-        setAviso({ tipo: 'ok', texto: 'Cambios guardados.' })
-        setOcupado(false)
-      })
+      // Al guardar se vuelve al resumen del evento, que muestra la confirmación (así se nota que se guardó).
+      .then(({ evento: actualizado }) => navigate(`/admin/${evento.id}`, { state: { aviso: `Guardaste los cambios de "${actualizado.titulo}".` } }))
       .catch((fallo) => {
         setAviso({ tipo: 'error', texto: fallo.message })
         setOcupado(false)
@@ -54,7 +48,7 @@ export default function EdicionEvento({ evento: inicial, locaciones, categorias,
     }
     setOcupado(true)
     eliminarEvento(token, evento.id)
-      .then(() => navigate('/admin'))
+      .then(() => navigate('/admin', { state: { aviso: `Eliminaste el evento "${evento.titulo}".` } }))
       .catch((fallo) => {
         setConfirmando(false)
         setOcupado(false)
