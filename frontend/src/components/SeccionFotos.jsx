@@ -1,9 +1,11 @@
+import MarcaSeccion from './MarcaSeccion.jsx'
 import CintaFotos from './CintaFotos.jsx'
 import { filaHorizontal, filaVertical } from '../data/fotos.js'
 
-export default function SeccionFotos() {
+export default function SeccionFotos({ listo }) {
   return (
     <section id="fotos" className="fotos">
+      <MarcaSeccion ancla="fotos" listo={listo} />
       <div className="fotos__cabecera">
         <h2 className="titulo-seccion">
           ASÍ SE VIVE

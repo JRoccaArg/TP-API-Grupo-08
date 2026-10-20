@@ -22,8 +22,9 @@ export default function SeccionFechas({ datos, categorias = [], cargando = false
     return () => clearInterval(intervalo)
   }, [])
   // Al volver del detalle a "/#fechas" la página no baja sola: se lleva la sección a la vista cuando termina de cargar.
+  // Sin animación ("instant"): el desplazamiento suave se cancela mientras la página recién se arma.
   useEffect(() => {
-    if (!cargando && hash === '#fechas') seccion.current?.scrollIntoView({ block: 'start' })
+    if (!cargando && hash === '#fechas') seccion.current?.scrollIntoView({ block: 'start', behavior: 'instant' })
   }, [cargando, hash])
 
   const filtros = leerFiltrosCatalogo(new URLSearchParams(search))

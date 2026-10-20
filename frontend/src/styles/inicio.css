@@ -1,3 +1,6 @@
+/* Marca invisible donde baja la vista al llegar con "/#fotos" o "/#donde" (deja lugar para el header fijo). */
+.marca-seccion { display: block; scroll-margin-top: 104px; }
+
 /* ---- Portada ---- */
 .hero-marco { padding: 18px 18px 0; }
 

@@ -74,8 +74,8 @@ export default function Inicio() {
       <Hero proximo={proximo || null} />
       <Cinta textos={['Zenoir', ...proximos.map((evento) => evento.titulo)]} />
       <SeccionFechas datos={consulta.datos} categorias={categorias} cargando={cargando} error={error} errorCategorias={errorCategorias} onReintentar={reintentar} />
-      <SeccionFotos />
-      <SeccionDonde />
+      <SeccionFotos listo={!cargando} />
+      <SeccionDonde listo={!cargando} />
       <Sponsors />
       <Footer />
     </div>

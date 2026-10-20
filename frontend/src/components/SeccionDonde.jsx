@@ -1,10 +1,12 @@
+import MarcaSeccion from './MarcaSeccion.jsx'
 import TarjetaLugar from './TarjetaLugar.jsx'
 import { lugares } from '../data/landing.js'
 
 // Cabecera (título a la izquierda, bajada a la derecha) y una tarjeta por cada lugar.
-export default function SeccionDonde() {
+export default function SeccionDonde({ listo }) {
   return (
     <section id="donde" className="donde">
+      <MarcaSeccion ancla="donde" listo={listo} />
       <div className="donde__cabecera">
         <div>
           <p className="donde__etiqueta">Dónde</p>
