@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { eliminarOferta } from '../utils/apiAdmin.js'
-import { fechaCorta } from '../utils/fechas.js'
 import { vendidas } from '../utils/formOferta.js'
 import { precio } from '../utils/formatos.js'
 
@@ -38,9 +37,6 @@ export default function ResumenOferta({ oferta, token, onEditar, onQuitada }) {
       </div>
       <p>
         {precio(oferta.precio)} · {descuento} · {vendidas(oferta)} de {oferta.cantidadTotal} vendidas
-      </p>
-      <p className="oferta-admin__venta">
-        Venta: {fechaCorta(oferta.fechaInicioVenta)} a {fechaCorta(oferta.fechaFinVenta)}
       </p>
       <div className="oferta-admin__acciones">
         <button type="button" disabled={ocupado} onClick={onEditar}>Editar</button>

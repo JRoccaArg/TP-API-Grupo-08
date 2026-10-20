@@ -1,4 +1,5 @@
 import { completarEventos, consultar, consultarPaginas, obtenerCategorias, obtenerEvento, urlApi } from './apiEventos.js'
+import { ventaDelEvento } from './formOferta.js'
 import { pedir } from './pedir.js'
 
 // --- lecturas para armar las pantallas de administración ---
@@ -130,15 +131,18 @@ const aOferta = (datos) => ({
   precio: Number(datos.precio),
   porcentajeDescuento: Number(datos.descuento.trim() === '' ? 0 : datos.descuento),
   cantidadTotal: Number(datos.cantidad),
-  fechaInicioVenta: `${datos.inicio}:00`,
-  fechaFinVenta: `${datos.fin}:00`,
 })
 
-export const crearOferta = (token, eventoId, datos) =>
-  pedir('POST', '/eventosTiposEntrada', token, { eventoId, tipoEntradaId: Number(datos.tipoEntradaId), ...aOferta(datos), estado: datos.estado })
+// Se vende desde que se crea hasta que termina el evento (ver ventaDelEvento).
+export const crearOferta = (token, evento, datos) =>
+  pedir('POST', '/eventosTiposEntrada', token,
+    { eventoId: evento.id, tipoEntradaId: Number(datos.tipoEntradaId), ...aOferta(datos), ...ventaDelEvento(evento), estado: datos.estado })
 
 // El estado solo se manda si lo cambió el admin: AGOTADO y FINALIZADO los calcula el back.
-export const actualizarOferta = (token, id, datos, conEstado) =>
-  pedir('PATCH', `/eventosTiposEntrada/${id}`, token, conEstado ? { ...aOferta(datos), estado: datos.estado } : aOferta(datos))
+// El fin de la venta se vuelve a alinear con el fin del evento (por si se cambió su fecha); el inicio queda como estaba.
+export const actualizarOferta = (token, id, datos, conEstado, evento) => {
+  const cuerpo = { ...aOferta(datos), fechaFinVenta: ventaDelEvento(evento).fechaFinVenta }
+  return pedir('PATCH', `/eventosTiposEntrada/${id}`, token, conEstado ? { ...cuerpo, estado: datos.estado } : cuerpo)
+}
 
 export const eliminarOferta = (token, id) => pedir('DELETE', `/eventosTiposEntrada/${id}`, token)

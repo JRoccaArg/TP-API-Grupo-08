@@ -27,8 +27,8 @@ export default function EditorEntrada({ evento, oferta, tipos, token, onGuardada
     }
     setOcupado(true)
     const pedido = oferta
-      ? actualizarOferta(token, oferta.id, datos, datos.estado !== oferta.estado)
-      : crearOferta(token, evento.id, datos)
+      ? actualizarOferta(token, oferta.id, datos, datos.estado !== oferta.estado, evento)
+      : crearOferta(token, evento, datos)
     pedido.then(onGuardada).catch((fallo) => {
       setAviso(fallo.message)
       setOcupado(false)
@@ -41,7 +41,6 @@ export default function EditorEntrada({ evento, oferta, tipos, token, onGuardada
       edicion={Boolean(oferta)}
       tipoNombre={oferta?.tipoEntradaNombre}
       tipos={tipos}
-      evento={evento}
       vendidas={oferta ? vendidas(oferta) : 0}
       token={token}
       ocupado={ocupado}

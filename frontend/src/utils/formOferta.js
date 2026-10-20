@@ -4,7 +4,7 @@ import { ahoraParaInput, fechaApi, paraInput } from './fechas.js'
 export const TIPO_NUEVO = 'nuevo'
 
 export const ofertaVacia = {
-  tipoEntradaId: '', precio: '', descuento: '0', cantidad: '', inicio: '', fin: '', estado: 'ACTIVO',
+  tipoEntradaId: '', precio: '', descuento: '0', cantidad: '', estado: 'ACTIVO',
 }
 
 // De una entrada que devolvió el back a los datos que maneja el formulario (todo texto, como los campos).
@@ -13,8 +13,6 @@ export const ofertaAFormulario = (oferta) => ({
   precio: String(oferta.precio),
   descuento: String(oferta.porcentajeDescuento ?? 0),
   cantidad: String(oferta.cantidadTotal),
-  inicio: paraInput(oferta.fechaInicioVenta),
-  fin: paraInput(oferta.fechaFinVenta),
   estado: oferta.estado,
 })
 
@@ -25,10 +23,11 @@ export const admiteEntradas = (evento, ahora = Date.now()) =>
   !['FINALIZADO', 'CANCELADO'].includes(evento.estado) &&
   !(evento.fechaHoraFin && ahora >= fechaApi(evento.fechaHoraFin).getTime())
 
-// Las fechas que propone el botón del formulario: se vende desde ahora hasta que termina el evento.
+// Las fechas de venta no se cargan a mano: una entrada se vende desde que se crea hasta que termina el evento,
+// y el admin la habilita o la frena con su estado (activa o pausada). El back las sigue pidiendo, así que se mandan estas.
 export const ventaDelEvento = (evento, ahora = Date.now()) => ({
-  inicio: ahoraParaInput(ahora),
-  fin: paraInput(evento.fechaHoraFin),
+  fechaInicioVenta: `${ahoraParaInput(ahora)}:00`,
+  fechaFinVenta: `${paraInput(evento.fechaHoraFin)}:00`,
 })
 
 // Devuelve el primer problema que encuentra, o '' si está todo bien. El back vuelve a validar.
@@ -42,7 +41,5 @@ export function validarOferta(datos, { edicion = false, vendidas: yaVendidas = 0
     return 'La cantidad tiene que ser un número entero mayor a 0.'
   }
   if (cantidad < yaVendidas) return `Ya se vendieron ${yaVendidas}: la cantidad no puede ser menor.`
-  if (!datos.inicio || !datos.fin) return 'Elegí desde cuándo y hasta cuándo se vende.'
-  if (datos.fin <= datos.inicio) return 'El fin de la venta tiene que ser posterior al inicio.'
   return ''
 }
