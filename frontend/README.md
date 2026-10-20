@@ -153,6 +153,7 @@ Para poder explicarlas si preguntan:
 - **Variables de entorno de Vite** (`import.meta.env.VITE_URL_PUBLICA`): las que empiezan con `VITE_` llegan al navegador. Se configuran en `.env.local` (ver `.env.example`). Ya se usaba `VITE_API_URL` en `apiEventos.js`.
 - **`state` en un link** (`<Link state>` y `useLocation().state`): el aviso de la verificación le dice al login a dónde volver.
 - **Lista de definiciones `<dl>` / `<dt>` / `<dd>`** (HTML): pares "etiqueta: valor" en el resultado de la verificación.
+- **Descargar y compartir una entrada** (`AccionesEntrada.jsx`): `QRCodeCanvas` dibuja el QR en un `<canvas>` oculto y `toDataURL` lo pasa a una imagen PNG; un `<a download>` con esa imagen la descarga. "Compartir" usa la Web Share API (`navigator.share`), que abre el menú de compartir del celular; si el navegador no la tiene, avisa que se descargue.
 - **`<datalist>`** (HTML): sugerencias nativas para un `<input>` (`list="id"`). En el formulario del evento, "Lugar" y "Categoría" sugieren los que ya existen y, si se escribe uno nuevo, se crea al guardar (`utils/guardarEvento.js`).
 
 Dependencias agregadas a lo que trae la plantilla de Vite: `react-router-dom` y `qrcode.react` (QR de las entradas).

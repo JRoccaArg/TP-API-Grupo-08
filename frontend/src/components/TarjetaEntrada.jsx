@@ -1,4 +1,4 @@
-import Boton from './Boton.jsx'
+import AccionesEntrada from './AccionesEntrada.jsx'
 import CodigoQR from './CodigoQR.jsx'
 import { diaMes, diaYFecha } from '../utils/fechas.js'
 
@@ -33,10 +33,7 @@ export default function TarjetaEntrada({ entrada, evento, comprador, numero, tot
           {tipo} · {entrada.codigoQr.slice(0, 8).toUpperCase()} · ENTRADA {numero} DE {total}
         </p>
       </article>
-      <div className="tarjeta-entrada__acciones">
-        <Boton>Descargar</Boton>
-        <Boton variante="oscuro">Compartir</Boton>
-      </div>
+      <AccionesEntrada entrada={entrada} titulo={evento ? evento.titulo : entrada.eventoTitulo} />
     </div>
   )
 }
