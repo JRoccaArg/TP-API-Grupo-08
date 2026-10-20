@@ -8,9 +8,11 @@ import { datosDeTicket, resultadoDeTicket } from '../utils/verificacion.js'
 
 // Pantalla "/verificar/:codigo": a donde lleva el QR de una entrada. Solo la puede ver el organizador (ADMIN).
 // Al abrirla se consulta la entrada sin gastarla: el ingreso se registra recién al apretar el botón.
+// Si se llega desde el escáner, "state" trae el evento que se controla y a dónde volver para escanear la siguiente.
 export default function VerificarEntrada({ usuario }) {
   const { codigo } = useParams()
-  const { pathname } = useLocation()
+  const { pathname, state } = useLocation()
+  const volverA = state?.volverA
   const token = usuario?.rol === 'ADMIN' ? usuario.token : null
   const [consulta, setConsulta] = useState(null) // { codigo, ticket, registrado } o { codigo, error }
   const [enviando, setEnviando] = useState(false)
@@ -57,6 +59,7 @@ export default function VerificarEntrada({ usuario }) {
         valido={false}
         titulo={noExiste ? 'Entrada no válida' : 'No pudimos verificar la entrada'}
         mensaje={noExiste ? 'Este código no corresponde a ninguna entrada de Zenoir.' : actual.error.message}
+        volverA={volverA}
       >
         {!noExiste && <Boton onClick={() => setReintento(reintento + 1)} clase="boton--grande">Reintentar</Boton>}
       </ResultadoVerificacion>
@@ -64,9 +67,10 @@ export default function VerificarEntrada({ usuario }) {
   }
 
   const { ticket, registrado } = actual
+  const resultado = resultadoDeTicket(ticket, registrado, state?.eventoId)
   return (
-    <ResultadoVerificacion {...resultadoDeTicket(ticket, registrado)} datos={datosDeTicket(ticket)}>
-      {ticket.estado === 'EMITIDO' && (
+    <ResultadoVerificacion {...resultado} datos={datosDeTicket(ticket)} volverA={volverA}>
+      {resultado.valido && ticket.estado === 'EMITIDO' && (
         <>
           <Boton onClick={registrar} deshabilitado={enviando} clase="boton--grande">
             {enviando ? 'Registrando...' : 'Registrar ingreso'}

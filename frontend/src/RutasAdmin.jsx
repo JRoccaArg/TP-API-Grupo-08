@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import Aviso from './components/Aviso.jsx'
 import EditarEvento from './views/EditarEvento.jsx'
@@ -10,8 +11,12 @@ import NuevaLocacion from './views/NuevaLocacion.jsx'
 import NuevoEvento from './views/NuevoEvento.jsx'
 import ResumenEvento from './views/ResumenEvento.jsx'
 
+// El escáner trae la librería que lee QR con la cámara (pesada): se descarga recién cuando se abre esa pantalla.
+const EscanearQR = lazy(() => import('./views/EscanearQR.jsx'))
+const abriendo = <main className="pagina admin"><p className="admin__cargando" role="status">Abriendo el escáner…</p></main>
+
 // Las pantallas del administrador, todas bajo "/admin". Cada una vuelve a revisar que el usuario sea ADMIN.
-// Un evento: "/admin/:id" es su resumen (ventas y acciones) y "/admin/:id/editar" su edición.
+// Un evento: "/admin/:id" es su resumen (ventas y acciones), "/admin/:id/editar" su edición y "/admin/:id/escanear" el escáner de QR.
 export default function RutasAdmin({ usuario }) {
   return (
     <Routes>
@@ -24,6 +29,7 @@ export default function RutasAdmin({ usuario }) {
       <Route path="tipos-entrada" element={<GestionarTiposEntrada usuario={usuario} />} />
       <Route path=":id" element={<ResumenEvento usuario={usuario} />} />
       <Route path=":id/editar" element={<EditarEvento usuario={usuario} />} />
+      <Route path=":id/escanear" element={<Suspense fallback={abriendo}><EscanearQR usuario={usuario} /></Suspense>} />
       <Route path="*" element={<Aviso mensaje="Esta página no existe." boton="Ir al inicio" to="/" />} />
     </Routes>
   )

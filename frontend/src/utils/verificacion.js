@@ -20,9 +20,19 @@ const RESULTADOS = {
 const DESCONOCIDO = () => ({ valido: false, titulo: 'No pudimos verificar la entrada', mensaje: 'El estado de la entrada no es reconocido.' })
 const INGRESO_REGISTRADO = { valido: true, titulo: 'Ingreso registrado', mensaje: 'La entrada quedó marcada como utilizada.' }
 
+const OTRO_EVENTO = (ticket) => ({
+  valido: false,
+  titulo: 'Entrada de otro evento',
+  mensaje: `Esta entrada es para "${ticket.eventoTitulo}", no para el evento que estás controlando.`,
+})
+
 // "registrado" es true cuando el organizador acaba de registrar el ingreso desde la pantalla.
-export const resultadoDeTicket = (ticket, registrado = false) =>
-  registrado ? INGRESO_REGISTRADO : (RESULTADOS[ticket.estado] || DESCONOCIDO)(ticket)
+// "eventoEsperado" (opcional) es el evento que se está controlando con el escáner: una entrada de otro evento no vale.
+export const resultadoDeTicket = (ticket, registrado = false, eventoEsperado) => {
+  if (registrado) return INGRESO_REGISTRADO
+  if (eventoEsperado && ticket.eventoId !== eventoEsperado) return OTRO_EVENTO(ticket)
+  return (RESULTADOS[ticket.estado] || DESCONOCIDO)(ticket)
+}
 
 // Los datos que se muestran debajo del resultado: a quién pertenece y a qué evento da acceso.
 export const datosDeTicket = (ticket) => [

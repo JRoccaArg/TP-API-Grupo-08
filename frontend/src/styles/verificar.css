@@ -29,3 +29,7 @@
 @media (max-width: 480px) {
   .verificacion__datos div { grid-template-columns: minmax(0, 1fr); gap: 6px; }
 }
+
+/* Escáner de QR del admin: la cámara en un recuadro con borde dorado. */
+.escaner { width: min(100%, 520px); margin-top: 40px; overflow: hidden; border: 1px solid var(--oro-borde); border-radius: 24px; background: #000; }
+.escaner__acciones { display: flex; gap: 12px; margin-top: 24px; }

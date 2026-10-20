@@ -154,6 +154,8 @@ Para poder explicarlas si preguntan:
 - **`state` en un link** (`<Link state>` y `useLocation().state`): el aviso de la verificación le dice al login a dónde volver.
 - **Lista de definiciones `<dl>` / `<dt>` / `<dd>`** (HTML): pares "etiqueta: valor" en el resultado de la verificación.
 - **Descargar y compartir una entrada** (`AccionesEntrada.jsx`): `QRCodeCanvas` dibuja el QR en un `<canvas>` oculto y `toDataURL` lo pasa a una imagen PNG; un `<a download>` con esa imagen la descarga. "Compartir" usa la Web Share API (`navigator.share`), que abre el menú de compartir del celular; si el navegador no la tiene, avisa que se descargue.
+- **Escáner de QR** (`@yudiel/react-qr-scanner`): `<Scanner onScan={...} />` abre la cámara y avisa el texto de cada QR que lee. Se usa en `/admin/:id/escanear`. El navegador solo abre la cámara en `https` o en `localhost`. Donde el navegador no trae lector de QR propio (Chrome de Windows, Safari, Firefox) la librería baja su decodificador de internet la primera vez.
+- **Carga diferida** (`lazy` + `<Suspense>` de React, en `RutasAdmin.jsx`): el escáner se descarga recién cuando se abre su pantalla, así los visitantes no bajan la librería de la cámara.
 - **`<datalist>`** (HTML): sugerencias nativas para un `<input>` (`list="id"`). En el formulario del evento, "Lugar" y "Categoría" sugieren los que ya existen y, si se escribe uno nuevo, se crea al guardar (`utils/guardarEvento.js`).
 
 Dependencias agregadas a lo que trae la plantilla de Vite: `react-router-dom` y `qrcode.react` (QR de las entradas).

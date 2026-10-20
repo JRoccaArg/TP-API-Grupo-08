@@ -46,6 +46,7 @@ export default function ResumenEvento({ usuario }) {
         />
         <div className="resumen__acciones">
           <Boton to={`/admin/${evento.id}/editar`} clase="boton--grande">Editar evento</Boton>
+          <Boton to={`/admin/${evento.id}/escanear`} variante="contorno" clase="boton--grande">Escanear QR</Boton>
         </div>
       </div>
       <ul className="resumen__datos">
