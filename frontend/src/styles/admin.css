@@ -52,6 +52,7 @@
 
 /* Formulario de evento */
 .form-evento { display: flex; flex-direction: column; gap: 34px; }
+.campo-crear { display: flex; flex-direction: column; gap: 34px; }
 .form-evento__doble { display: grid; grid-template-columns: 1fr 1fr; gap: 34px 36px; }
 .subida__actual { display: flex; align-items: center; gap: 26px; margin-top: 20px; }
 .subida__actual img { width: 96px; height: 171px; object-fit: cover; border-radius: 10px; }

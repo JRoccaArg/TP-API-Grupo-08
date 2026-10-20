@@ -102,7 +102,7 @@ Cada entrada de "Mis entradas" y de "Compra confirmada" tiene un QR real (`compo
 
 - El organizador escanea el QR con la cámara del celular y se abre `views/VerificarEntrada.jsx`. Solo el rol ADMIN puede verificar: un visitante ve "Ingresá como organizador" y, después del login, vuelve a la misma verificación; un usuario común ve "Solo el organizador puede verificar entradas".
 - Al abrir el link se consulta la entrada **sin gastarla** (`GET /tickets/qr/{codigo}`). Si es válida: ✅ "Entrada válida" con a quién pertenece, el evento, la fecha, el lugar y el tipo. El ingreso se registra con el botón "Registrar ingreso" (`POST /tickets/qr/{codigo}/utilizar`).
-- Si el código no existe: ❌ "Entrada no válida". Si ya se usó: ❌ "Entrada ya utilizada", con el día y la hora en que se usó. Si está cancelada: ❌ "Entrada cancelada".
+- Si el código no existe: ❌ "Entrada no válida". Si ya se usó: ❌ "Entrada ya utilizada", con el día y la hora en que se usó. Si está reembolsada: ❌ "Entrada reembolsada".
 - Se registra con un botón y no al abrir el link porque abrir una página no debería cambiar datos (igual que un GET en el back): así una vista previa o un escaneo de prueba no queman la entrada. Además, en desarrollo React ejecuta los efectos dos veces (StrictMode): si el efecto gastara la entrada, el primer escaneo diría "ya utilizada".
 - El estado de cada pantalla sale de una tabla (`RESULTADOS` en `utils/verificacion.js`), igual que `ACCIONES` en `FilaEntrada`.
 

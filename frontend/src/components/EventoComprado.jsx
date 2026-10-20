@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import Icono from './Icono.jsx'
 import ImagenEvento from './ImagenEvento.jsx'
+import { eventoCancelado, eventoReprogramado } from '../utils/compras.js'
 import { diaYFecha, fechaLarga } from '../utils/fechas.js'
 
 // Un evento en "Mis entradas": su flyer, la fecha, el lugar y cuántas entradas tenés. Lleva a los QR de ese evento.
@@ -27,7 +28,7 @@ export default function EventoComprado({ grupo }) {
         )}
         <div className="flyer__accion">
           <p>
-            <small>{usadas > 0 ? `TUS ENTRADAS · ${usadas} USADA${usadas > 1 ? 'S' : ''}` : 'TUS ENTRADAS'}</small>
+            <small>{eventoCancelado(evento) ? 'EVENTO CANCELADO' : eventoReprogramado(evento) ? 'EVENTO REPROGRAMADO' : usadas > 0 ? `TUS ENTRADAS · ${usadas} USADA${usadas > 1 ? 'S' : ''}` : 'TUS ENTRADAS'}</small>
             <strong className="oro-texto">{entradas.length} {entradas.length === 1 ? 'entrada' : 'entradas'}</strong>
           </p>
           <Link to={destino} className="flyer__ir oro-relleno brillo" aria-label={`Ver los QR de ${titulo}`}>

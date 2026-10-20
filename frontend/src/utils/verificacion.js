@@ -15,7 +15,7 @@ const RESULTADOS = {
     titulo: 'Entrada ya utilizada',
     mensaje: `Esta entrada ya se usó para ingresar${ticket.fechaUtilizacion ? ` el ${fechaYHora(ticket.fechaUtilizacion)}` : ''}.`,
   }),
-  CANCELADO: () => ({ valido: false, titulo: 'Entrada cancelada', mensaje: 'Esta entrada fue cancelada y no permite el ingreso.' }),
+  CANCELADO: () => ({ valido: false, titulo: 'Entrada reembolsada', mensaje: 'Esta entrada fue reembolsada y no permite el ingreso.' }),
 }
 const DESCONOCIDO = () => ({ valido: false, titulo: 'No pudimos verificar la entrada', mensaje: 'El estado de la entrada no es reconocido.' })
 const INGRESO_REGISTRADO = { valido: true, titulo: 'Ingreso registrado', mensaje: 'La entrada quedó marcada como utilizada.' }

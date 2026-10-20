@@ -6,3 +6,6 @@ export const estaActivo = (enlace, pathname) => {
   if (enlace.ancla) return false
   return enlace.ruta === '/' ? pathname === '/' : pathname.startsWith(enlace.ruta)
 }
+
+// A dónde vuelve el detalle de un evento: solo a la portada (con o sin filtros); cualquier otro origen se ignora.
+export const rutaDeVuelta = (origen) => (/^\/(?:\?|#|$)/.test(origen || '') ? origen : '/#fechas')

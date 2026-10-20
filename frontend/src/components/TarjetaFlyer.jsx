@@ -4,7 +4,8 @@ import Icono from './Icono.jsx'
 import ImagenEvento from './ImagenEvento.jsx'
 import { fechaLarga } from '../utils/fechas.js'
 import { precio } from '../utils/formatos.js'
-import { resumenEntradas, precioDesdeEnRango } from '../utils/eventos.js'
+import { resumenEntradas } from '../utils/eventos.js'
+import { precioDesdeEnRango } from '../utils/filtrosCatalogo.js'
 
 // Qué se muestra en lugar del precio cuando el evento no tiene entradas a la venta.
 const ETIQUETAS = {

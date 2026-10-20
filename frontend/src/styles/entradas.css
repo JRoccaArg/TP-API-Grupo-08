@@ -41,6 +41,8 @@
   box-shadow: 0 0 40px rgba(244, 241, 232, 0.08);
 }
 
+.tarjeta-entrada--anulada { opacity: 0.6; filter: grayscale(1); }
+.tarjeta-entrada__sin-qr { display: flex; width: 100%; height: 100%; align-items: center; justify-content: center; border: 2px dashed #9a948a; border-radius: 14px; color: #6f6a61; font: 700 14px var(--fuente-marca); letter-spacing: 0.2em; text-transform: uppercase; }
 .tarjeta-entrada__qr svg { display: block; width: 100%; height: 100%; }
 .tarjeta-entrada__nombre { margin-top: 18px; font: 700 28px / 1 var(--fuente-titulo); letter-spacing: 0.01em; text-transform: uppercase; }
 .tarjeta-entrada__codigo { margin-top: 8px; font: 500 10px var(--fuente-marca); letter-spacing: 0.18em; color: var(--gris-oscuro); }
@@ -78,3 +80,14 @@
 }
 
 .tarjeta-entrada__estado { margin-top: 8px; font: 700 12px var(--fuente-marca); letter-spacing: 0.2em; color: var(--peligro); }
+
+/* Evento cancelado o reprogramado en "Mis entradas": aviso y reembolso de las compras */
+.tarjeta-entrada__estado--aviso { color: var(--oro); }
+.evento-cancelado { display: flex; flex-direction: column; gap: 14px; margin-top: 40px; padding: 22px 24px; border: 1px solid rgba(201, 132, 126, 0.55); border-radius: 16px; background: rgba(201, 132, 126, 0.08); font: 400 16px var(--fuente-ui); }
+.evento-cancelado__titulo { font: 600 20px var(--fuente-ui); color: var(--peligro); }
+.evento-cancelado ul { display: flex; flex-direction: column; gap: 12px; list-style: none; }
+.evento-cancelado li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; font-size: 15px; }
+.evento-cancelado small { color: var(--gris); }
+.evento-cancelado__error { color: var(--peligro); font-size: 14px; }
+.evento-cancelado--reprogramado { border-color: var(--oro-borde); background: rgba(216, 188, 120, 0.08); }
+.evento-cancelado--reprogramado .evento-cancelado__titulo { color: var(--oro); }

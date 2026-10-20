@@ -5,7 +5,7 @@ import Boton from '../components/Boton.jsx'
 import FilaLocacionAdmin from '../components/FilaLocacionAdmin.jsx'
 import Icono from '../components/Icono.jsx'
 import TituloAdmin from '../components/TituloAdmin.jsx'
-import { obtenerLocacionesAdmin } from '../utils/apiAdmin.js'
+import { obtenerLocacionesConFotos } from '../utils/apiAdmin.js'
 
 // Pantalla "/admin/locaciones": los lugares donde se hacen los eventos, para editarlos o crear uno nuevo. Solo ADMIN.
 export default function GestionarLocaciones({ usuario }) {
@@ -16,7 +16,7 @@ export default function GestionarLocaciones({ usuario }) {
   useEffect(() => {
     if (!esAdmin) return undefined
     let activo = true
-    obtenerLocacionesAdmin()
+    obtenerLocacionesConFotos()
       .then((locaciones) => { if (activo) setLista(locaciones) })
       .catch((fallo) => { if (activo) setError(fallo.message) })
     return () => { activo = false }

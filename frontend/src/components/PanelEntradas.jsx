@@ -28,7 +28,7 @@ export default function PanelEntradas({ evento, token }) {
       <aside className="panel-entradas" aria-label="Entradas del evento">
         <h2>Entradas</h2>
         <p className="panel-entradas__aviso">
-          Primero guardá el evento. Después vas a poder cargar sus entradas, con precio, cupo y fechas de venta.
+          Primero guardá el evento. Después vas a poder cargar sus entradas, con su precio, descuento y cupo.
         </p>
       </aside>
     )

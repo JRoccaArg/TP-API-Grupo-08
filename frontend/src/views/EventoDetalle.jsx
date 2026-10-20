@@ -1,11 +1,12 @@
 import { borrarSeleccionPendiente, guardarSeleccionPendiente, leerSeleccionPendiente } from '../utils/seleccionPendiente.js'
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
-import Aviso from '../components/Aviso.jsx'
-import Boton from '../components/Boton.jsx'
 import ContenidoEvento from '../components/ContenidoEvento.jsx'
-import { obtenerEvento, verificarSeleccion } from '../utils/apiEventos.js'
-import { ajustarSeleccion, descontarStock } from '../utils/eventos.js'
+import EstadoDetalle from '../components/EstadoDetalle.jsx'
+import { obtenerEvento } from '../utils/apiEventos.js'
+import { confirmarSeleccion } from '../utils/confirmarSeleccion.js'
+import { rutaDeVuelta } from '../utils/enlaces.js'
+import { ajustarSeleccion, detalleDisponible } from '../utils/eventos.js'
 import '../styles/detalle-catalogo.css'
 
 // onConfirmarSeleccion agrega la selección al carrito del back (lo define Sitio) y devuelve una promesa.
@@ -31,7 +32,7 @@ function DetalleEvento({ id, usuario, onConfirmarSeleccion, cargaCarrito }) {
   const [confirmacion, setConfirmacion] = useState(null)
   const [aviso, setAviso] = useState('')
   const origen = location.state?.volverA || pendiente?.volverA
-  const volverA = /^\/(?:\?|#|$)/.test(origen || '') ? origen : '/#fechas'
+  const volverA = rutaDeVuelta(origen)
   const idValido = /^\d+$/.test(id) && Number(id) >= 1
 
   useEffect(() => {
@@ -69,61 +70,44 @@ function DetalleEvento({ id, usuario, onConfirmarSeleccion, cargaCarrito }) {
     return () => { activo = false }
   }, [pendiente, evento, usuario, cargaCarrito?.cargando, cargaCarrito?.error])
 
-  // Al confirmar se vuelven a consultar la disponibilidad y los precios; recién ahí se entrega la selección al carrito.
+  // Al confirmar se verifica y se entrega la selección al carrito (ver confirmarSeleccion); acá se actualiza la pantalla.
   useEffect(() => {
     if (!confirmacion || typeof onConfirmarSeleccion !== 'function') return undefined
     let activo = true
-    const terminar = () => {
-      if (activo) { setEnviando(false); setConfirmacion(null) }
+    const mostrar = (actual) => {
+      setEvento(actual.evento)
+      setSeleccion(actual.seleccion)
+      setAhora(Date.now())
     }
-    verificarSeleccion(confirmacion.evento, confirmacion.seleccion)
-      .then(({ evento: actualizado, seleccion: nueva, cambio }) => {
-        if (!activo) return undefined
-        setEvento(actualizado)
-        setSeleccion(nueva)
-        setAhora(Date.now())
-        if (cambio) {
+    confirmarSeleccion(confirmacion.evento, confirmacion.seleccion, onConfirmarSeleccion)
+      .then((resultado) => {
+        if (!activo) return
+        mostrar(resultado)
+        if (resultado.cambio) {
           setAviso('La disponibilidad o los precios cambiaron. Revisá la selección actualizada.')
-          return undefined
+          return
         }
-        return Promise.resolve(onConfirmarSeleccion({
-          eventoId: actualizado.id,
-          items: nueva.map((item) => ({ eventoTipoEntradaId: item.ofertaId, cantidad: item.cantidad })),
-        })).then(() => {
-          if (!activo) return
-          // Las entradas quedaron apartadas: se descuentan del stock que se ve, sin volver a pedir el evento.
-          setSeleccion([])
-          setEvento(descontarStock(actualizado, nueva))
-          setAviso('Agregamos las entradas a tu carrito. Las reservamos por 15 minutos.')
-          if (confirmacion.retomada) navigate('/carrito', { replace: true })
-        })
+        setAviso('Agregamos las entradas a tu carrito. Las reservamos por 15 minutos.')
+        if (confirmacion.retomada) navigate('/carrito', { replace: true })
       })
-      .then(terminar)
       .catch((fallo) => {
-        if (activo) {
-          setAviso(fallo.message || 'No pudimos continuar. Intentá nuevamente.')
-          // Si alguna entrada ya entró al carrito, la selección se limpia para no agregarla dos veces.
-          if (fallo.agregados > 0) { setSeleccion([]); setCargando(true); setIntento((actual) => actual + 1) }
-        }
-        terminar()
+        if (!activo) return
+        if (fallo.actual) mostrar(fallo.actual)
+        setAviso(fallo.message || 'No pudimos continuar. Intentá nuevamente.')
+        // Si alguna entrada ya entró al carrito, la selección se limpia para no agregarla dos veces.
+        if (fallo.agregados > 0) { setSeleccion([]); setCargando(true); setIntento((actual) => actual + 1) }
+      })
+      .then(() => {
+        if (activo) { setEnviando(false); setConfirmacion(null) }
       })
     return () => { activo = false }
   }, [confirmacion, onConfirmarSeleccion, navigate])
 
   const reintentar = () => { setCargando(true); setError(null); setIntento(intento + 1) }
 
-  if (!idValido) return <Aviso mensaje="No encontramos este evento." boton="Volver al catálogo" to={volverA} />
-  if (cargando) return <main className="pagina aviso detalle-catalogo" role="status"><h1>Cargando evento…</h1></main>
-  if (error?.estado === 404 || evento?.estado?.toUpperCase() === 'BORRADOR') {
-    return <Aviso mensaje="No encontramos este evento." boton="Volver al catálogo" to={volverA} />
+  if (!detalleDisponible({ idValido, cargando, error, evento })) {
+    return <EstadoDetalle idValido={idValido} cargando={cargando} error={error} evento={evento} volverA={volverA} onReintentar={reintentar} />
   }
-  if (error) return (
-    <main className="pagina aviso detalle-catalogo">
-      <h1>No pudimos cargar el evento.</h1><p role="alert">{error.message}</p>
-      <Boton onClick={reintentar}>Reintentar</Boton>
-      <Boton to={volverA} variante="contorno">Volver al catálogo</Boton>
-    </main>
-  )
 
   const vigente = evento.errorOfertas ? [] : ajustarSeleccion(seleccion, evento.ofertas, evento, ahora)
   const cambiar = (ofertaId, cantidad) => {

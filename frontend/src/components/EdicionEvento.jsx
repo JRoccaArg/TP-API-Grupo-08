@@ -5,7 +5,7 @@ import FormularioEvento from './FormularioEvento.jsx'
 import ImagenesEvento from './ImagenesEvento.jsx'
 import PanelEntradas from './PanelEntradas.jsx'
 import TituloAdmin from './TituloAdmin.jsx'
-import { actualizarEvento, eliminarEvento } from '../utils/apiAdmin.js'
+import { actualizarEvento, alinearVentas, eliminarEvento } from '../utils/apiAdmin.js'
 import { eventoAFormulario, validarEvento } from '../utils/formEvento.js'
 import { guardarEvento } from '../utils/guardarEvento.js'
 
@@ -32,8 +32,18 @@ export default function EdicionEvento({ evento, locaciones, categorias, token })
     setOcupado(true)
     setAviso({ tipo: '', texto: '' })
     guardarEvento(token, datos, opciones, (conIds) => actualizarEvento(token, evento.id, conIds))
+      // Si cambió el fin del evento, la venta de sus entradas cierra en el nuevo fin (por ejemplo, al reprogramarlo).
+      .then(({ evento: actualizado }) => {
+        const cambioElFin = datos.fin !== eventoAFormulario(evento).fin
+        return (cambioElFin ? alinearVentas(token, evento.id, datos.fin) : Promise.resolve([]))
+          .then((movidas) => ({ actualizado, movidas }))
+      })
       // Al guardar se vuelve al resumen del evento, que muestra la confirmación (así se nota que se guardó).
-      .then(({ evento: actualizado }) => navigate(`/admin/${evento.id}`, { state: { aviso: `Guardaste los cambios de "${actualizado.titulo}".` } }))
+      .then(({ actualizado, movidas }) => navigate(`/admin/${evento.id}`, {
+        state: {
+          aviso: `Guardaste los cambios de "${actualizado.titulo}".${movidas.length ? ` La venta de ${movidas.length} ${movidas.length === 1 ? 'entrada' : 'entradas'} ahora cierra cuando termina el evento.` : ''}`,
+        },
+      }))
       .catch((fallo) => {
         setAviso({ tipo: 'error', texto: fallo.message })
         setOcupado(false)

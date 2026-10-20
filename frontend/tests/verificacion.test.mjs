@@ -38,7 +38,7 @@ describe('qué se le dice al organizador', () => {
     assert.equal(resultado.titulo, 'Entrada ya utilizada')
     assert.match(resultado.mensaje, /24\/10, 23:41/)
   })
-  test('una entrada cancelada y un estado desconocido no son válidos', () => {
+  test('una entrada reembolsada y un estado desconocido no son válidos', () => {
     assert.equal(resultadoDeTicket({ ...ticket, estado: 'CANCELADO' }).valido, false)
     assert.equal(resultadoDeTicket({ ...ticket, estado: 'OTRO' }).valido, false)
   })

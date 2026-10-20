@@ -1,19 +1,1 @@
 .imagen-evento { position: relative; overflow: hidden; }
-.imagen-evento__referencia {
-  position: absolute;
-  bottom: 14px;
-  left: 14px;
-  max-width: calc(100% - 28px);
-  padding: 7px 10px;
-  border: 1px solid rgba(216, 188, 120, .3);
-  border-radius: 6px;
-  background: rgba(10, 10, 10, .85);
-  color: #e8dfcb;
-  font: 400 12px / 1.3 var(--fuente-ui);
-}
-.galeria-evento__opciones .imagen-evento__referencia { display: none; }
-
-:is(.catalogo-eventos, .detalle-catalogo) .imagen-evento.imagen-evento--flyer-referencia img {
-  object-fit: contain;
-  background: #111;
-}

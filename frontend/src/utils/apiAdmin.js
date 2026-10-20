@@ -1,4 +1,5 @@
-import { completarEventos, consultar, consultarPaginas, obtenerCategorias, obtenerEvento, urlApi } from './apiEventos.js'
+import { completarEventos, consultar, consultarPaginas, obtenerCategorias, obtenerEvento, obtenerOfertas, urlApi } from './apiEventos.js'
+import { paraInput } from './fechas.js'
 import { ventaDelEvento } from './formOferta.js'
 import { pedir } from './pedir.js'
 
@@ -81,8 +82,8 @@ function conFotos(locaciones) {
     conFotos(resto).then((otras) => [{ ...primera, imagenes }, ...otras]))
 }
 
-// Todas las locaciones con sus fotos, por orden alfabético.
-export const obtenerLocacionesAdmin = () =>
+// Todas las locaciones con sus fotos, por orden alfabético (son lecturas públicas: también las usa la portada).
+export const obtenerLocacionesConFotos = () =>
   obtenerLocaciones().then(conFotos).then((lista) => lista.sort((a, b) => a.nombre.localeCompare(b.nombre)))
 
 export const cargarLocacion = (id) =>
@@ -144,5 +145,18 @@ export const actualizarOferta = (token, id, datos, conEstado, evento) => {
   const cuerpo = { ...aOferta(datos), fechaFinVenta: ventaDelEvento(evento).fechaFinVenta }
   return pedir('PATCH', `/eventosTiposEntrada/${id}`, token, conEstado ? { ...cuerpo, estado: datos.estado } : cuerpo)
 }
+
+// Cuando cambia el fin de un evento (por ejemplo al reprogramarlo), la venta de cada una de sus entradas pasa a cerrar en
+// ese momento: el back rechaza las compras después del cierre de venta de la entrada. Se piden las entradas actuales y se
+// actualizan de a una; devuelve las que cambiaron. "fin" tiene el formato del formulario ("2026-11-15T23:00").
+const moverCierre = (token, ofertas, fechaFinVenta) => {
+  if (!ofertas.length) return Promise.resolve([])
+  const [primera, ...resto] = ofertas
+  return pedir('PATCH', `/eventosTiposEntrada/${primera.id}`, token, { fechaFinVenta })
+    .then((cambiada) => moverCierre(token, resto, fechaFinVenta).then((otras) => [cambiada, ...otras]))
+}
+export const alinearVentas = (token, eventoId, fin) =>
+  obtenerOfertas(eventoId).then((ofertas) =>
+    moverCierre(token, ofertas.filter((oferta) => paraInput(oferta.fechaFinVenta) !== fin), `${fin}:00`))
 
 export const eliminarOferta = (token, id) => pedir('DELETE', `/eventosTiposEntrada/${id}`, token)

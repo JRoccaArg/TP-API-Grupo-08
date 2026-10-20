@@ -1,9 +1,9 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { ajustarSeleccion, estadoOferta, resumenEntradas, totalSeleccion } from '../src/utils/eventos.js'
 import {
-  ajustarSeleccion, estadoOferta, filtrarEventos, resumenEntradas, totalSeleccion,
   leerFiltrosCatalogo, normalizarImporteFiltro, precioDesdeEnRango, validarRangoPrecios,
-} from '../src/utils/eventos.js'
+} from '../src/utils/filtrosCatalogo.js'
 
 const AHORA = new Date('2026-10-17T12:00:00Z').getTime()
 const evento = (cambios = {}) => ({
@@ -46,25 +46,18 @@ test('exige stock entero positivo y precioFinal válido para vender', () => {
   assert.equal(estadoOferta(oferta({ precioFinal: 0 }), evento(), AHORA), 'EN_VENTA')
 })
 
-test('busca títulos sin acentos y combina la categoría por ID', () => {
-  const eventos = [evento(), evento({ id: 2, titulo: 'CAFÉ de tarde', categoriaId: 6 })]
-  assert.deepEqual(filtrarEventos(eventos, { busqueda: '  cafe ', categoria: '5' }, AHORA).map(e => e.id), [1])
-  assert.equal(filtrarEventos(eventos, { busqueda: 'café' }, AHORA).length, 2)
-  assert.equal(filtrarEventos(eventos, { busqueda: 'rock' }, AHORA).length, 0)
-})
-
 test('el rango puede coincidir con una oferta que no sea la más barata', () => {
   const entradaBarata = oferta({ id: 1, precioFinal: 100 })
   const entradaBuscada = oferta({ id: 2, precioFinal: 1000 })
   const e = evento({ ofertas: [entradaBarata, entradaBuscada] })
   assert.equal(resumenEntradas(e, AHORA).precioDesde, 100)
-  assert.deepEqual(filtrarEventos([e], { precioMin: '900', precioMax: '1100' }, AHORA), [e])
-  assert.deepEqual(filtrarEventos([e], { precioMin: '1000', precioMax: '1000' }, AHORA), [e])
+  assert.equal(precioDesdeEnRango(e, { precioMin: '900', precioMax: '1100' }, AHORA), 1000)
+  assert.equal(precioDesdeEnRango(e, { precioMin: '1000', precioMax: '1000' }, AHORA), 1000)
 })
 
 test('una misma oferta debe cumplir ambos extremos del rango', () => {
   const e = evento({ ofertas: [oferta({ id: 1, precioFinal: 100 }), oferta({ id: 2, precioFinal: 3000 })] })
-  assert.deepEqual(filtrarEventos([e], { precioMin: '900', precioMax: '1100' }, AHORA), [])
+  assert.equal(precioDesdeEnRango(e, { precioMin: '900', precioMax: '1100' }, AHORA), null)
 })
 
 test('el filtro de precio ignora ofertas agotadas, pausadas, futuras y eventos cancelados', () => {
@@ -77,16 +70,16 @@ test('el filtro de precio ignora ofertas agotadas, pausadas, futuras y eventos c
   const eventos = ofertasNoVendibles.map((entrada, i) => evento({ id: i + 1, ofertas: [entrada] }))
   eventos.push(evento({ id: 5, estado: 'CANCELADO', ofertas: [oferta()] }))
   eventos.push(evento({ id: 6, errorOfertas: 'No se pudo consultar', ofertas: [oferta()] }))
-  assert.deepEqual(filtrarEventos(eventos, { precioMin: '800', precioMax: '1000' }, AHORA), [])
-  assert.equal(filtrarEventos(eventos, {}, AHORA).length, 6)
+  for (const e of eventos) assert.equal(precioDesdeEnRango(e, { precioMin: '800', precioMax: '1000' }, AHORA), null)
+  assert.equal(precioDesdeEnRango(evento({ ofertas: [oferta()] }), { precioMin: '800', precioMax: '1000' }, AHORA), 900)
 })
 
 test('rechaza rangos negativos, invertidos o que no sean números', () => {
-  const eventos = [evento({ ofertas: [oferta()] })]
+  const e = evento({ ofertas: [oferta()] })
   for (const filtros of [
     { precioMin: '-1' }, { precioMin: '1000', precioMax: '100' },
     { precioMin: 'texto' }, { precioMax: 'texto' },
-  ]) assert.deepEqual(filtrarEventos(eventos, filtros, AHORA), [])
+  ]) assert.equal(precioDesdeEnRango(e, filtros, AHORA), null)
 })
 
 test('ajusta cantidades a enteros y stock real, sin imponer un límite de diez', () => {

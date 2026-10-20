@@ -1,4 +1,5 @@
-import { ajustarSeleccion, normalizarImporteFiltro } from './eventos.js'
+import { ajustarSeleccion } from './eventos.js'
+import { normalizarImporteFiltro } from './filtrosCatalogo.js'
 
 // Todas las consultas de este módulo son GET públicos; no usan la sesión ni el carrito.
 const API_BASE = (import.meta.env?.VITE_API_URL || '/api').replace(/\/$/, '')

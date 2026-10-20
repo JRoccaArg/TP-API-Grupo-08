@@ -18,7 +18,8 @@ for (const TZ of ['UTC', 'America/Argentina/Buenos_Aires', 'America/Los_Angeles'
   test(`venta, filtro, selección y presentación respetan Buenos Aires con navegador en ${TZ}`, () => {
     const programa = `
       import assert from 'node:assert/strict';
-      import { estadoOferta, ajustarSeleccion, precioDesdeEnRango } from './src/utils/eventos.js';
+      import { estadoOferta, ajustarSeleccion } from './src/utils/eventos.js';
+      import { precioDesdeEnRango } from './src/utils/filtrosCatalogo.js';
       import { fechaApi, horario, diaYFecha, cuentaRegresiva } from './src/utils/fechas.js';
       const evento = {estado:'ACTIVO'};
       const ahora = Date.parse('2026-10-18T15:30:00Z');

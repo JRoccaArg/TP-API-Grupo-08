@@ -1,12 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import TarjetaFlyer from './TarjetaFlyer.jsx'
-import EstadoCatalogo from './EstadoCatalogo.jsx'
 import FiltrosEventos from './FiltrosEventos.jsx'
-import OrdenEventos from './OrdenEventos.jsx'
-import PaginacionEventos from './PaginacionEventos.jsx'
-import { EVENTOS_POR_PAGINA } from '../utils/apiEventos.js'
-import { conParametros, leerFiltrosCatalogo } from '../utils/eventos.js'
+import ResultadosCatalogo from './ResultadosCatalogo.jsx'
+import { conParametros, hayFiltros, leerFiltrosCatalogo } from '../utils/filtrosCatalogo.js'
 import '../styles/catalogo.css'
 
 export default function SeccionFechas({ datos, categorias = [], cargando = false, error = '', errorCategorias = '', onReintentar }) {
@@ -30,11 +26,7 @@ export default function SeccionFechas({ datos, categorias = [], cargando = false
   const filtros = leerFiltrosCatalogo(new URLSearchParams(search))
   const { errorPrecio, pagina } = filtros
   const paginas = Math.max(1, datos.totalPages)
-  const inicio = (pagina - 1) * EVENTOS_POR_PAGINA
   const total = datos.totalElements
-  const hayFiltros = Boolean(filtros.busqueda || filtros.categoria || filtros.precioMin !== '' || filtros.precioMax !== '')
-  const fallosOfertas = eventos.some((evento) => evento.errorOfertas)
-  const fallosImagenes = eventos.some((evento) => evento.errorImagenes)
 
   // Los filtros y la página viven en la URL: se cambian los parámetros y la pantalla se vuelve a armar sola.
   const irA = (cambios) => navigate({ search: conParametros(search, cambios) }, { replace: true })
@@ -60,48 +52,24 @@ export default function SeccionFechas({ datos, categorias = [], cargando = false
         <p>Conseguí tus entradas para todas las fechas de Zenoir.</p>
       </div>
       <div className="catalogo-eventos__contenido">
-        <FiltrosEventos filtros={filtros} categorias={categorias} errorPrecio={errorPrecio} hayFiltros={hayFiltros} onCambiar={cambiarFiltro} onLimpiar={limpiarFiltros} />
+        <FiltrosEventos filtros={filtros} categorias={categorias} errorPrecio={errorPrecio} hayFiltros={hayFiltros(filtros)} onCambiar={cambiarFiltro} onLimpiar={limpiarFiltros} />
         {errorCategorias && <div className="catalogo-eventos__aviso" role="status"><p>No pudimos cargar las categorías.</p><button type="button" onClick={onReintentar}>Reintentar</button></div>}
 
-        {cargando || error || (total === 0 && !hayFiltros) ? (
-          <EstadoCatalogo cargando={cargando} error={error} onReintentar={onReintentar} />
-        ) : (
-          <>
-            {(fallosOfertas || fallosImagenes) && (
-              <div className="catalogo-eventos__aviso" role="status">
-                <p>{fallosOfertas && fallosImagenes
-                  ? 'No pudimos cargar algunas imágenes y entradas.'
-                  : fallosOfertas ? 'No pudimos confirmar las entradas de algunos eventos.' : 'No pudimos cargar algunas imágenes.'} Podés seguir explorando las fechas.{fallosOfertas && <span> Los precios y estados de esas tarjetas no pudieron confirmarse.</span>}</p>
-                {onReintentar && <button type="button" onClick={onReintentar}>Volver a intentar</button>}
-              </div>
-            )}
-            <div className="catalogo-eventos__barra">
-              <div ref={resultados} id="catalogo-resultados" className="catalogo-eventos__resultados" aria-live="polite" aria-atomic="true">
-                {!errorPrecio && <p><strong>{total}</strong> {total === 1 ? 'evento encontrado' : 'eventos encontrados'}{total > 0 && <span> · Mostrando {inicio + 1}–{Math.min(inicio + eventos.length, total)}</span>}</p>}
-              </div>
-              {!errorPrecio && total > 1 && <OrdenEventos orden={filtros.orden} onCambiar={(valor) => cambiarFiltro('orden', valor)} />}
-            </div>
-            {errorPrecio ? (
-              <div className="catalogo-eventos__estado">
-                <h3>Revisá el rango de precios</h3>
-                <p>{errorPrecio}</p>
-              </div>
-            ) : total === 0 ? (
-              <div className="catalogo-eventos__estado" role="status">
-                <h3>No encontramos fechas con esos filtros</h3>
-                <p>Probá otro nombre, elegí otra categoría o ampliá el rango de precios.</p>
-                <button className="catalogo-eventos__boton" type="button" onClick={limpiarFiltros}>Limpiar filtros</button>
-              </div>
-            ) : (
-              <>
-                <div className="fechas__fila">
-                  {eventos.map((evento, indice) => <TarjetaFlyer key={evento.id} evento={evento} ahora={ahora} indice={indice} filtroPrecio={filtros} />)}
-                </div>
-                <PaginacionEventos pagina={pagina} paginas={paginas} onCambiar={cambiarPagina} />
-              </>
-            )}
-          </>
-        )}
+        <ResultadosCatalogo
+          eventos={eventos}
+          filtros={filtros}
+          total={total}
+          pagina={pagina}
+          paginas={paginas}
+          ahora={ahora}
+          cargando={cargando}
+          error={error}
+          referencia={resultados}
+          onReintentar={onReintentar}
+          onLimpiar={limpiarFiltros}
+          onOrden={(valor) => cambiarFiltro('orden', valor)}
+          onPagina={cambiarPagina}
+        />
       </div>
     </section>
   )

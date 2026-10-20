@@ -66,13 +66,13 @@ test('la galería presenta todas las imágenes y tiene una alternativa cuando es
   assert.equal((html.match(/aria-pressed=/g) || []).length, 3)
   assert.match(html, /aria-pressed="true"/)
   const sinImagen = renderToStaticMarkup(createElement(FlyerEvento, { evento }))
-  assert.match(sinImagen, /Imagen de referencia/)
-  assert.doesNotMatch(html, /Imagen de referencia/)
+  assert.match(sinImagen, /Imagen no disponible/)
+  assert.doesNotMatch(html, /Imagen no disponible/)
   assert.match(html, /\/api\/eventos\/1\/imagenes\/1\/archivo/)
-  const pruebaInsomnia = renderToStaticMarkup(createElement(FlyerEvento, { evento: { ...evento, titulo: 'Halloween Night - Edición 80' } }))
-  assert.doesNotMatch(pruebaInsomnia, /flyer-haunted/)
+  // Aunque el título se parezca a uno viejo, no se pone ninguna imagen que no venga del back.
   const haunted = renderToStaticMarkup(createElement(FlyerEvento, { evento: { ...evento, titulo: 'Haunted Edition' } }))
-  assert.match(haunted, /flyer-haunted/)
+  assert.match(haunted, /Imagen no disponible/)
+  assert.doesNotMatch(haunted, /<img/)
 })
 
 

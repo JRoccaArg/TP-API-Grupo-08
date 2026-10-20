@@ -1,12 +1,17 @@
 import Icono from './Icono.jsx'
 
-// Un lugar de la landing, con el mismo estilo que las tarjetas de eventos: foto con etiqueta y, abajo, nombre, dirección y botón.
+// Un lugar de la landing, con el mismo estilo que las tarjetas de eventos: su foto (la primera que tenga cargada) y, abajo,
+// nombre, dirección y botón. Todo sale de la locación que devuelve el back.
 export default function TarjetaLugar({ lugar }) {
+  const foto = lugar.imagenes[0]
   return (
     <article className="lugar">
       <a href="#fechas" className="lugar__foto" aria-label={`Ver fechas en ${lugar.nombre}`}>
-        <img className="ken" src={lugar.imagen} alt={lugar.alt} />
-        <span className="lugar__barrio">{lugar.barrio}</span>
+        {foto ? (
+          <img className="ken" src={foto.url} alt={foto.descripcion || `Foto de ${lugar.nombre}`} />
+        ) : (
+          <span className="lugar__sin-foto">Sin foto</span>
+        )}
       </a>
       <div className="lugar__pie">
         <div>

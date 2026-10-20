@@ -3,10 +3,13 @@ import { fechaApi } from './fechas.js'
 // El backend devuelve precioFinal: no recalculamos sus descuentos ni inventamos estadoVenta.
 const estado = (valor) => (valor || '').toUpperCase()
 const tienePrecio = (oferta) => Number.isFinite(oferta.precioFinal) && oferta.precioFinal >= 0
-const normalizar = (texto) => String(texto || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
 
 // El back pasa el evento a FINALIZADO con un pequeño retraso; mientras tanto, si ya llegó su fecha de fin, se muestra como finalizado.
 const eventoTerminado = (evento, ahora) => Boolean(evento.fechaHoraFin) && ahora >= fechaApi(evento.fechaHoraFin).getTime()
+
+// ¿Se puede mostrar el detalle? No si el id no es válido, si todavía carga, si falló, o si el evento es un borrador.
+export const detalleDisponible = ({ idValido, cargando, error, evento }) =>
+  idValido && !cargando && !error && evento?.estado?.toUpperCase() !== 'BORRADOR'
 
 export function estadoOferta(oferta, evento, ahora = Date.now()) {
   const estadoEvento = eventoTerminado(evento, ahora) && estado(evento.estado) === 'ACTIVO' ? 'FINALIZADO' : estado(evento.estado)
@@ -43,43 +46,6 @@ export function resumenEntradas(evento, ahora = Date.now()) {
   }
 }
 
-// Los campos conservan lo escrito; sólo normalizamos al comparar o consultar la API.
-export const normalizarImporteFiltro = (valor) => String(valor ?? '').trim().replace(',', '.')
-
-export function validarRangoPrecios(precioMin = '', precioMax = '') {
-  const importes = [precioMin, precioMax].map(normalizarImporteFiltro)
-  if (importes.some((valor) => valor.startsWith('-'))) return 'Los precios no pueden ser negativos.'
-  if (importes.some((valor) => valor !== '' &&
-    (!/^(?:\d+(?:\.\d{0,2})?|\.\d{1,2})$/.test(valor) || !Number.isFinite(Number(valor))))) {
-    return 'Ingresá precios válidos, con hasta dos decimales y sin separadores de miles.'
-  }
-  if (importes.every((valor) => valor !== '') && Number(importes[0]) > Number(importes[1])) {
-    return 'El mínimo no puede superar al máximo.'
-  }
-  return ''
-}
-
-// El precio mostrado debe pertenecer a la misma oferta que cumple los dos límites.
-export function precioDesdeEnRango(evento, { precioMin = '', precioMax = '' } = {}, ahora = Date.now()) {
-  if (evento.errorOfertas || validarRangoPrecios(precioMin, precioMax)) return null
-  const minimo = normalizarImporteFiltro(precioMin) === '' ? 0 : Number(normalizarImporteFiltro(precioMin))
-  const maximo = normalizarImporteFiltro(precioMax) === '' ? Infinity : Number(normalizarImporteFiltro(precioMax))
-  const precios = (evento.ofertas || []).filter((oferta) =>
-    estadoOferta(oferta, evento, ahora) === 'EN_VENTA' &&
-    oferta.precioFinal >= minimo && oferta.precioFinal <= maximo).map((oferta) => oferta.precioFinal)
-  return precios.length ? Math.min(...precios) : null
-}
-
-export function filtrarEventos(eventos, { busqueda = '', categoria = '', precioMin = '', precioMax = '' }, ahora = Date.now()) {
-  if (validarRangoPrecios(precioMin, precioMax)) return []
-  return eventos.filter((evento) => {
-    if (!normalizar(evento.titulo).includes(normalizar(busqueda.trim()))) return false
-    if (categoria && String(evento.categoriaId) !== String(categoria)) return false
-    if (precioMin === '' && precioMax === '') return true
-    return precioDesdeEnRango(evento, { precioMin, precioMax }, ahora) !== null
-  })
-}
-
 export function ajustarSeleccion(seleccion, ofertas, evento, ahora = Date.now()) {
   return seleccion.map((item) => {
     const oferta = ofertas.find((actual) => actual.id === item.ofertaId)
@@ -95,29 +61,6 @@ export function totalSeleccion(seleccion, ofertas) {
     const oferta = ofertas.find((actual) => actual.id === item.ofertaId)
     return total + Math.round((oferta?.precioFinal || 0) * 100) * item.cantidad
   }, 0) / 100
-}
-
-export function leerFiltrosCatalogo(parametros) {
-  const precioMin = parametros.get('min') || ''
-  const precioMax = parametros.get('max') || ''
-  const pedida = Number(parametros.get('pagina'))
-  return {
-    busqueda: parametros.get('q') || '', categoria: parametros.get('categoria') || '', precioMin, precioMax,
-    // "lejanos" (por defecto): la fecha más futura primero. "antiguos": la más antigua primero.
-    orden: parametros.get('orden') === 'antiguos' ? 'antiguos' : 'lejanos',
-    pagina: Number.isSafeInteger(pedida) && pedida > 0 ? pedida : 1,
-    errorPrecio: validarRangoPrecios(precioMin, precioMax),
-  }
-}
-
-// La parte "?..." de la URL con los parámetros cambiados. Un valor vacío quita el parámetro.
-export function conParametros(search, cambios) {
-  const nuevos = new URLSearchParams(search)
-  Object.entries(cambios).forEach(([clave, valor]) => {
-    if (valor === '') nuevos.delete(clave)
-    else nuevos.set(clave, valor)
-  })
-  return nuevos.toString()
 }
 
 // El evento con las entradas elegidas ya descontadas del stock: es lo que queda después de apartarlas en el carrito.

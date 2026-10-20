@@ -1,6 +1,6 @@
 import { paraInput } from './fechas.js'
 
-// El lugar y la categoría se escriben a mano (con sugerencias): si el nombre ya existe se usa ese, si no se crea al guardar.
+// El lugar y la categoría se eligen de una lista o se crean con un nombre nuevo: si el nombre ya existe se usa ese, si no se crea al guardar.
 // "direccion" solo se pide cuando el lugar es nuevo, porque el back no crea una locación sin dirección.
 export const formularioVacio = {
   titulo: '', descripcion: '', estado: 'BORRADOR', inicio: '', fin: '', lugar: '', direccion: '', categoria: '',
@@ -30,10 +30,10 @@ export function validarEvento(datos, { locaciones, categorias }) {
   if (!datos.titulo.trim()) return 'Escribí el título del evento.'
   if (!datos.inicio || !datos.fin) return 'Elegí la fecha y la hora de inicio y de fin.'
   if (datos.fin <= datos.inicio) return 'El fin tiene que ser posterior al inicio.'
-  if (!datos.lugar.trim()) return 'Escribí el lugar del evento.'
+  if (!datos.lugar.trim()) return 'Elegí el lugar del evento (o creá uno nuevo).'
   if (esNuevo(locaciones, datos.lugar) && !datos.direccion.trim()) return `"${datos.lugar.trim()}" es un lugar nuevo: escribí su dirección.`
-  if (!datos.categoria.trim()) return 'Escribí la categoría del evento.'
+  if (!datos.categoria.trim()) return 'Elegí la categoría del evento (o creá una nueva).'
   const categoria = buscarPorNombre(categorias, datos.categoria)
-  if (categoria?.activo === false) return `La categoría "${categoria.nombre}" está inactiva: activala en Categorías o escribí otra.`
+  if (categoria?.activo === false) return `La categoría "${categoria.nombre}" está inactiva: activala en Categorías o elegí otra.`
   return ''
 }

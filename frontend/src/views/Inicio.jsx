@@ -8,7 +8,7 @@ import SeccionDonde from '../components/SeccionDonde.jsx'
 import Sponsors from '../components/Sponsors.jsx'
 import Footer from '../components/Footer.jsx'
 import { obtenerProximos, obtenerCatalogo, obtenerCategorias } from '../utils/apiEventos.js'
-import { conParametros, leerFiltrosCatalogo } from '../utils/eventos.js'
+import { conParametros, leerFiltrosCatalogo } from '../utils/filtrosCatalogo.js'
 import { esperaProximaFecha } from '../utils/fechas.js'
 
 export default function Inicio() {
@@ -72,7 +72,7 @@ export default function Inicio() {
   return (
     <div className="inicio-catalogo">
       <Hero proximo={proximo || null} />
-      <Cinta textos={['Zenoir', ...proximos.map((evento) => evento.titulo)]} />
+      <Cinta eventos={proximos} />
       <SeccionFechas datos={consulta.datos} categorias={categorias} cargando={cargando} error={error} errorCategorias={errorCategorias} onReintentar={reintentar} />
       <SeccionFotos listo={!cargando} />
       <SeccionDonde listo={!cargando} />

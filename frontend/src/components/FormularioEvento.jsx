@@ -1,16 +1,14 @@
+import CampoElegirOCrear from './CampoElegirOCrear.jsx'
 import CampoLinea from './CampoLinea.jsx'
 import CampoSelect from './CampoSelect.jsx'
 import { estadosEvento } from '../data/catalogos.js'
-import { esNuevo } from '../utils/formEvento.js'
 import { opcionesDeEstados } from '../utils/opciones.js'
 
 // Formulario de datos del evento, con los campos que pide el backend. No guarda nada por sí solo:
 // muestra "datos" y avisa cada cambio con onCambiar(campo, valor); quien lo usa decide cuándo guardar.
-// El lugar y la categoría se escriben: se sugieren los que ya existen y, si el nombre es nuevo, se crea al guardar.
+// El lugar y la categoría se eligen de una lista; con "crear nuevo" se escribe el nombre y se crea al guardar el evento.
 export default function FormularioEvento({ datos, onCambiar, locaciones, categorias }) {
   const cambiar = (campo) => (evento) => onCambiar(campo, evento.target.value)
-  const lugarNuevo = esNuevo(locaciones, datos.lugar)
-  const categoriaNueva = esNuevo(categorias, datos.categoria)
 
   return (
     <form className="form-evento" onSubmit={(e) => e.preventDefault()}>
@@ -27,32 +25,32 @@ export default function FormularioEvento({ datos, onCambiar, locaciones, categor
         <CampoLinea etiqueta="INICIO" nombre="inicio" tipo="datetime-local" valor={datos.inicio} onChange={cambiar('inicio')} />
         <CampoLinea etiqueta="FIN" nombre="fin" tipo="datetime-local" valor={datos.fin} onChange={cambiar('fin')} />
         <CampoSelect etiqueta="ESTADO" nombre="estado" opciones={opcionesDeEstados(estadosEvento)} valor={datos.estado} onChange={cambiar('estado')} />
-        <CampoLinea
+        <CampoElegirOCrear
           etiqueta="CATEGORÍA"
           nombre="categoria"
+          lista={categorias}
           valor={datos.categoria}
-          onChange={cambiar('categoria')}
-          placeholder="Escribí o elegí una"
-          sugerencias={categorias.filter((categoria) => categoria.activo !== false).map((categoria) => categoria.nombre)}
-        />
+          textoVacio="Elegí una categoría"
+          textoNuevo="+ Crear categoría nueva…"
+          etiquetaNuevo="NOMBRE DE LA CATEGORÍA NUEVA"
+          onCambiar={(valor) => onCambiar('categoria', valor)}
+        >
+          <p className="form-evento__nota">Se crea al guardar el evento. Después la podés editar en Administrar → Categorías.</p>
+        </CampoElegirOCrear>
       </div>
-      {categoriaNueva && (
-        <p className="form-evento__nota">Categoría nueva: se crea al guardar el evento. Después la podés editar en Administrar → Categorías.</p>
-      )}
-      <CampoLinea
+      <CampoElegirOCrear
         etiqueta="LUGAR"
         nombre="lugar"
+        lista={locaciones}
         valor={datos.lugar}
-        onChange={cambiar('lugar')}
-        placeholder="Escribí o elegí uno"
-        sugerencias={locaciones.map((locacion) => locacion.nombre)}
-      />
-      {lugarNuevo && (
-        <>
-          <p className="form-evento__nota">Lugar nuevo: se crea al guardar el evento. Después le podés sumar fotos en Administrar → Locaciones.</p>
-          <CampoLinea etiqueta="DIRECCIÓN DEL LUGAR" nombre="direccion" valor={datos.direccion} onChange={cambiar('direccion')} placeholder="Calle y número" />
-        </>
-      )}
+        textoVacio="Elegí un lugar"
+        textoNuevo="+ Crear lugar nuevo…"
+        etiquetaNuevo="NOMBRE DEL LUGAR NUEVO"
+        onCambiar={(valor) => onCambiar('lugar', valor)}
+      >
+        <p className="form-evento__nota">Se crea al guardar el evento. Después le podés sumar fotos en Administrar → Locaciones.</p>
+        <CampoLinea etiqueta="DIRECCIÓN DEL LUGAR" nombre="direccion" valor={datos.direccion} onChange={cambiar('direccion')} placeholder="Calle y número" />
+      </CampoElegirOCrear>
     </form>
   )
 }

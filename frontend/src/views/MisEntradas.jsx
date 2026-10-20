@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import Aviso from '../components/Aviso.jsx'
 import Boton from '../components/Boton.jsx'
+import AvisoEventoAfectado from '../components/AvisoEventoAfectado.jsx'
 import CabeceraMisEntradas from '../components/CabeceraMisEntradas.jsx'
 import EventoComprado from '../components/EventoComprado.jsx'
 import TarjetaEntrada from '../components/TarjetaEntrada.jsx'
 import { obtenerMisCompras } from '../utils/apiCompras.js'
 import { obtenerEventosPorId } from '../utils/apiEventos.js'
-import { agruparPorEvento, entradasDeCompras, idsDeEventosDeCompras } from '../utils/compras.js'
+import { agruparPorEvento, entradasDeCompras, eventoAfectado, idsDeEventosDeCompras, reemplazarCompra } from '../utils/compras.js'
 
 // Pantallas "/mis-entradas" y "/mis-entradas/:eventoId": las entradas del usuario agrupadas por evento.
 // Con más de un evento primero se elige el evento (sus QR van en /mis-entradas/:eventoId); con uno solo se ven directo.
@@ -57,6 +58,15 @@ export default function MisEntradas({ usuario }) {
     <div className="fondo-dorado">
       <main className="pagina mis-entradas">
         <CabeceraMisEntradas grupo={elegido} varios={grupos.length > 1} />
+        {elegido && eventoAfectado(elegido.evento) && (
+          <AvisoEventoAfectado
+            evento={elegido.evento}
+            compras={compras}
+            eventos={eventos}
+            token={token}
+            onReembolsada={(nueva) => setCompras((actuales) => reemplazarCompra(actuales, nueva))}
+          />
+        )}
         {elegido ? (
           <div className="mis-entradas__grilla">
             {elegido.entradas.map((entrada, indice) => (
