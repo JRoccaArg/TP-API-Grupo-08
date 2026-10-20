@@ -1,11 +1,10 @@
-import MarcaSeccion from './MarcaSeccion.jsx'
+import SeccionConAncla from './SeccionConAncla.jsx'
 import CintaFotos from './CintaFotos.jsx'
 import { filaHorizontal, filaVertical } from '../data/fotos.js'
 
 export default function SeccionFotos({ listo }) {
   return (
-    <section id="fotos" className="fotos">
-      <MarcaSeccion ancla="fotos" listo={listo} />
+    <SeccionConAncla id="fotos" className="fotos" listo={listo}>
       <div className="fotos__cabecera">
         <h2 className="titulo-seccion">
           ASÍ SE VIVE
@@ -15,6 +14,6 @@ export default function SeccionFotos({ listo }) {
       </div>
       <CintaFotos fotos={filaVertical} formato="vertical" />
       <CintaFotos fotos={filaHorizontal} formato="horizontal" inversa />
-    </section>
+    </SeccionConAncla>
   )
 }

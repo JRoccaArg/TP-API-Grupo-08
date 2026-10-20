@@ -1,5 +1,6 @@
-/* Marca invisible donde baja la vista al llegar con "/#fotos" o "/#donde" (deja lugar para el header fijo). */
-.marca-seccion { display: block; scroll-margin-top: 104px; }
+/* Dónde termina el desplazamiento al tocar una sección (desde el inicio o desde otra pantalla): el título queda a la misma altura.
+   Cada sección tiene otro espacio arriba del título, por eso cada una tiene su margen. */
+.fotos { scroll-margin-top: 90px; }
 
 /* ---- Portada ---- */
 .hero-marco { padding: 18px 18px 0; }
