@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import Boton from '../components/Boton.jsx'
 import CampoClave from '../components/CampoClave.jsx'
 import CampoLinea from '../components/CampoLinea.jsx'
+import FuerzaClave from '../components/FuerzaClave.jsx'
 import LayoutAcceso from '../components/LayoutAcceso.jsx'
 import ReglasClave from '../components/ReglasClave.jsx'
 import { imagenes } from '../data/imagenes.js'
@@ -68,6 +69,7 @@ export default function Registro({ onIngresar }) {
         {campo('EMAIL', 'email', 'email', 'tu@email.com')}
         <CampoClave nombre="password" valor={datos.password} onChange={cambiar} placeholder="Elegí una contraseña"
           autoComplete="new-password" requerido />
+        <FuerzaClave clave={datos.password} />
         <ReglasClave clave={datos.password} />
         {error && <p className="acceso__error" role="alert">{error}</p>}
         <Boton tipo="submit" deshabilitado={enviando} clase="boton--ancho boton--grande">

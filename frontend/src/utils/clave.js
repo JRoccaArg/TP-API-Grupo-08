@@ -11,3 +11,10 @@ const REGLAS = [
 export const evaluarClave = (clave) => REGLAS.map((regla) => ({ id: regla.id, texto: regla.texto, cumple: regla.cumple(clave) }))
 
 export const claveValida = (clave) => REGLAS.every((regla) => regla.cumple(clave))
+
+// Qué tan segura es la contraseña: cuántos de los requisitos cumple (de 0 a 5) y cómo se llama ese nivel.
+const NIVELES = ['', 'Muy débil', 'Débil', 'Media', 'Buena', 'Fuerte']
+export function fuerzaClave(clave) {
+  const cumplidas = REGLAS.filter((regla) => regla.cumple(clave)).length
+  return { cumplidas, total: REGLAS.length, texto: NIVELES[cumplidas] }
+}

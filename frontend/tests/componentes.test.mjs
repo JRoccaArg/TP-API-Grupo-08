@@ -5,7 +5,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { createServer } from 'vite'
 
-let servidor, AvisoEventoAfectado, formatos, fechas, Cinta, BarraProximaFecha, FilaEntrada, BarraCompra, ResumenCompra, FlyerEvento, TarjetaFlyer, FiltrosEventos
+let servidor, FuerzaClave, AvisoEventoAfectado, formatos, fechas, Cinta, BarraProximaFecha, FilaEntrada, BarraCompra, ResumenCompra, FlyerEvento, TarjetaFlyer, FiltrosEventos
 const evento = { id: 1, titulo: 'Noche de prueba', estado: 'ACTIVO', imagenes: [] }
 const oferta = {
   id: 1, tipoEntradaNombre: 'General', estado: 'ACTIVO', cantidadDisponible: 3,
@@ -25,6 +25,7 @@ before(async () => {
   BarraCompra = (await servidor.ssrLoadModule('/src/components/BarraCompra.jsx')).default
   ResumenCompra = (await servidor.ssrLoadModule('/src/components/ResumenCompra.jsx')).default
   formatos = await servidor.ssrLoadModule('/src/utils/formatos.js')
+  FuerzaClave = (await servidor.ssrLoadModule('/src/components/FuerzaClave.jsx')).default
   AvisoEventoAfectado = (await servidor.ssrLoadModule('/src/components/AvisoEventoAfectado.jsx')).default
   fechas = await servidor.ssrLoadModule('/src/utils/fechas.js')
   Cinta = (await servidor.ssrLoadModule('/src/components/Cinta.jsx')).default
@@ -190,4 +191,16 @@ test('el aviso de un evento cancelado ofrece reembolsar solo sus entradas, con e
   const reembolsada = [{ ...compras[0], detalles: [detalle(1, ['CANCELADO', 'CANCELADO', 'UTILIZADO']), detalle(2, ['EMITIDO'])] }]
   assert.match(mostrar(reembolsada), /Reembolso de \$8\.000 pedido/)
   assert.doesNotMatch(mostrar(reembolsada), /Pedir reembolso/)
+})
+test('la barra de seguridad de la contraseña llena un tramo por requisito y cambia de nivel', () => {
+  const mostrar = (clave) => renderToStaticMarkup(createElement(FuerzaClave, { clave }))
+  const llenos = (html) => (html.match(/fuerza-clave__tramo--lleno/g) || []).length
+  assert.equal(llenos(mostrar('')), 0)
+  assert.match(mostrar(''), /Seguridad de la contraseña/)
+  assert.equal(llenos(mostrar('abcdefgh')), 2) // largo y minúscula
+  assert.match(mostrar('abcdefgh'), /fuerza-clave--2.*Débil/)
+  assert.match(mostrar('abc'), /Muy débil/)
+  assert.match(mostrar('Abcdefg1'), /fuerza-clave--4.*Buena/)
+  assert.equal(llenos(mostrar('Abcdefg1!')), 5)
+  assert.match(mostrar('Abcdefg1!'), /fuerza-clave--5.*Fuerte/)
 })

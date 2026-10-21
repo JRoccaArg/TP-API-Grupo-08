@@ -93,6 +93,20 @@
 .campo__ojo:hover, .campo__ojo[aria-pressed='true'] { color: var(--oro); }
 .campo__ojo:focus-visible { outline: 2px solid var(--oro); outline-offset: 2px; }
 
+/* Seguridad de la contraseña: un tramo por requisito cumplido; el color pasa de rojo a verde */
+.fuerza-clave { --fuerza: rgba(255, 255, 255, 0.12); margin-top: -14px; }
+.fuerza-clave--1 { --fuerza: #e0766d; }
+.fuerza-clave--2 { --fuerza: #e8975a; }
+.fuerza-clave--3 { --fuerza: #e6c24f; }
+.fuerza-clave--4 { --fuerza: #9bc96b; }
+.fuerza-clave--5 { --fuerza: #4fbf7d; }
+.fuerza-clave__barra { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.fuerza-clave__barra span { height: 5px; border-radius: 3px; background: rgba(255, 255, 255, 0.12); transition: background 0.25s; }
+.fuerza-clave__barra .fuerza-clave__tramo--lleno { background: var(--fuerza); }
+.fuerza-clave__texto { margin: 8px 0 0; font: 400 13px var(--fuente-ui); color: var(--gris); }
+.fuerza-clave__texto strong { font-weight: 600; color: var(--fuerza); transition: color 0.25s; }
+.fuerza-clave + .reglas-clave { margin-top: -22px; }
+
 /* Requisitos de la contraseña: se van tildando a medida que se escribe */
 .reglas-clave { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 18px; margin-top: -14px; }
 .reglas-clave li { display: flex; align-items: center; gap: 8px; font: 400 13px var(--fuente-ui); color: var(--gris); transition: color 0.2s; }
