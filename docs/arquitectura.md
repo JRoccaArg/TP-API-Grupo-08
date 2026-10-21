@@ -13,8 +13,6 @@
 
 Las operaciones administrativas usan `hasRole('ADMIN')`. Los recursos propios combinan `hasRole('USER')` con la comprobacion de propiedad.
 
-Ver [[contexto]] y [[decisiones]].
-
 ## Reserva de entradas
 
 1. Estados del carrito: `ACTIVO` (armando) → `EN_PAGO` (en la pantalla de pago) → `CONVERTIDO` (pagado) o `ABANDONADO` (abandonado o vencido, con los items vaciados). En `ACTIVO` y `EN_PAGO` las entradas ya estan apartadas hasta `fechaVencimiento`.

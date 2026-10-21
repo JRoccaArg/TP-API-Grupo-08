@@ -8,7 +8,7 @@ Un visitante mira el catálogo y el detalle de cada evento. Con su cuenta arma u
 
 - `zenoirprod/`: el back (Java 17, Spring Boot, JWT, SQL Server).
 - `frontend/`: el front (React, Vite, JavaScript).
-- `docs/`: arquitectura y decisiones.
+- `docs/arquitectura.md`: cómo funcionan la autenticación y la reserva de entradas.
 - `ENTIDAD - RELACION.txt`: el modelo de datos.
 
 ## Cómo levantarlo
@@ -83,8 +83,6 @@ Los de lectura del catálogo son públicos; el resto pide el token y, según el 
 cd zenoirprod && ./mvnw test      # back (usa una base en memoria)
 cd frontend && npm test           # front
 ```
-
-Más detalle en [TESTING.md](TESTING.md).
 
 ## Si algo falla
 
