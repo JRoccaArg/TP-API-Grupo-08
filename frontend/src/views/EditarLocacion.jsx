@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import Aviso from '../components/Aviso.jsx'
+import AvisoAcceso from '../components/AvisoAcceso.jsx'
 import EdicionLocacion from '../components/EdicionLocacion.jsx'
 import { cargarLocacion } from '../utils/apiAdmin.js'
 
@@ -16,13 +17,13 @@ export default function EditarLocacion({ usuario }) {
     cargarLocacion(id)
       .then((locacion) => { if (activo) setCarga({ estado: 'listo', locacion }) })
       .catch((fallo) => {
-        if (activo) setCarga({ estado: 'error', mensaje: fallo.message, noExiste: fallo.estado === 404 })
+        if (activo) setCarga({ estado: 'error', mensaje: fallo.message, noExiste: [400, 404].includes(fallo.estado) })
       })
     return () => { activo = false }
   }, [id, esAdmin])
 
   if (!esAdmin) {
-    return <Aviso mensaje="Esta sección es solo para administradores." boton="Ingresar" to="/login" />
+    return <AvisoAcceso usuario={usuario} para="ADMIN" sinSesion="Esta sección es solo para administradores." />
   }
   if (carga.estado === 'cargando') {
     return <main className="pagina admin"><p className="admin__cargando" role="status">Cargando locación…</p></main>

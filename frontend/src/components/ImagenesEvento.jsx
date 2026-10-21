@@ -39,11 +39,11 @@ export default function ImagenesEvento({ eventoId, titulo, token, inicial }) {
       }).then(agregada)))
   }
 
-  // Una sola portada: la anterior pasa a galería.
+  // Una sola portada: la anterior pasa a galería. Las dos se cambian el orden, así la portada sigue siendo la primera.
   const hacerPortada = (imagen) => {
     const actual = imagenes.find((otra) => otra.tipoImagenEvento === 'PORTADA')
-    const tareas = [() => cambiarImagen(token, eventoId, imagen.id, { tipo: 'PORTADA' }).then(guardada)]
-    if (actual) tareas.unshift(() => cambiarImagen(token, eventoId, actual.id, { tipo: 'GALERIA' }).then(guardada))
+    const tareas = [() => cambiarImagen(token, eventoId, imagen.id, { tipo: 'PORTADA', orden: actual ? actual.orden : imagen.orden }).then(guardada)]
+    if (actual) tareas.unshift(() => cambiarImagen(token, eventoId, actual.id, { tipo: 'GALERIA', orden: imagen.orden }).then(guardada))
     enFila(tareas)
   }
 

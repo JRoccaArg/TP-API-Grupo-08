@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import Aviso from '../components/Aviso.jsx'
+import AvisoAcceso from '../components/AvisoAcceso.jsx'
 import Boton from '../components/Boton.jsx'
 import AvisoEventoAfectado from '../components/AvisoEventoAfectado.jsx'
 import CabeceraMisEntradas from '../components/CabeceraMisEntradas.jsx'
@@ -36,7 +37,7 @@ export default function MisEntradas({ usuario }) {
     return () => { activo = false }
   }, [compras])
 
-  if (!token) return <Aviso mensaje="Ingresá para ver tus entradas." boton="Ingresar" to="/login" />
+  if (!token) return <AvisoAcceso usuario={usuario} para="USER" sinSesion="Ingresá para ver tus entradas." />
   if (error) {
     return (
       <main className="pagina aviso">

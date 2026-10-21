@@ -2,7 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import {
   agruparPorEvento, cantidadDeEntradas, comprasDelEvento, eventoAfectado, eventoCancelado, eventoReprogramado,
-  permiteReembolso, reemplazarCompra, sePuedeReembolsar,
+  permiteReembolso, reemplazarCompra, sePuedeReembolsar, tieneEntradaUsada,
 } from '../src/utils/compras.js'
 
 const AHORA = Date.parse('2026-10-20T12:00:00-03:00')
@@ -60,4 +60,15 @@ test('un evento reprogramado cuenta como afectado y, como el cancelado, permite 
   assert.equal(permiteReembolso({ estado: 'REPROGRAMADO' }), true)
   assert.equal(permiteReembolso({ estado: 'ACTIVO' }), false)
   assert.equal(sePuedeReembolsar(compra(1, 'CONFIRMADA', [1]), { 1: { estado: 'REPROGRAMADO' } }), true)
+})
+
+test('una compra con una entrada ya usada no se puede reembolsar, aunque el evento esté cancelado', () => {
+  const cancelados = { 1: { estado: 'CANCELADO' } }
+  const conUsada = compra(1, 'CONFIRMADA', [1])
+  conUsada.detalles[0].tickets[0].estado = 'UTILIZADO'
+  assert.equal(tieneEntradaUsada(conUsada), true)
+  assert.equal(sePuedeReembolsar(conUsada, cancelados), false)
+  const sinUsar = compra(2, 'CONFIRMADA', [1])
+  assert.equal(tieneEntradaUsada(sinUsar), false)
+  assert.equal(sePuedeReembolsar(sinUsar, cancelados), true)
 })

@@ -9,6 +9,7 @@ import ReglasClave from '../components/ReglasClave.jsx'
 import { imagenes } from '../data/imagenes.js'
 import { registrarse } from '../utils/apiAuth.js'
 import { claveValida } from '../utils/clave.js'
+import { validarRegistro } from '../utils/registro.js'
 
 const VACIO = { firstname: '', lastname: '', dni: '', fechaNacimiento: '', email: '', password: '' }
 
@@ -24,6 +25,11 @@ export default function Registro({ onIngresar }) {
   const enviar = (evento) => {
     evento.preventDefault()
     setError('')
+    const problema = validarRegistro(datos)
+    if (problema) {
+      setError(problema)
+      return
+    }
     if (!claveValida(datos.password)) {
       setError('La contraseña todavía no cumple los requisitos.')
       return

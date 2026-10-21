@@ -19,7 +19,7 @@ Las tablas de usuarios, carritos, compras y tickets quedan vacías: no se copian
 contraseñas ni compras. Como las compras no se copian, el stock de cada entrada es el que
 tenía antes de comprar: Preventa 1 de After Palace, que en la base de desarrollo está agotada por una compra
 de sus 2 entradas, queda activa con 2 disponibles.
-Para tener un administrador: registrá una cuenta desde el front y, en la base, ejecutá
+Para tener un administrador: registrá una cuenta desde el front (la contraseña pide 8 a 64 caracteres con mayúscula, minúscula, número y símbolo, y hay que ser mayor de 18) y, en la base, ejecutá
 `UPDATE usuarios SET rol = 'ADMIN' WHERE email = 'tu_email';`.
 
 ## 1. Preparar una base vacía

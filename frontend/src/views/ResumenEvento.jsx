@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import Aviso from '../components/Aviso.jsx'
+import AvisoAcceso from '../components/AvisoAcceso.jsx'
 import AvisoGuardado from '../components/AvisoGuardado.jsx'
 import Boton from '../components/Boton.jsx'
 import DatoResumen from '../components/DatoResumen.jsx'
@@ -20,15 +21,15 @@ export default function ResumenEvento({ usuario }) {
   useEffect(() => {
     if (!token) return undefined
     let activo = true
-    obtenerEvento(id)
+    obtenerEvento(id, token)
       .then((evento) => obtenerEstadisticas(token, id).then((estadisticas) => {
         if (activo) setCarga({ estado: 'listo', evento, estadisticas })
       }))
-      .catch((fallo) => { if (activo) setCarga({ estado: 'error', mensaje: fallo.message, noExiste: fallo.estado === 404 }) })
+      .catch((fallo) => { if (activo) setCarga({ estado: 'error', mensaje: fallo.message, noExiste: [400, 404].includes(fallo.estado) }) })
     return () => { activo = false }
   }, [id, token])
 
-  if (!token) return <Aviso mensaje="Esta sección es solo para administradores." boton="Ingresar" to="/login" />
+  if (!token) return <AvisoAcceso usuario={usuario} para="ADMIN" sinSesion="Esta sección es solo para administradores." />
   if (carga.estado === 'cargando') {
     return <main className="pagina admin"><p className="admin__cargando" role="status">Cargando evento…</p></main>
   }

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Scanner } from '@yudiel/react-qr-scanner'
-import Aviso from '../components/Aviso.jsx'
+import AvisoAcceso from '../components/AvisoAcceso.jsx'
 import Boton from '../components/Boton.jsx'
 import TituloAdmin from '../components/TituloAdmin.jsx'
 import { codigoDesdeQr, mensajeDeCamara } from '../utils/escaner.js'
@@ -15,7 +15,7 @@ export default function EscanearQR({ usuario }) {
   const [error, setError] = useState('')
 
   if (usuario?.rol !== 'ADMIN') {
-    return <Aviso mensaje="Esta sección es solo para administradores." boton="Ingresar" to="/login" />
+    return <AvisoAcceso usuario={usuario} para="ADMIN" sinSesion="Esta sección es solo para administradores." />
   }
 
   const leer = (codigos) => {

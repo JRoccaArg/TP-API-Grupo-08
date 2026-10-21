@@ -14,8 +14,11 @@ export class ErrorApi extends Error {
 
 export const urlApi = (ruta) => `${API_BASE}${ruta}`
 
-export function consultar(ruta) {
-  return fetch(urlApi(ruta), { headers: { Accept: 'application/json' } })
+// Las consultas son públicas. Con "token" (solo el administrador) se manda la sesión: así el back también devuelve los
+// eventos en borrador, que para cualquier otra persona no existen.
+export function consultar(ruta, token) {
+  const cabeceras = token ? { Accept: 'application/json', Authorization: `Bearer ${token}` } : { Accept: 'application/json' }
+  return fetch(urlApi(ruta), { headers: cabeceras })
     .then((respuesta) => respuesta.text().then((texto) => {
       let datos
       try { datos = JSON.parse(texto) } catch { /* Puede haber un error del proxy sin JSON. */ }
@@ -32,8 +35,8 @@ export function consultar(ruta) {
 }
 
 // También las entradas y las imágenes están paginadas. No se descarta ninguna página.
-export function consultarPaginas(ruta) {
-  const pagina = (numero) => consultar(`${ruta}?page=${numero}&size=${TAMANO_PAGINA}`)
+export function consultarPaginas(ruta, token) {
+  const pagina = (numero) => consultar(`${ruta}?page=${numero}&size=${TAMANO_PAGINA}`, token)
     .then((datos) => {
       if (!datos || !Array.isArray(datos.content) || !Number.isInteger(datos.totalPages) || datos.totalPages < 0) {
         throw new ErrorApi('El listado recibido tiene un formato inesperado.')
@@ -47,7 +50,7 @@ export function consultarPaginas(ruta) {
 // Un pedido auxiliar que falla no tira abajo el evento: se guarda el mensaje y se muestra en pantalla.
 const recuperar = (error) => ({ error: error.message })
 
-export const obtenerOfertas = (id) => consultarPaginas(`/eventosTiposEntrada/evento/${id}`)
+export const obtenerOfertas = (id, token) => consultarPaginas(`/eventosTiposEntrada/evento/${id}`, token)
 
 // Las imágenes llegan sin la ruta del archivo: se la agrega acá. La portada va primero y después, por orden.
 export const urlImagen = (eventoId, imagen) => ({
@@ -58,13 +61,13 @@ export const ordenarImagenes = (imagenes) => [...imagenes].sort((a, b) =>
   Number(b.tipoImagenEvento === 'PORTADA') - Number(a.tipoImagenEvento === 'PORTADA') ||
   (a.orden ?? 0) - (b.orden ?? 0) || a.id - b.id)
 
-export const obtenerImagenes = (id) => consultarPaginas(`/eventos/${id}/imagenes`)
+export const obtenerImagenes = (id, token) => consultarPaginas(`/eventos/${id}/imagenes`, token)
   .then((imagenes) => ordenarImagenes(imagenes.map((imagen) => urlImagen(id, imagen))))
 
 // Primero las ofertas y después las imágenes: si una de las dos falla, el evento se muestra igual.
-function completarEvento(evento) {
-  return obtenerOfertas(evento.id).catch(recuperar).then((ofertas) =>
-    obtenerImagenes(evento.id).catch(recuperar).then((imagenes) => ({
+function completarEvento(evento, token) {
+  return obtenerOfertas(evento.id, token).catch(recuperar).then((ofertas) =>
+    obtenerImagenes(evento.id, token).catch(recuperar).then((imagenes) => ({
       ...evento,
       ofertas: ofertas.error ? [] : ofertas,
       imagenes: imagenes.error ? [] : imagenes,
@@ -73,13 +76,13 @@ function completarEvento(evento) {
     })))
 }
 
-export const obtenerEvento = (id) => consultar(`/eventos/${id}`).then(completarEvento)
+export const obtenerEvento = (id, token) => consultar(`/eventos/${id}`, token).then((evento) => completarEvento(evento, token))
 
 // De a un evento por vez: no se disparan cientos de solicitudes simultáneas.
-export function completarEventos(eventos) {
+export function completarEventos(eventos, token) {
   if (!eventos.length) return Promise.resolve([])
-  return completarEvento(eventos[0]).then((primero) =>
-    completarEventos(eventos.slice(1)).then((resto) => [primero, ...resto]))
+  return completarEvento(eventos[0], token).then((primero) =>
+    completarEventos(eventos.slice(1), token).then((resto) => [primero, ...resto]))
 }
 
 // El catálogo pide una sola página; las ofertas e imágenes se completan sólo para esa página.

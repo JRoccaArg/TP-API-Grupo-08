@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import Aviso from '../components/Aviso.jsx'
+import AvisoAcceso from '../components/AvisoAcceso.jsx'
 import AvisoGuardado from '../components/AvisoGuardado.jsx'
 import Boton from '../components/Boton.jsx'
 import FilaEventoAdmin from '../components/FilaEventoAdmin.jsx'
@@ -22,18 +22,19 @@ export default function GestionarEventos({ usuario }) {
   const [lista, setLista] = useState(null)
   const [error, setError] = useState('')
   const esAdmin = usuario?.rol === 'ADMIN'
+  const token = esAdmin ? usuario.token : null
 
   useEffect(() => {
-    if (!esAdmin) return undefined
+    if (!token) return undefined
     let activo = true
-    obtenerEventosAdmin()
+    obtenerEventosAdmin(token)
       .then((eventos) => { if (activo) setLista(eventos) })
       .catch((fallo) => { if (activo) setError(fallo.message) })
     return () => { activo = false }
-  }, [esAdmin])
+  }, [token])
 
   if (!esAdmin) {
-    return <Aviso mensaje="Esta sección es solo para administradores." boton="Ingresar" to="/login" />
+    return <AvisoAcceso usuario={usuario} para="ADMIN" sinSesion="Esta sección es solo para administradores." />
   }
   const visibles = lista ? lista.filter(FILTROS.find((f) => f.id === filtro).coincide) : []
 

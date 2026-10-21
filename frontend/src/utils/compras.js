@@ -32,9 +32,14 @@ export const cantidadDeEntradas = (compra) => compra.detalles.reduce((total, det
 export const comprasDelEvento = (compras, eventoId) =>
   compras.filter((compra) => compra.detalles.some((detalle) => detalle.eventoId === eventoId))
 
-// El back solo cancela (reembolsa) una compra que sigue confirmada y cuyos eventos permiten el reembolso todos.
+// Si ya se usó alguna entrada de la compra, la compra no se reembolsa (el reembolso es de la compra entera).
+export const tieneEntradaUsada = (compra) =>
+  compra.detalles.some((detalle) => detalle.tickets.some((ticket) => ticket.estado === 'UTILIZADO'))
+
+// El back solo reembolsa una compra que sigue confirmada, sin entradas usadas y cuyos eventos lo permiten todos.
 export const sePuedeReembolsar = (compra, eventos) =>
-  compra.estado === 'CONFIRMADA' && compra.detalles.every((detalle) => permiteReembolso(eventos[detalle.eventoId]))
+  compra.estado === 'CONFIRMADA' && !tieneEntradaUsada(compra) &&
+  compra.detalles.every((detalle) => permiteReembolso(eventos[detalle.eventoId]))
 
 // La lista con la compra que devolvió el back en lugar de la que estaba.
 export const reemplazarCompra = (compras, nueva) => compras.map((compra) => (compra.id === nueva.id ? nueva : compra))

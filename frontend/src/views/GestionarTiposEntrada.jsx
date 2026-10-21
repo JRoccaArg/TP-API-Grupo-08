@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import Aviso from '../components/Aviso.jsx'
+import AvisoAcceso from '../components/AvisoAcceso.jsx'
 import Boton from '../components/Boton.jsx'
 import FilaTipoEntrada from '../components/FilaTipoEntrada.jsx'
 import Icono from '../components/Icono.jsx'
@@ -26,7 +26,7 @@ export default function GestionarTiposEntrada({ usuario }) {
   }, [esAdmin])
 
   if (!esAdmin) {
-    return <Aviso mensaje="Esta sección es solo para administradores." boton="Ingresar" to="/login" />
+    return <AvisoAcceso usuario={usuario} para="ADMIN" sinSesion="Esta sección es solo para administradores." />
   }
 
   return (

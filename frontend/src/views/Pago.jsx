@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Aviso from '../components/Aviso.jsx'
+import AvisoAcceso from '../components/AvisoAcceso.jsx'
 import Boton from '../components/Boton.jsx'
 import Icono from '../components/Icono.jsx'
 import BannerPago from '../components/BannerPago.jsx'
@@ -24,7 +25,7 @@ export default function Pago({ usuario, carrito, carga, vencido, onPagar }) {
   const errores = erroresTarjeta(tarjeta)
 
   if (usuario?.rol !== 'USER') {
-    return <Aviso mensaje="Ingresá para pagar tus entradas." boton="Ingresar" to="/login" />
+    return <AvisoAcceso usuario={usuario} para="USER" sinSesion="Ingresá para pagar tus entradas." />
   }
   if (vencido) return <TiempoAgotado />
   if (carga.cargando && carrito.items.length === 0) {

@@ -1,6 +1,7 @@
 import { borrarSeleccionPendiente } from './utils/seleccionPendiente.js'
 import { useCallback, useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
+import AvisoSesion from './components/AvisoSesion.jsx'
 import Navbar from './components/Navbar.jsx'
 import RutasSitio from './RutasSitio.jsx'
 import { agregarVarios, cambiarCantidad, iniciarPago, obtenerCarrito, quitarItem, vaciarCarrito } from './utils/apiCarrito.js'
@@ -12,7 +13,7 @@ const SIN_NAVBAR = ['/login', '/registro']
 
 // Sitio es el "controlador" del carrito: guarda el que devuelve el back y se lo pasa por props a quien lo necesita.
 // Cada acción pide al back y, con su respuesta, actualiza la pantalla (no se vuelve a pedir el carrito).
-export default function Sitio({ usuario, onIngresar, onSalir }) {
+export default function Sitio({ usuario, sesionVencida, onIngresar, onSalir }) {
   const { pathname } = useLocation()
   const token = usuario?.rol === 'USER' ? usuario.token : null // solo el rol USER tiene carrito
   const [carrito, setCarrito] = useState(carritoVacio)
@@ -128,6 +129,7 @@ export default function Sitio({ usuario, onIngresar, onSalir }) {
       {!SIN_NAVBAR.includes(pathname) && (
         <Navbar usuario={usuario} carrito={carrito} eventos={eventos} onSalir={salir} onIrAPagar={acciones.irAPagar} />
       )}
+      {sesionVencida && !SIN_NAVBAR.includes(pathname) && <AvisoSesion />}
       <RutasSitio
         usuario={usuario}
         onIngresar={onIngresar}

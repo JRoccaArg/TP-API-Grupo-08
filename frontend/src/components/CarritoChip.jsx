@@ -15,7 +15,7 @@ export default function CarritoChip({ carrito, eventos, onIrAPagar }) {
         type="button"
         className="carrito-chip__boton"
         aria-expanded={abierto}
-        aria-label={`Carrito: ${cantidad} entradas`}
+        aria-label={`Carrito: ${cantidad} ${cantidad === 1 ? 'entrada' : 'entradas'}`}
         onClick={() => setAbierto(!abierto)}
       >
         <Icono nombre="carrito" tamano={24} grosor={1.6} />

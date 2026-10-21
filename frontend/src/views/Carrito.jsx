@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import Aviso from '../components/Aviso.jsx'
+import AvisoAcceso from '../components/AvisoAcceso.jsx'
 import Boton from '../components/Boton.jsx'
 import BannerReserva from '../components/BannerReserva.jsx'
 import LineaCarrito from '../components/LineaCarrito.jsx'
@@ -11,9 +12,10 @@ import { vencimientoMs } from '../utils/carrito.js'
 export default function Carrito({ usuario, carrito, carga, vencido, eventos, onCambiar, onVaciar, onIrAPagar, onReintentar }) {
   const [aviso, setAviso] = useState('')
   const [ocupado, setOcupado] = useState(false)
+  const [confirmandoVaciar, setConfirmandoVaciar] = useState(false)
 
   if (usuario?.rol !== 'USER') {
-    return <Aviso mensaje="Ingresá para ver tu carrito." boton="Ingresar" to="/login" />
+    return <AvisoAcceso usuario={usuario} para="USER" sinSesion="Ingresá para ver tu carrito." />
   }
   if (vencido) return <Aviso mensaje="Se terminó el tiempo y liberamos tus entradas." boton="Ver fechas" to="/" />
   if (carga.cargando && carrito.items.length === 0) {
@@ -37,6 +39,15 @@ export default function Carrito({ usuario, carrito, carga, vencido, eventos, onC
     accion()
       .catch((fallo) => setAviso(fallo.message))
       .then(() => setOcupado(false))
+  }
+  // Vaciar saca todas las entradas y no se deshace: el primer clic pide confirmación y el segundo vacía.
+  const vaciar = () => {
+    if (!confirmandoVaciar) {
+      setConfirmandoVaciar(true)
+      return
+    }
+    setConfirmandoVaciar(false)
+    hacer(onVaciar)
   }
 
   return (
@@ -65,8 +76,8 @@ export default function Carrito({ usuario, carrito, carga, vencido, eventos, onC
             <Boton to="/" variante="contorno" clase="boton--chico">
               Seguir comprando
             </Boton>
-            <Boton variante="peligro" clase="boton--chico" deshabilitado={ocupado} onClick={() => hacer(onVaciar)}>
-              Vaciar carrito
+            <Boton variante="peligro" clase="boton--chico" deshabilitado={ocupado} onClick={vaciar}>
+              {confirmandoVaciar ? 'Confirmar: vaciar carrito' : 'Vaciar carrito'}
             </Boton>
           </div>
         </section>

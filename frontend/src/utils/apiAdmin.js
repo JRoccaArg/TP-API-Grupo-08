@@ -15,13 +15,13 @@ export const cargarOpciones = () =>
       categorias,
     })))
 
-export const cargarEdicion = (id) =>
-  obtenerEvento(id).then((evento) => cargarOpciones().then((opciones) => ({ evento, ...opciones })))
+export const cargarEdicion = (id, token) =>
+  obtenerEvento(id, token).then((evento) => cargarOpciones().then((opciones) => ({ evento, ...opciones })))
 
 // Todos los eventos (cualquier estado), con sus entradas e imágenes, del más lejano al más antiguo.
-export const obtenerEventosAdmin = () =>
-  consultarPaginas('/eventos')
-    .then(completarEventos)
+export const obtenerEventosAdmin = (token) =>
+  consultarPaginas('/eventos', token)
+    .then((eventos) => completarEventos(eventos, token))
     .then((lista) => lista.sort((a, b) => String(b.fechaHoraInicio).localeCompare(String(a.fechaHoraInicio))))
 
 // --- eventos ---
@@ -156,7 +156,7 @@ const moverCierre = (token, ofertas, fechaFinVenta) => {
     .then((cambiada) => moverCierre(token, resto, fechaFinVenta).then((otras) => [cambiada, ...otras]))
 }
 export const alinearVentas = (token, eventoId, fin) =>
-  obtenerOfertas(eventoId).then((ofertas) =>
+  obtenerOfertas(eventoId, token).then((ofertas) =>
     moverCierre(token, ofertas.filter((oferta) => paraInput(oferta.fechaFinVenta) !== fin), `${fin}:00`))
 
 export const eliminarOferta = (token, id) => pedir('DELETE', `/eventosTiposEntrada/${id}`, token)

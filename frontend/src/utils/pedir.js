@@ -1,5 +1,10 @@
 import { ErrorApi, urlApi } from './apiEventos.js'
 
+// Cuando el back responde 401 la sesión ya no sirve (venció o el token dejó de valer): quien arma la app registra acá qué hacer
+// (cerrarla). Un 403 es otra cosa: la sesión sirve, pero no tiene permiso para eso.
+let alVencerLaSesion = () => {}
+export const avisarSiVenceLaSesion = (funcion) => { alVencerLaSesion = funcion }
+
 // Pedidos al backend que piden sesión (administración y carrito). Todos llevan el token en el encabezado "Authorization: Bearer <token>".
 // "cuerpo" puede ser un objeto (se manda como JSON) o un FormData (se manda como formulario con archivos).
 export function pedir(metodo, ruta, token, cuerpo) {
@@ -16,10 +21,11 @@ export function pedir(metodo, ruta, token, cuerpo) {
       let datos
       try { datos = JSON.parse(texto) } catch { /* sin cuerpo (204) o error sin JSON */ }
       if (!respuesta.ok) {
-        const sinPermiso = respuesta.status === 401 || respuesta.status === 403
+        if (respuesta.status === 401) alVencerLaSesion()
         throw new ErrorApi(
-          sinPermiso ? 'Tu sesión venció o no tenés permiso para esto. Volvé a ingresar.'
-            : datos?.message || 'No pudimos completar la operación. Intentá nuevamente.',
+          respuesta.status === 401 ? 'Tu sesión venció. Ingresá de nuevo.'
+            : respuesta.status === 403 ? 'No tenés permiso para hacer esto.'
+              : datos?.message || 'No pudimos completar la operación. Intentá nuevamente.',
           respuesta.status,
         )
       }

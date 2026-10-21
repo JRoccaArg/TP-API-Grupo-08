@@ -144,3 +144,7 @@ ul, ol {
   font: 600 clamp(40px, 5vw, 72px) / 1 var(--fuente-ui);
   letter-spacing: -0.05em;
 }
+
+/* Aviso de sesión vencida: franja debajo del header */
+.aviso-sesion { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 18px; padding: 14px 24px; border-bottom: 1px solid rgba(201, 132, 126, 0.55); background: rgba(201, 132, 126, 0.1); color: var(--peligro); font: 500 15px var(--fuente-ui); }
+

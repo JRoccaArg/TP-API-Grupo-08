@@ -1,12 +1,16 @@
+import { useLocation } from 'react-router-dom'
 import Boton from './Boton.jsx'
 import Icono from './Icono.jsx'
 import { iniciales } from '../utils/formatos.js'
 
 // Parte derecha del header: "Ingresar" si no hay sesión; avatar y nombre si la hay.
 export default function CuentaChip({ usuario, onSalir }) {
+  const { pathname } = useLocation()
   if (!usuario) {
+    // Desde una verificación de entrada, el organizador vuelve ahí al ingresar (igual que con el botón del aviso).
+    const state = pathname.startsWith('/verificar/') ? { volverA: pathname } : undefined
     return (
-      <Boton to="/login" clase="boton--chico">
+      <Boton to="/login" state={state} clase="boton--chico">
         Ingresar
       </Boton>
     )

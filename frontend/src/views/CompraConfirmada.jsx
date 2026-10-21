@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useLocation, useParams } from 'react-router-dom'
 import Aviso from '../components/Aviso.jsx'
+import AvisoAcceso from '../components/AvisoAcceso.jsx'
 import CompraOk from '../components/CompraOk.jsx'
 import { obtenerCompra } from '../utils/apiCompras.js'
 import { obtenerEventosPorId } from '../utils/apiEventos.js'
@@ -23,7 +24,7 @@ export default function CompraConfirmada({ usuario }) {
       .then((encontrada) => { if (activo) setCompra(encontrada) })
       .catch((fallo) => {
         // Una compra ajena o inexistente se ve igual: el back responde 403 o 404.
-        if (activo) setError(fallo.estado === 403 || fallo.estado === 404 ? 'No encontramos esta compra.' : fallo.message)
+        if (activo) setError([400, 403, 404].includes(fallo.estado) ? 'No encontramos esta compra.' : fallo.message)
       })
     return () => { activo = false }
   }, [token, id, compra])
@@ -35,7 +36,7 @@ export default function CompraConfirmada({ usuario }) {
     return () => { activo = false }
   }, [compra])
 
-  if (!token) return <Aviso mensaje="Ingresá para ver tu compra." boton="Ingresar" to="/login" />
+  if (!token) return <AvisoAcceso usuario={usuario} para="USER" sinSesion="Ingresá para ver tu compra." />
   if (error) return <Aviso mensaje={error} boton="Ver mis entradas" to="/mis-entradas" />
   if (!compra || !eventos) {
     return <main className="pagina compra"><p className="admin__cargando" role="status">Cargando tu compra…</p></main>

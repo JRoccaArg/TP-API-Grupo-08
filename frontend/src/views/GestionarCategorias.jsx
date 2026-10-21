@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import Aviso from '../components/Aviso.jsx'
+import AvisoAcceso from '../components/AvisoAcceso.jsx'
 import Boton from '../components/Boton.jsx'
 import EdicionCategoria from '../components/EdicionCategoria.jsx'
 import FilaCategoria from '../components/FilaCategoria.jsx'
@@ -27,7 +27,7 @@ export default function GestionarCategorias({ usuario }) {
   }, [esAdmin])
 
   if (!esAdmin) {
-    return <Aviso mensaje="Esta sección es solo para administradores." boton="Ingresar" to="/login" />
+    return <AvisoAcceso usuario={usuario} para="ADMIN" sinSesion="Esta sección es solo para administradores." />
   }
 
   return (

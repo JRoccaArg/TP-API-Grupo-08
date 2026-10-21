@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import Aviso from '../components/Aviso.jsx'
+import AvisoAcceso from '../components/AvisoAcceso.jsx'
 import BarraAcciones from '../components/BarraAcciones.jsx'
 import FormularioEvento from '../components/FormularioEvento.jsx'
 import PanelEntradas from '../components/PanelEntradas.jsx'
@@ -28,7 +28,7 @@ export default function NuevoEvento({ usuario }) {
   }, [esAdmin])
 
   if (!esAdmin) {
-    return <Aviso mensaje="Esta sección es solo para administradores." boton="Ingresar" to="/login" />
+    return <AvisoAcceso usuario={usuario} para="ADMIN" sinSesion="Esta sección es solo para administradores." />
   }
 
   const cambiar = (campo, valor) => {

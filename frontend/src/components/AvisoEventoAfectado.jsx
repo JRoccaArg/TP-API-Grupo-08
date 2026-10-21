@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import Boton from './Boton.jsx'
 import { reembolsarCompra } from '../utils/apiCompras.js'
-import { cantidadDeEntradas, comprasDelEvento, eventoCancelado, permiteReembolso, sePuedeReembolsar } from '../utils/compras.js'
+import {
+  cantidadDeEntradas, comprasDelEvento, eventoCancelado, permiteReembolso, sePuedeReembolsar, tieneEntradaUsada,
+} from '../utils/compras.js'
 import { diaYFecha, horario } from '../utils/fechas.js'
 import { precio } from '../utils/formatos.js'
 
@@ -16,7 +18,7 @@ export default function AvisoEventoAfectado({ evento, compras, eventos, token, o
   const cancelado = eventoCancelado(evento)
   const delEvento = comprasDelEvento(compras, evento.id)
   const hayConfirmadas = delEvento.some((compra) => compra.estado === 'CONFIRMADA')
-  const hayPendientes = permiteReembolso(evento) && hayConfirmadas
+  const hayPendientes = delEvento.some((compra) => sePuedeReembolsar(compra, eventos))
 
   const pedir = (id) => {
     if (confirmando !== id) {
@@ -51,6 +53,8 @@ export default function AvisoEventoAfectado({ evento, compras, eventos, token, o
               </span>
               {compra.estado === 'CANCELADA' ? (
                 <b>Reembolso de {precio(compra.total)} pedido (demostración: no se mueve dinero)</b>
+              ) : tieneEntradaUsada(compra) ? (
+                <small>Ya usaste una entrada de esta compra: no se puede reembolsar.</small>
               ) : sePuedeReembolsar(compra, eventos) ? (
                 <Boton variante="contorno" clase="boton--chico" deshabilitado={pidiendo === compra.id} onClick={() => pedir(compra.id)}>
                   {pidiendo === compra.id ? 'Pidiendo…' : confirmando === compra.id ? `Confirmar: reembolsar ${precio(compra.total)}` : 'Pedir reembolso'}

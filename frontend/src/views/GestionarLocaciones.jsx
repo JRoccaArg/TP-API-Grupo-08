@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import Aviso from '../components/Aviso.jsx'
+import AvisoAcceso from '../components/AvisoAcceso.jsx'
 import AvisoGuardado from '../components/AvisoGuardado.jsx'
 import Boton from '../components/Boton.jsx'
 import FilaLocacionAdmin from '../components/FilaLocacionAdmin.jsx'
@@ -23,7 +23,7 @@ export default function GestionarLocaciones({ usuario }) {
   }, [esAdmin])
 
   if (!esAdmin) {
-    return <Aviso mensaje="Esta sección es solo para administradores." boton="Ingresar" to="/login" />
+    return <AvisoAcceso usuario={usuario} para="ADMIN" sinSesion="Esta sección es solo para administradores." />
   }
 
   return (
