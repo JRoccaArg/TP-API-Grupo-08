@@ -79,6 +79,19 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
+
+        <!-- JavaMail: manda por mail las entradas (con sus QR) al confirmar una compra -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+
+        <!-- ZXing: dibuja el QR de cada entrada como imagen para el mail -->
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>javase</artifactId>
+            <version>3.5.3</version>
+        </dependency>
  
         <dependency>
             <groupId>org.springframework.boot</groupId>

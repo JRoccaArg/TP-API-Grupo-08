@@ -67,3 +67,8 @@ integral contra la API.
 
 Se versionan fuentes de tests, configuración necesaria y esta guía. No se versionan credenciales,
 archivos `.env`, bases de datos, `node_modules`, `target`, `dist` ni reportes generados.
+
+## Mail con las entradas
+
+- Back: `MailEntradasIntegrationTests` reemplaza el envio real por uno simulado (`@MockBean JavaMailSender`) y revisa el mail que se arma (destinatario, asunto, HTML con el nombre y el evento, un QR por entrada). `QrImagenTest` genera la imagen del QR y la vuelve a leer con ZXing.
+- Manual: activar el mail con una cuenta (ver README), comprar con un usuario con mail real y revisar la casilla.

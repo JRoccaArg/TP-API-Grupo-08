@@ -154,6 +154,30 @@ USE Zenoir_Prod;
 IF COL_LENGTH('Locaciones', 'capacidad_max') IS NOT NULL ALTER TABLE Locaciones DROP COLUMN capacidad_max;
 ```
 
+## Mail con las entradas (JavaMail)
+
+Al confirmar una compra, el back le manda al comprador un mail con sus entradas: una tarjeta por entrada con el evento, la fecha, el lugar y el QR como imagen (el mismo link `/verificar/<código>` que el QR de la página). Se manda en segundo plano: si el mail falla, la compra queda hecha igual y el error queda en el log.
+
+**Por defecto está apagado**: no se manda nada y en el log aparece `Mail desactivado`. Así el proyecto y los tests corren sin credenciales. Para mandar de verdad hace falta una cuenta de correo desde la que salen los mails (JavaMail es la librería que los manda; la cuenta es el servidor SMTP). Con Gmail:
+
+1. En la cuenta de Google del grupo, activá la **verificación en 2 pasos**.
+2. Entrá a <https://myaccount.google.com/apppasswords> y creá una **contraseña de aplicación** (16 letras). No es la contraseña normal de la cuenta.
+3. Antes de levantar el back, definí estas variables (en la misma terminal):
+
+   PowerShell:
+   ```powershell
+   $env:ZENOIR_MAIL_ACTIVO="true"
+   $env:ZENOIR_MAIL_USUARIO="la-cuenta@gmail.com"
+   $env:ZENOIR_MAIL_CLAVE="la contraseña de aplicación"
+   ```
+   Git Bash:
+   ```bash
+   export ZENOIR_MAIL_ACTIVO=true ZENOIR_MAIL_USUARIO=la-cuenta@gmail.com ZENOIR_MAIL_CLAVE="la contraseña de aplicación"
+   ```
+4. Comprá una entrada con un usuario registrado con un **mail real**: las entradas llegan a esa casilla (la primera vez, revisá Spam).
+
+Las credenciales van por variables de entorno y nunca se suben a git. Con otro proveedor se cambian también `ZENOIR_MAIL_HOST` y `ZENOIR_MAIL_PUERTO`. `ZENOIR_FRONT_URL` (por defecto `http://localhost:5173`) es la dirección que va en el QR y en el botón "Ver mis entradas". Todo esto está en `application.properties`.
+
 ## Endpoints actuales
 
 | Método | Ruta | Descripción |

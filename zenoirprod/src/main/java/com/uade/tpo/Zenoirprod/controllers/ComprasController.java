@@ -29,6 +29,7 @@ import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaNoDisponibleException
 import com.uade.tpo.Zenoirprod.exceptions.PaginacionInvalidaException;
 import com.uade.tpo.Zenoirprod.exceptions.VentaNoHabilitadaException;
 import com.uade.tpo.Zenoirprod.service.CompraService;
+import com.uade.tpo.Zenoirprod.service.MailService;
 import com.uade.tpo.Zenoirprod.util.PageableFactory;
 
 @RestController
@@ -36,6 +37,7 @@ import com.uade.tpo.Zenoirprod.util.PageableFactory;
 public class ComprasController {
 
     @Autowired private CompraService service;
+    @Autowired private MailService mailService;
 
     @PostMapping
     @PreAuthorize("hasRole('USER')")
@@ -44,6 +46,8 @@ public class ComprasController {
             EventoTipoEntradaInexistenteException, EventoTipoEntradaNoDisponibleException,
             VentaNoHabilitadaException, EventoNoDisponibleException {
         Compra compra = service.crearCompra(usuario);
+        // La compra ya quedo guardada: recien ahora se mandan las entradas por mail (en segundo plano, no demora la respuesta).
+        mailService.enviarEntradas(compra.getId());
         return ResponseEntity
                 .created(URI.create("/compras/" + compra.getId()))
                 .body(CompraResponse.fromEntity(compra));
