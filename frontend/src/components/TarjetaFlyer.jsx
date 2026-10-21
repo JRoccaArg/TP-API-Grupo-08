@@ -28,7 +28,8 @@ export default function TarjetaFlyer({ evento, ahora, indice = 0, filtroPrecio =
   const hayRango = Boolean(filtroPrecio.precioMin || filtroPrecio.precioMax)
   const precioDesde = hayRango ? precioDesdeEnRango(evento, filtroPrecio, ahora) : precioGeneral
   const tienePrecio = estado === 'EN_VENTA' && typeof precioDesde === 'number' && Number.isFinite(precioDesde)
-  const apagado = ['FINALIZADO', 'CANCELADO', 'VENTA_FINALIZADA'].includes(estado)
+  const apagado = ['FINALIZADO', 'CANCELADO', 'VENTA_FINALIZADA', 'AGOTADO'].includes(estado)
+  const etiqueta = { FINALIZADO: 'Finalizado', CANCELADO: 'Cancelado', AGOTADO: 'Agotado' }[estado]
   const destino = `/eventos/${evento.id}`
   // Al volver desde el detalle se regresa al mismo punto del catálogo (con sus filtros).
   const origen = { volverA: `${location.pathname}${location.search}#fechas` }
@@ -40,6 +41,7 @@ export default function TarjetaFlyer({ evento, ahora, indice = 0, filtroPrecio =
     >
       <Link to={destino} state={origen} className="flyer__imagen" aria-label={`Ver detalle de ${evento.titulo}`}>
         <ImagenEvento imagen={evento.imagenes?.[0]} titulo={evento.titulo} className="flyer__visual" />
+        {etiqueta && <span className={`flyer__estado flyer__estado--${estado.toLowerCase()}`}>{etiqueta}</span>}
         <span className="flyer__fecha">{evento.fechaHoraInicio ? fechaLarga(evento.fechaHoraInicio) : 'Fecha a confirmar'}</span>
       </Link>
       <div className="flyer__pie">

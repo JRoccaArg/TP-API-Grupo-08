@@ -3,7 +3,6 @@ import OrdenEventos from './OrdenEventos.jsx'
 import PaginacionEventos from './PaginacionEventos.jsx'
 import TarjetaFlyer from './TarjetaFlyer.jsx'
 import { EVENTOS_POR_PAGINA } from '../utils/apiEventos.js'
-import { hayFiltros } from '../utils/filtrosCatalogo.js'
 
 // Lo que va debajo de los filtros: el estado de la carga (cargando, error o sin eventos) o, con datos, el aviso de
 // lo que no se pudo cargar, la cantidad encontrada, el orden, las tarjetas y la paginación.
@@ -16,7 +15,7 @@ export default function ResultadosCatalogo({
   const fallosOfertas = eventos.some((evento) => evento.errorOfertas)
   const fallosImagenes = eventos.some((evento) => evento.errorImagenes)
 
-  if (cargando || error || (total === 0 && !hayFiltros(filtros))) {
+  if (cargando || error) {
     return <EstadoCatalogo cargando={cargando} error={error} onReintentar={onReintentar} />
   }
   return (
@@ -33,7 +32,7 @@ export default function ResultadosCatalogo({
         <div ref={referencia} id="catalogo-resultados" className="catalogo-eventos__resultados" aria-live="polite" aria-atomic="true">
           {!errorPrecio && <p><strong>{total}</strong> {total === 1 ? 'evento encontrado' : 'eventos encontrados'}{total > 0 && <span> · Mostrando {inicio + 1}–{Math.min(inicio + eventos.length, total)}</span>}</p>}
         </div>
-        {!errorPrecio && total > 1 && <OrdenEventos orden={filtros.orden} onCambiar={onOrden} />}
+        {!errorPrecio && <OrdenEventos orden={filtros.orden} onCambiar={onOrden} />}
       </div>
       {errorPrecio ? (
         <div className="catalogo-eventos__estado">
@@ -42,8 +41,8 @@ export default function ResultadosCatalogo({
         </div>
       ) : total === 0 ? (
         <div className="catalogo-eventos__estado" role="status">
-          <h3>No encontramos fechas con esos filtros</h3>
-          <p>Probá otro nombre, elegí otra categoría o ampliá el rango de precios.</p>
+          <h3>No encontramos eventos con esos filtros</h3>
+          <p>Probá otro estado o fecha, o ampliá tu búsqueda.</p>
           <button className="catalogo-eventos__boton" type="button" onClick={onLimpiar}>Limpiar filtros</button>
         </div>
       ) : (

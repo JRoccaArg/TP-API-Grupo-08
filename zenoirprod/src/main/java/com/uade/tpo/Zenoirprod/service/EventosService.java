@@ -30,6 +30,11 @@ public interface EventosService {
                 return getEventos(pageRequest, nombre, categoriaId, precioMin, precioMax, catalogo, proximo, false);
         }
 
+        public Page<Evento> getCatalogo(PageRequest pageRequest, String nombre, Integer categoriaId,
+                        BigDecimal precioMin, BigDecimal precioMax, String estadoEvento, String orden) throws EventoInvalidoException;
+
+        public BigDecimal precioMaximoCatalogo();
+
         // Pasa a FINALIZADO los eventos activos cuya fecha de fin ya llego. Devuelve cuantos cambio.
         public int finalizarVencidos();
 

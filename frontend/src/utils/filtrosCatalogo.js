@@ -35,8 +35,8 @@ export function leerFiltrosCatalogo(parametros) {
   const pedida = Number(parametros.get('pagina'))
   return {
     busqueda: parametros.get('q') || '', categoria: parametros.get('categoria') || '', precioMin, precioMax,
-    // "lejanos" (por defecto): la fecha más futura primero. "antiguos": la más antigua primero.
-    orden: parametros.get('orden') === 'antiguos' ? 'antiguos' : 'lejanos',
+    estadoEvento: ['todos', 'en-curso', 'finalizados', 'cancelados'].includes(parametros.get('estado')) ? parametros.get('estado') : 'proximos',
+    orden: ['lejanos', 'menor-precio', 'mayor-precio'].includes(parametros.get('orden')) ? parametros.get('orden') : 'proximos',
     pagina: Number.isSafeInteger(pedida) && pedida > 0 ? pedida : 1,
     errorPrecio: validarRangoPrecios(precioMin, precioMax),
   }
@@ -44,7 +44,7 @@ export function leerFiltrosCatalogo(parametros) {
 
 // ¿Hay algún filtro puesto (nombre, categoría o precio)? El orden y la página no cuentan.
 export const hayFiltros = (filtros) =>
-  Boolean(filtros.busqueda || filtros.categoria || filtros.precioMin !== '' || filtros.precioMax !== '')
+  Boolean(filtros.busqueda || filtros.categoria || filtros.precioMin !== '' || filtros.precioMax !== '' || (filtros.estadoEvento && filtros.estadoEvento !== 'proximos'))
 
 // La parte "?..." de la URL con los parámetros cambiados. Un valor vacío quita el parámetro.
 export function conParametros(search, cambios) {

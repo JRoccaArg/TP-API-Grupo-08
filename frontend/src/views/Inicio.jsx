@@ -7,25 +7,35 @@ import SeccionFotos from '../components/SeccionFotos.jsx'
 import SeccionDonde from '../components/SeccionDonde.jsx'
 import Sponsors from '../components/Sponsors.jsx'
 import Footer from '../components/Footer.jsx'
-import { obtenerProximos, obtenerCatalogo, obtenerCategorias } from '../utils/apiEventos.js'
+import { obtenerProximos, obtenerCatalogo, obtenerCategorias, obtenerRangoPrecios } from '../utils/apiEventos.js'
 import { conParametros, leerFiltrosCatalogo } from '../utils/filtrosCatalogo.js'
 import { esperaProximaFecha } from '../utils/fechas.js'
 
 export default function Inicio() {
   const { search } = useLocation()
   const navigate = useNavigate()
-  const { busqueda, categoria, precioMin, precioMax, orden, pagina, errorPrecio } = leerFiltrosCatalogo(new URLSearchParams(search))
+  const { busqueda, categoria, precioMin, precioMax, orden, pagina, estadoEvento, errorPrecio } = leerFiltrosCatalogo(new URLSearchParams(search))
   const [consulta, setConsulta] = useState({ clave: '', datos: { content: [], totalElements: 0, totalPages: 0 }, error: '' })
+  const [maximoPrecio, setMaximoPrecio] = useState(null)
+  const [errorRango, setErrorRango] = useState('')
   const [categorias, setCategorias] = useState([])
   const [errorCategorias, setErrorCategorias] = useState('')
   const [reintento, setReintento] = useState(0)
-  const clave = JSON.stringify([busqueda, categoria, precioMin, precioMax, orden, pagina, reintento])
+  const clave = JSON.stringify([busqueda, categoria, precioMin, precioMax, orden, pagina, estadoEvento, reintento])
   const cargando = !errorPrecio && consulta.clave !== clave
   const error = consulta.clave === clave ? consulta.error : ''
   const reintentar = () => setReintento((actual) => actual + 1)
   const [proximos, setProximos] = useState([])
   const proximo = proximos[0] || null
   const [intento, setIntento] = useState(0)
+
+  useEffect(() => {
+    let activo = true
+    obtenerRangoPrecios().then((rango) => {
+      if (activo) { setMaximoPrecio(rango.maximo); setErrorRango('') }
+    }).catch(() => { if (activo) setErrorRango('No pudimos cargar el rango de precios.') })
+    return () => { activo = false }
+  }, [reintento])
 
   useEffect(() => {
     let activo = true
@@ -57,7 +67,7 @@ export default function Inicio() {
   useEffect(() => {
     if (errorPrecio) return undefined
     let activo = true
-    obtenerCatalogo({ busqueda, categoria, precioMin, precioMax, orden, pagina }).then((datos) => {
+    const espera = setTimeout(() => obtenerCatalogo({ busqueda, categoria, precioMin, precioMax, orden, pagina, estadoEvento }).then((datos) => {
       if (!activo) return
       const ultima = Math.max(1, datos.totalPages)
       // Si la página pedida ya no existe (por ejemplo, tras un filtro), se pasa a la última que haya.
@@ -65,15 +75,15 @@ export default function Inicio() {
       else setConsulta({ clave, datos, error: '' })
     }).catch((fallo) => {
       if (activo) setConsulta({ clave, datos: { content: [], totalElements: 0, totalPages: 0 }, error: fallo.message })
-    })
-    return () => { activo = false }
-  }, [busqueda, categoria, precioMin, precioMax, orden, pagina, errorPrecio, clave, search, navigate])
+    }), 180)
+    return () => { activo = false; clearTimeout(espera) }
+  }, [busqueda, categoria, precioMin, precioMax, orden, pagina, estadoEvento, errorPrecio, clave, search, navigate])
 
   return (
     <div className="inicio-catalogo">
       <Hero proximo={proximo || null} />
       <Cinta eventos={proximos} />
-      <SeccionFechas datos={consulta.datos} categorias={categorias} cargando={cargando} error={error} errorCategorias={errorCategorias} onReintentar={reintentar} />
+      <SeccionFechas maximoPrecio={maximoPrecio} errorRango={errorRango} datos={consulta.datos} categorias={categorias} cargando={cargando} error={error} errorCategorias={errorCategorias} onReintentar={reintentar} />
       <SeccionFotos listo={!cargando} />
       <SeccionDonde listo={!cargando} />
       <Sponsors />

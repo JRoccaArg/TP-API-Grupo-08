@@ -72,6 +72,28 @@ public class EventosServiceImp implements EventosService {
                 catalogo, proximo, antiguosPrimero, FechaCatalogo.ahora(), pageRequest);
     }
 
+    // Los filtros y el orden se resuelven en la base antes de contar y paginar.
+    public Page<Evento> getCatalogo(PageRequest pageRequest, String nombre, Integer categoriaId,
+            BigDecimal precioMin, BigDecimal precioMax, String estadoEvento, String orden) throws EventoInvalidoException {
+        if (!Set.of("todos", "proximos", "en-curso", "finalizados", "cancelados").contains(estadoEvento)
+                || !Set.of("proximos", "lejanos", "menor-precio", "mayor-precio").contains(orden)
+                || (precioMin != null && precioMin.signum() < 0)
+                || (precioMax != null && precioMax.signum() < 0)
+                || (precioMin != null && precioMax != null && precioMin.compareTo(precioMax) > 0)
+                || (categoriaId != null && categoriaId < 1)) throw new EventoInvalidoException();
+        LocalDateTime ahora = FechaCatalogo.ahora();
+        String busqueda = nombre == null ? "" : Normalizer.normalize(nombre.trim(), Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "").toLowerCase(Locale.ROOT);
+        String patron = "%" + busqueda.replace("!", "!!").replace("%", "!%").replace("_", "!_").replace("[", "![") + "%";
+        return eventosRepository.buscarCatalogo(patron, categoriaId, precioMin, precioMax, true,
+                estadoEvento, orden, ahora, pageRequest);
+    }
+
+    public BigDecimal precioMaximoCatalogo() {
+        BigDecimal maximo = eventosRepository.precioMaximoCatalogo();
+        return maximo == null ? BigDecimal.ZERO : maximo;
+    }
+
     @Transactional
     public int finalizarVencidos() {
         return eventosRepository.finalizarVencidos(FechaCatalogo.ahora());
