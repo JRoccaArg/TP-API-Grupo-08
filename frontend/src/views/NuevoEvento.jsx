@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import AvisoAcceso from '../components/AvisoAcceso.jsx'
 import BarraAcciones from '../components/BarraAcciones.jsx'
+import Boton from '../components/Boton.jsx'
 import FormularioEvento from '../components/FormularioEvento.jsx'
 import PanelEntradas from '../components/PanelEntradas.jsx'
 import TituloAdmin from '../components/TituloAdmin.jsx'
@@ -14,6 +15,8 @@ export default function NuevoEvento({ usuario }) {
   const navigate = useNavigate()
   const [datos, setDatos] = useState(formularioVacio)
   const [opciones, setOpciones] = useState(null)
+  const [errorCarga, setErrorCarga] = useState('') // por qué no se pudieron cargar los lugares y categorías
+  const [reintento, setReintento] = useState(0)
   const [aviso, setAviso] = useState('')
   const [ocupado, setOcupado] = useState(false)
   const esAdmin = usuario?.rol === 'ADMIN'
@@ -23,9 +26,9 @@ export default function NuevoEvento({ usuario }) {
     let activo = true
     cargarOpciones()
       .then((lista) => { if (activo) setOpciones(lista) })
-      .catch((fallo) => { if (activo) setAviso(fallo.message) })
+      .catch((fallo) => { if (activo) setErrorCarga(fallo.message) })
     return () => { activo = false }
-  }, [esAdmin])
+  }, [esAdmin, reintento])
 
   if (!esAdmin) {
     return <AvisoAcceso usuario={usuario} para="ADMIN" sinSesion="Esta sección es solo para administradores." />
@@ -63,6 +66,11 @@ export default function NuevoEvento({ usuario }) {
         <div className="admin__columna">
           {opciones ? (
             <FormularioEvento datos={datos} onCambiar={cambiar} locaciones={opciones.locaciones} categorias={opciones.categorias} />
+          ) : errorCarga ? (
+            <div role="alert">
+              <p className="admin__aviso admin__aviso--error">{errorCarga}</p>
+              <Boton onClick={() => { setErrorCarga(''); setReintento(reintento + 1) }}>Reintentar</Boton>
+            </div>
           ) : (
             <p className="admin__cargando" role="status">Cargando…</p>
           )}

@@ -22,7 +22,7 @@
 }
 
 .reserva p { font: 300 16px var(--fuente-ui); color: rgba(255, 255, 255, 0.85); }
-.reserva__tiempo { font: 700 36px / 1 var(--fuente-titulo); font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+.reserva__tiempo { flex: none; white-space: nowrap; font: 700 36px / 1 var(--fuente-titulo); font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
 
 .reserva__barra {
   position: absolute;

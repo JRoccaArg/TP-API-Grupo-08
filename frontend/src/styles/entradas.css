@@ -74,6 +74,8 @@
 .emitida__qr svg { padding: 12px; background: #f4f1e8; box-sizing: content-box; }
 .emitida__qr p { font: 600 14px var(--fuente-ui); letter-spacing: 0.22em; color: var(--gris-claro); }
 .emitida__estado { padding: 4px 14px; letter-spacing: 0.16em; }
+/* El nombre del tipo de entrada puede ser largo: se achica y se parte en vez de salirse de la tarjeta. */
+.emitida__tipo { flex: 0 1 auto; max-width: 55%; }
 
 @media (prefers-reduced-motion: reduce) {
   .emitida { transition: none; }

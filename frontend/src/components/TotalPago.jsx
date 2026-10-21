@@ -3,6 +3,9 @@ import Icono from './Icono.jsx'
 import { cantidadItems } from '../utils/carrito.js'
 import { precio } from '../utils/formatos.js'
 
+// El tamaño del total baja con la cantidad de cifras para que un importe grande entre en el cuadro sin partirse en dos líneas.
+const tamanoDelTotal = (texto) => (texto.length <= 8 ? 80 : texto.length <= 10 ? 64 : texto.length <= 13 ? 48 : 36)
+
 // Cuadro lateral del pago con el detalle, el total y el botón "Pagar".
 // Sin onPagar el cobro todavía no está conectado al backend: el botón queda deshabilitado (no se simula un pago).
 export default function TotalPago({ carrito, pagando = false, onPagar }) {
@@ -11,7 +14,7 @@ export default function TotalPago({ carrito, pagando = false, onPagar }) {
   return (
     <aside className="resumen" aria-label="Total">
       <p className="rotulo">TOTAL A PAGAR</p>
-      <strong className="resumen__gran-total oro-texto">{total}</strong>
+      <strong className="resumen__gran-total oro-texto" style={{ fontSize: tamanoDelTotal(total) }}>{total}</strong>
       <p className="resumen__nota">{cantidadItems(carrito)} entradas · Precio final, sin cargos</p>
       <ul className="resumen__lista resumen__lista--separada">
         {carrito.items.map((item) => (
