@@ -159,6 +159,16 @@ public class CompraServiceImpl implements CompraService {
             }
         }
 
+        // Una entrada ya usada no se reembolsa, y el reembolso es de toda la compra: si se uso alguna, no hay reembolso.
+        for (DetalleCompra detalle : compra.getDetalles()) {
+            for (Ticket ticket : detalle.getTickets()) {
+                if (ticket.getEstado() == EstadoTicket.UTILIZADO) {
+                    throw new DevolucionNoPermitidaException(
+                            "No hay reembolso: ya se uso una entrada de esta compra");
+                }
+            }
+        }
+
         for (DetalleCompra detalle : compra.getDetalles()) {
             EventoTipoEntrada ete = bloquearOferta(detalle.getEventoTipoEntrada().getId())
                     .orElseThrow(CompraNoCancelableException::new);

@@ -79,6 +79,7 @@ public class EventoTipoEntradaServiceImp implements EventoTipoEntradaService {
                 || evento.haFinalizado(FechaCatalogo.ahora())) {
             throw new EventoCerradoException();
         }
+        validarCierreDeVenta(request.getFechaFinVenta(), evento);
         TipoEntrada tipoEntrada = tipoEntradaService.getTipoEntradaPorId(request.getTipoEntradaId());
 
         if (Boolean.FALSE.equals(tipoEntrada.getActivo())) {
@@ -156,6 +157,9 @@ public class EventoTipoEntradaServiceImp implements EventoTipoEntradaService {
 
         if (request.getFechaInicioVenta() != null || request.getFechaFinVenta() != null) {
             validarFechas(inicioFinal, finFinal);
+            if (request.getFechaFinVenta() != null) {
+                validarCierreDeVenta(request.getFechaFinVenta(), entrada.getEvento());
+            }
             entrada.setFechaInicioVenta(inicioFinal);
             entrada.setFechaFinVenta(finFinal);
         }
@@ -211,8 +215,10 @@ public class EventoTipoEntradaServiceImp implements EventoTipoEntradaService {
         boolean entradaActiva = entrada.getEstado() == EstadoEventoTipoEntrada.ACTIVO;
         boolean eventoActivo = "ACTIVO".equalsIgnoreCase(entrada.getEvento().getEstado());
         boolean hayStock = entrada.getCantidadDisponible() >= cantidad;
+        // Un evento que ya termino no vende, aunque el proceso programado todavia no lo haya pasado a FINALIZADO.
+        boolean eventoVigente = !entrada.getEvento().haFinalizado(ahora);
 
-        return ventaEnFecha(entrada, ahora) && entradaActiva && eventoActivo && hayStock;
+        return ventaEnFecha(entrada, ahora) && entradaActiva && eventoActivo && eventoVigente && hayStock;
     }
 
     @Override
@@ -294,6 +300,13 @@ public class EventoTipoEntradaServiceImp implements EventoTipoEntradaService {
 
         validarDescuento(request.getPorcentajeDescuento());
         validarFechas(request.getFechaInicioVenta(), request.getFechaFinVenta());
+    }
+
+    // La venta de una entrada no puede seguir abierta despues de que termina el evento.
+    private void validarCierreDeVenta(LocalDateTime finVenta, Evento evento) throws EventoTipoEntradaInvalidoException {
+        if (finVenta != null && evento.getFechaHoraFin() != null && finVenta.isAfter(evento.getFechaHoraFin())) {
+            throw new EventoTipoEntradaInvalidoException("La venta de la entrada no puede terminar despues del fin del evento");
+        }
     }
 
     private void validarDescuento(BigDecimal porcentaje) throws EventoTipoEntradaInvalidoException {

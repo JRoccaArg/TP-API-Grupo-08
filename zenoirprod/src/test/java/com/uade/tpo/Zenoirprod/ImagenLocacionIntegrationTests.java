@@ -70,7 +70,7 @@ class ImagenLocacionIntegrationTests {
         Locacion locacion = crearLocacion();
         String token = registrarUsuario();
         MockMultipartFile archivo = new MockMultipartFile(
-                "archivo", "salon.png", "image/png", new byte[] {1, 2, 3});
+                "archivo", "salon.png", "image/png", new byte[] {(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A});
 
         mockMvc.perform(multipart("/locaciones/{locacionId}/imagenes", locacion.getId())
                         .file(archivo)
@@ -133,7 +133,7 @@ class ImagenLocacionIntegrationTests {
                   "dni": "40888777",
                   "fechaNacimiento": "2000-01-01",
                   "email": "locacion.imagen@zenoir.com",
-                  "password": "clave123"
+                  "password": "Clave123!"
                 }
                 """;
 

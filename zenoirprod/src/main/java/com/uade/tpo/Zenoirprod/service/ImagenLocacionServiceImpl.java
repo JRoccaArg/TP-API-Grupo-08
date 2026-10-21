@@ -16,6 +16,8 @@ import com.uade.tpo.Zenoirprod.exceptions.LocacionInexsistenteException;
 import com.uade.tpo.Zenoirprod.repository.ImagenLocacionRepository;
 import com.uade.tpo.Zenoirprod.repository.LocationRepository;
 import com.uade.tpo.Zenoirprod.util.FechaCatalogo;
+import com.uade.tpo.Zenoirprod.util.Imagenes;
+import com.uade.tpo.Zenoirprod.util.Textos;
 
 @Service
 public class ImagenLocacionServiceImpl implements ImagenLocacionService {
@@ -51,6 +53,9 @@ public class ImagenLocacionServiceImpl implements ImagenLocacionService {
             throw new LocacionInexsistenteException();
         }
         validarArchivo(archivo);
+        if (Textos.excede(textoAlternativo, 255)) {
+            throw new ImagenLocacionInvalidaException("El texto alternativo no puede superar los 255 caracteres");
+        }
 
         ImagenLocacion imagenLocacion = new ImagenLocacion();
         imagenLocacion.setNombreArchivo(archivo.getOriginalFilename());
@@ -89,6 +94,9 @@ public class ImagenLocacionServiceImpl implements ImagenLocacionService {
             imagenLocacion.setDatos(archivo.getBytes());
             huboCambios = true;
         }
+        if (Textos.excede(textoAlternativo, 255)) {
+            throw new ImagenLocacionInvalidaException("El texto alternativo no puede superar los 255 caracteres");
+        }
         if (textoAlternativo != null
                 && !textoAlternativo.equals(imagenLocacion.getTextoAlternativo())) {
             imagenLocacion.setTextoAlternativo(textoAlternativo);
@@ -118,10 +126,11 @@ public class ImagenLocacionServiceImpl implements ImagenLocacionService {
     }
 
     private void validarArchivo(MultipartFile archivo) throws ImagenLocacionInvalidaException {
-        if (archivo == null || archivo.isEmpty()
-                || archivo.getContentType() == null
-                || !archivo.getContentType().startsWith("image/")) {
-            throw new ImagenLocacionInvalidaException();
+        if (!Imagenes.esValida(archivo)) {
+            throw new ImagenLocacionInvalidaException(Imagenes.MENSAJE);
+        }
+        if (Textos.excede(archivo.getOriginalFilename(), 255)) {
+            throw new ImagenLocacionInvalidaException("El nombre del archivo no puede superar los 255 caracteres");
         }
     }
 }

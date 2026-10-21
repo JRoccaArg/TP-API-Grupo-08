@@ -2,6 +2,7 @@ package com.uade.tpo.Zenoirprod.service;
 
 import java.time.LocalDateTime;
 import com.uade.tpo.Zenoirprod.util.FechaCatalogo;
+import com.uade.tpo.Zenoirprod.util.Textos;
 import java.math.BigDecimal;
 import java.text.Normalizer;
 import java.util.Locale;
@@ -29,6 +30,7 @@ import com.uade.tpo.Zenoirprod.repository.CategoryRepository;
 
 @Service
 public class EventosServiceImp implements EventosService {
+    private static final int LARGO_MAXIMO_TITULO = 150;
     private static final Set<String> ESTADOS_VALIDOS = Set.of(
             "BORRADOR", "ACTIVO", "FINALIZADO", "CANCELADO", "REPROGRAMADO");
 
@@ -131,6 +133,7 @@ public class EventosServiceImp implements EventosService {
         if (titulo != null && titulo.isBlank()) {
             throw new EventoInvalidoException();
         }
+        validarLargoTitulo(titulo);
         if (estado != null && !ESTADOS_VALIDOS.contains(estado)) {
             throw new EventoInvalidoException();
         }
@@ -206,6 +209,14 @@ public class EventosServiceImp implements EventosService {
                 || estado == null || !ESTADOS_VALIDOS.contains(estado)
                 || locacionId == null || categoriaId == null) {
             throw new EventoInvalidoException();
+        }
+        validarLargoTitulo(titulo);
+    }
+
+    // Un titulo mas largo que la columna de la base daria un error 500: se rechaza antes con un 400.
+    private void validarLargoTitulo(String titulo) throws EventoInvalidoException {
+        if (Textos.excede(titulo, LARGO_MAXIMO_TITULO)) {
+            throw new EventoInvalidoException("El titulo no puede superar los " + LARGO_MAXIMO_TITULO + " caracteres");
         }
     }
 }

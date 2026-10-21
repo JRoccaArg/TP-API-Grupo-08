@@ -5,5 +5,12 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(code = HttpStatus.BAD_REQUEST, reason = "La imagen es inválida")
 public class ImagenInvalidaException extends Exception {
-  
+
+    public ImagenInvalidaException() {
+    }
+
+    // Con un motivo propio: el manejador de errores lo usa en lugar del generico.
+    public ImagenInvalidaException(String mensaje) {
+        super(mensaje);
+    }
 }

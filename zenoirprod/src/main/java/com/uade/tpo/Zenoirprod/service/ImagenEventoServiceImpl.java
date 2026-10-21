@@ -15,6 +15,8 @@ import com.uade.tpo.Zenoirprod.exceptions.ImagenEventoInexistenteException;
 import com.uade.tpo.Zenoirprod.repository.EventosRepository;
 import com.uade.tpo.Zenoirprod.repository.ImagenEventoRepository;
 import com.uade.tpo.Zenoirprod.exceptions.ImagenInvalidaException;
+import com.uade.tpo.Zenoirprod.util.Imagenes;
+import com.uade.tpo.Zenoirprod.util.Textos;
 
 
 @Service
@@ -50,17 +52,15 @@ public class ImagenEventoServiceImpl implements ImagenEventoService {
         }
 
          // Validaciones respecto al archivo
-        if (archivo == null || archivo.isEmpty()) {
-            throw new ImagenInvalidaException();
-        }
-
-        if (archivo.getContentType() == null || !archivo.getContentType().startsWith("image/")) {
-            throw new ImagenInvalidaException();
+        if (!Imagenes.esValida(archivo)) {
+            throw new ImagenInvalidaException(Imagenes.MENSAJE);
         }
 
         if (tipo == null) {
             throw new ImagenInvalidaException();
         }
+
+        validarTextos(descripcion, archivo);
 
         ImagenEvento imagenEvento = new ImagenEvento();
         imagenEvento.setNombreArchivo(archivo.getOriginalFilename());
@@ -98,10 +98,10 @@ public class ImagenEventoServiceImpl implements ImagenEventoService {
         boolean huboCambios = false;
 
         if (archivo != null && !archivo.isEmpty()) {
-            if (archivo.getContentType() == null ||
-                !archivo.getContentType().startsWith("image/")) {
-                throw new ImagenInvalidaException();
+            if (!Imagenes.esValida(archivo)) {
+                throw new ImagenInvalidaException(Imagenes.MENSAJE);
             }
+            validarTextos(null, archivo);
 
             imagenEvento.setNombreArchivo(archivo.getOriginalFilename());
             imagenEvento.setTipoContenido(archivo.getContentType());
@@ -110,6 +110,9 @@ public class ImagenEventoServiceImpl implements ImagenEventoService {
             huboCambios = true;
         }
 
+        if (Textos.excede(descripcion, 255)) {
+            throw new ImagenInvalidaException("La descripcion no puede superar los 255 caracteres");
+        }
         if (descripcion != null && !descripcion.equals(imagenEvento.getDescripcion())) {
             imagenEvento.setDescripcion(descripcion);
             huboCambios = true;
@@ -127,6 +130,11 @@ public class ImagenEventoServiceImpl implements ImagenEventoService {
         }
         return imagenEvento;
     }
+
+    // El nombre del archivo y la descripcion tienen que entrar en su columna de la base (un texto mas largo daria un error 500).
+    private void validarTextos(String descripcion, MultipartFile archivo) throws ImagenInvalidaException {
+        if (Textos.excede(descripcion, 255) || Textos.excede(archivo.getOriginalFilename(), 255)) {
+            throw new ImagenInvalidaException("El nombre del archivo y la descripcion no pueden superar los 255 caracteres");
+        }
+    }
 }
-
-

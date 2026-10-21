@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -25,6 +26,7 @@ import com.uade.tpo.Zenoirprod.exceptions.TituloEventoEnUsoException;
 import com.uade.tpo.Zenoirprod.service.EstadisticasService;
 import com.uade.tpo.Zenoirprod.service.EventosService;
 import com.uade.tpo.Zenoirprod.util.PageableFactory;
+import com.uade.tpo.Zenoirprod.util.Permisos;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -61,21 +63,25 @@ public class EventosController {
             @RequestParam(required = false) BigDecimal precioMax,
             @RequestParam(defaultValue = "false") boolean catalogo,
             @RequestParam(defaultValue = "false") boolean proximo,
-            @RequestParam(defaultValue = "lejanos") String orden
+            @RequestParam(defaultValue = "lejanos") String orden,
+            Authentication authentication
     ) throws PaginacionInvalidaException, EventoInvalidoException {
         // Solo afecta al catalogo: "lejanos" = la fecha mas futura primero; "antiguos" = la mas antigua primero.
         if (!orden.equals("lejanos") && !orden.equals("antiguos")) {
             throw new PaginacionInvalidaException("El orden debe ser 'lejanos' o 'antiguos'.");
         }
+        // Los borradores no estan publicados: solo el administrador los ve (sin sesion de admin siempre se pide el catalogo).
+        boolean soloPublicados = catalogo || !Permisos.esAdmin(authentication);
         Page<Evento> pagina = eventosService.getEventos(PageableFactory.crear(page, size),
-                nombre, categoriaId, precioMin, precioMax, catalogo, proximo, orden.equals("antiguos"));
+                nombre, categoriaId, precioMin, precioMax, soloPublicados, proximo, orden.equals("antiguos"));
         return ResponseEntity.ok(pagina.map(EventoResponse::fromEntity));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<EventoResponse> getEventoPorId(@PathVariable Integer id)
+    public ResponseEntity<EventoResponse> getEventoPorId(@PathVariable Integer id, Authentication authentication)
             throws EventoInexistenteException {
         return eventosService.getEventoPorId(id)
+                .filter(evento -> Permisos.puedeVer(evento, authentication))
                 .map(EventoResponse::fromEntity)
                 .map(ResponseEntity::ok)
                 .orElseThrow(EventoInexistenteException::new);

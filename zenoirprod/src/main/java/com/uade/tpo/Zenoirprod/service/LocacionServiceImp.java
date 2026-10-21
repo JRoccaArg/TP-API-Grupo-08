@@ -10,6 +10,7 @@ import com.uade.tpo.Zenoirprod.exceptions.LocacionDuplicadaException;
 import com.uade.tpo.Zenoirprod.exceptions.LocacionEnUsoException;
 import com.uade.tpo.Zenoirprod.exceptions.LocacionInexsistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.LocacionInvalidaException;
+import com.uade.tpo.Zenoirprod.util.Textos;
 import com.uade.tpo.Zenoirprod.repository.EventosRepository;
 import com.uade.tpo.Zenoirprod.repository.LocationRepository;
 
@@ -72,6 +73,13 @@ public class LocacionServiceImp implements LocacionService {
         if (nombre == null || nombre.isBlank()
                 || direccion == null || direccion.isBlank()) {
             throw new LocacionInvalidaException();
+        }
+        // Mas largo que la columna de la base daria un error 500: se rechaza antes con un 400.
+        if (Textos.excede(nombre, 150)) {
+            throw new LocacionInvalidaException("El nombre no puede superar los 150 caracteres");
+        }
+        if (Textos.excede(direccion, 255)) {
+            throw new LocacionInvalidaException("La direccion no puede superar los 255 caracteres");
         }
     }
 }

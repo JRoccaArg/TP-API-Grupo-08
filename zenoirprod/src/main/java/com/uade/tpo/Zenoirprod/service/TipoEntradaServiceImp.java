@@ -10,6 +10,7 @@ import com.uade.tpo.Zenoirprod.exceptions.TipoEntradaDuplicadoException;
 import com.uade.tpo.Zenoirprod.exceptions.TipoEntradaEnUsoException;
 import com.uade.tpo.Zenoirprod.exceptions.TipoEntradaInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.TipoEntradaInvalidoException;
+import com.uade.tpo.Zenoirprod.util.Textos;
 import com.uade.tpo.Zenoirprod.repository.EventoTipoEntradaRepository;
 import com.uade.tpo.Zenoirprod.repository.TipoEntradaRepository;
 
@@ -74,6 +75,13 @@ public class TipoEntradaServiceImp implements TipoEntradaService {
         if (nombre == null || nombre.isBlank()
                 || descripcionBase == null || descripcionBase.isBlank()) {
             throw new TipoEntradaInvalidoException();
+        }
+        // Mas largo que la columna de la base daria un error 500: se rechaza antes con un 400.
+        if (Textos.excede(nombre, 100)) {
+            throw new TipoEntradaInvalidoException("El nombre no puede superar los 100 caracteres");
+        }
+        if (Textos.excede(descripcionBase, 500)) {
+            throw new TipoEntradaInvalidoException("La descripcion no puede superar los 500 caracteres");
         }
     }
 }

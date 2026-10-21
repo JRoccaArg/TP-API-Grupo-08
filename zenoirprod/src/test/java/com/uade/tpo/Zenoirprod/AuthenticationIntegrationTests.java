@@ -36,7 +36,7 @@ class AuthenticationIntegrationTests {
                   "dni": "40111222",
                   "fechaNacimiento": "2000-05-10",
                   "email": "juan@zenoir.com",
-                  "password": "clave123"
+                  "password": "Clave123!"
                 }
                 """;
 
@@ -72,7 +72,7 @@ class AuthenticationIntegrationTests {
         String ingreso = """
                 {
                   "email": "juan@zenoir.com",
-                  "password": "clave123"
+                  "password": "Clave123!"
                 }
                 """;
 
@@ -92,7 +92,7 @@ class AuthenticationIntegrationTests {
                   "dni": "40444555",
                   "fechaNacimiento": "2000-01-01",
                   "email": "propietario@zenoir.com",
-                  "password": "clave123"
+                  "password": "Clave123!"
                 }
                 """;
 
@@ -119,7 +119,7 @@ class AuthenticationIntegrationTests {
                   "dni": "40555666",
                   "fechaNacimiento": "2000-01-01",
                   "email": "otro@zenoir.com",
-                  "password": "clave123"
+                  "password": "Clave123!"
                 }
                 """;
 
@@ -170,7 +170,7 @@ class AuthenticationIntegrationTests {
                   "dni": "40222333",
                   "fechaNacimiento": "1999-08-15",
                   "email": "repetido@zenoir.com",
-                  "password": "clave123"
+                  "password": "Clave123!"
                 }
                 """;
 
@@ -194,7 +194,7 @@ class AuthenticationIntegrationTests {
                   "dni": "40333444",
                   "fechaNacimiento": "2001-02-20",
                   "email": "ingreso@zenoir.com",
-                  "password": "clave123"
+                  "password": "Clave123!"
                 }
                 """;
 

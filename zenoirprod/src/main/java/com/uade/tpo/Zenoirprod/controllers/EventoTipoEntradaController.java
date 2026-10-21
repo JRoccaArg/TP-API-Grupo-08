@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -28,6 +29,8 @@ import com.uade.tpo.Zenoirprod.exceptions.EventoTipoEntradaInvalidoException;
 import com.uade.tpo.Zenoirprod.exceptions.PaginacionInvalidaException;
 import com.uade.tpo.Zenoirprod.exceptions.TipoEntradaInexistenteException;
 import com.uade.tpo.Zenoirprod.service.EventoTipoEntradaService;
+import com.uade.tpo.Zenoirprod.service.EventosService;
+import com.uade.tpo.Zenoirprod.util.Permisos;
 import com.uade.tpo.Zenoirprod.util.PrecioCalculator;
 import com.uade.tpo.Zenoirprod.util.PageableFactory;
 
@@ -37,6 +40,9 @@ public class EventoTipoEntradaController {
 
     @Autowired
     private EventoTipoEntradaService eventoTipoEntradaService;
+
+    @Autowired
+    private EventosService eventosService;
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
@@ -56,11 +62,15 @@ public class EventoTipoEntradaController {
 
     @GetMapping("/{id}")
     public ResponseEntity<EventoTipoEntradaResponseDTO> getPorId(
-            @PathVariable Integer id)
+            @PathVariable Integer id, Authentication authentication)
             throws EventoTipoEntradaInexistenteException {
 
         EventoTipoEntrada entrada =
                 eventoTipoEntradaService.getPorId(id);
+        // Las entradas de un evento en borrador solo las ve el administrador.
+        if (!Permisos.puedeVer(entrada.getEvento(), authentication)) {
+            throw new EventoTipoEntradaInexistenteException();
+        }
 
         return ResponseEntity.ok(toResponseDTO(entrada));
     }
@@ -69,8 +79,14 @@ public class EventoTipoEntradaController {
     public ResponseEntity<Page<EventoTipoEntradaResponseDTO>> getPorEvento(
             @PathVariable Integer eventoId,
             @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer size)
+            @RequestParam(required = false) Integer size,
+            Authentication authentication)
             throws EventoInexistenteException, PaginacionInvalidaException {
+
+        // Las entradas de un evento en borrador solo las ve el administrador.
+        if (!Permisos.puedeVer(eventosService.getEventoPorId(eventoId).orElseThrow(EventoInexistenteException::new), authentication)) {
+            throw new EventoInexistenteException();
+        }
 
         Page<EventoTipoEntradaResponseDTO> respuesta =
                 eventoTipoEntradaService

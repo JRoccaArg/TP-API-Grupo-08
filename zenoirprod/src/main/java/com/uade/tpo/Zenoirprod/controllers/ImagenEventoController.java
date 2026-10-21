@@ -6,7 +6,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.uade.tpo.Zenoirprod.entity.ImagenEvento;
 import com.uade.tpo.Zenoirprod.entity.dto.ImagenEventoRequest;
+import com.uade.tpo.Zenoirprod.exceptions.EventoInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.ImagenEventoInexistenteException;
+import com.uade.tpo.Zenoirprod.service.EventosService;
 import com.uade.tpo.Zenoirprod.service.ImagenEventoService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +18,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -25,6 +28,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.uade.tpo.Zenoirprod.util.PageableFactory;
+import com.uade.tpo.Zenoirprod.util.Permisos;
 
 
 
@@ -36,11 +40,20 @@ public class ImagenEventoController {
     @Autowired
     private ImagenEventoService imagenEventoService;
 
+    @Autowired
+    private EventosService eventosService;
+
     // El servicio de imagenes declara "throws Exception" (por la lectura del archivo), por eso se propaga aca.
     @GetMapping("eventos/{eventoId}/imagenes")
     public ResponseEntity<Page<ImagenEvento>> getImagenesPorEventoId(@PathVariable Integer eventoId,
             @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer size) throws Exception {
+            @RequestParam(required = false) Integer size,
+            Authentication authentication) throws Exception {
+        // Las fotos de un evento en borrador solo las lista el administrador (el archivo de cada foto queda abierto:
+        // lo piden las etiquetas <img>, que no mandan la sesion).
+        if (!Permisos.puedeVer(eventosService.getEventoPorId(eventoId).orElseThrow(EventoInexistenteException::new), authentication)) {
+            throw new EventoInexistenteException();
+        }
         Page<ImagenEvento> imagenes = imagenEventoService.getImagenesPorEventoId(
                 eventoId, PageableFactory.crear(page, size));
         return ResponseEntity.ok(imagenes);

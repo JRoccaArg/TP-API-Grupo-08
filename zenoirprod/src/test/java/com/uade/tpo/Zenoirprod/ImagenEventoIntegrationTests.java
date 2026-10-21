@@ -68,7 +68,7 @@ class ImagenEventoIntegrationTests {
         Evento evento = crearEvento("Evento imagen");
         String token = registrarUsuario();
         MockMultipartFile archivo = new MockMultipartFile(
-                "archivo", "portada.png", "image/png", new byte[] {1, 2, 3});
+                "archivo", "portada.png", "image/png", new byte[] {(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A});
 
         mockMvc.perform(multipart("/eventos/{eventoId}/imagenes", evento.getId())
                         .file(archivo)
@@ -103,7 +103,7 @@ class ImagenEventoIntegrationTests {
                   "dni": "40999888",
                   "fechaNacimiento": "2000-01-01",
                   "email": "imagen@zenoir.com",
-                  "password": "clave123"
+                  "password": "Clave123!"
                 }
                 """;
 
@@ -145,7 +145,7 @@ class ImagenEventoIntegrationTests {
         imagen.setNombreArchivo(nombre);
         imagen.setTipoContenido("image/png");
         imagen.setTamanio(3L);
-        imagen.setDatos(new byte[] {1, 2, 3});
+        imagen.setDatos(new byte[] {(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A});
         imagen.setTipoImagenEvento(TipoImagenEvento.GALERIA);
         imagen.setOrden(orden);
         imagenEventoRepository.save(imagen);

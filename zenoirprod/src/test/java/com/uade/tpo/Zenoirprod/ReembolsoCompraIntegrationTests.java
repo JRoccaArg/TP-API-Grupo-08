@@ -42,8 +42,8 @@ import com.uade.tpo.Zenoirprod.repository.TipoEntradaRepository;
 import com.uade.tpo.Zenoirprod.repository.UserRepository;
 import com.uade.tpo.Zenoirprod.util.FechaCatalogo;
 
-// Reembolso de una compra (POST /compras/{id}/cancelar): solo si el evento fue cancelado o reprogramado. Se hace sobre toda
-// la compra: sus entradas quedan anuladas (ya no sirven en la puerta) y el stock vuelve a la oferta.
+// Reembolso de una compra (POST /compras/{id}/cancelar): solo si el evento fue cancelado o reprogramado y no se uso ninguna de
+// sus entradas. Se hace sobre toda la compra: sus entradas quedan anuladas (ya no sirven en la puerta) y el stock vuelve a la oferta.
 @SpringBootTest
 @ActiveProfiles("dev") // siempre H2 en memoria: estas pruebas nunca tocan la base real
 @AutoConfigureMockMvc
@@ -124,6 +124,22 @@ class ReembolsoCompraIntegrationTests {
         assertEquals(100, eventoTipoEntradaRepository.findById(oferta.getId()).orElseThrow().getCantidadDisponible());
     }
 
+    @Test
+    void unaCompraConUnaEntradaYaUsadaNoSePuedeReembolsarYNoCambiaNada() throws Exception {
+        EventoTipoEntrada oferta = crearOferta(crearEvento("CANCELADO"), 100, 97);
+        Compra compra = guardarCompra(oferta, 3, EstadoTicket.UTILIZADO);
+
+        mockMvc.perform(post("/compras/" + compra.getId() + "/cancelar").header("Authorization", "Bearer " + tokenComprador))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").value("No hay reembolso: ya se uso una entrada de esta compra"));
+
+        Compra guardada = compraRepository.findById(compra.getId()).orElseThrow();
+        assertEquals(EstadoCompra.CONFIRMADA, guardada.getEstado());
+        assertEquals(EstadoTicket.UTILIZADO, guardada.getDetalles().get(0).getTickets().get(0).getEstado());
+        assertEquals(EstadoTicket.EMITIDO, guardada.getDetalles().get(0).getTickets().get(1).getEstado());
+        assertEquals(97, eventoTipoEntradaRepository.findById(oferta.getId()).orElseThrow().getCantidadDisponible());
+    }
+
     private void reembolsoPermitido(String estadoEvento) throws Exception {
         EventoTipoEntrada oferta = crearOferta(crearEvento(estadoEvento), 100, 97);
         Compra compra = guardarCompra(oferta, 3);
@@ -172,11 +188,16 @@ class ReembolsoCompraIntegrationTests {
 
     // Una compra confirmada del comprador, con una entrada emitida por cada unidad.
     private Compra guardarCompra(EventoTipoEntrada oferta, int cantidad) {
+        return guardarCompra(oferta, cantidad, EstadoTicket.EMITIDO);
+    }
+
+    // Igual, pero la primera entrada queda en el estado indicado (por ejemplo, ya usada).
+    private Compra guardarCompra(EventoTipoEntrada oferta, int cantidad, EstadoTicket estadoDeLaPrimera) {
         List<Ticket> tickets = new ArrayList<>();
         for (int i = 0; i < cantidad; i++) {
             Ticket ticket = new Ticket();
             ticket.setCodigoQr(java.util.UUID.randomUUID().toString());
-            ticket.setEstado(EstadoTicket.EMITIDO);
+            ticket.setEstado(i == 0 ? estadoDeLaPrimera : EstadoTicket.EMITIDO);
             ticket.setFechaEmision(FechaCatalogo.ahora());
             tickets.add(ticket);
         }

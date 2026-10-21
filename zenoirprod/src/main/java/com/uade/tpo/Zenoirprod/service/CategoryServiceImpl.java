@@ -13,6 +13,7 @@ import com.uade.tpo.Zenoirprod.exceptions.CategoryDuplicateException;
 import com.uade.tpo.Zenoirprod.exceptions.CategoryEnUsoException;
 import com.uade.tpo.Zenoirprod.exceptions.CategoryInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.CategoryInvalidaException;
+import com.uade.tpo.Zenoirprod.util.Textos;
 import com.uade.tpo.Zenoirprod.repository.CategoryRepository;
 import com.uade.tpo.Zenoirprod.repository.EventosRepository;
 
@@ -74,6 +75,10 @@ public class CategoryServiceImpl implements CategoryService {
     private void validarNombre(String nombre) throws CategoryInvalidaException {
         if (nombre == null || nombre.isBlank()) {
             throw new CategoryInvalidaException();
+        }
+        // Mas largo que la columna de la base daria un error 500: se rechaza antes con un 400.
+        if (Textos.excede(nombre, 100)) {
+            throw new CategoryInvalidaException("El nombre no puede superar los 100 caracteres");
         }
     }
     
