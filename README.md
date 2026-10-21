@@ -30,6 +30,8 @@ Desde VS Code: abrí la carpeta `zenoirprod`, copiá `.env.example` como `.env` 
 
 Si no hay `DB_PASSWORD`, el back arranca solo con una base en memoria (los datos se pierden al apagar), así levanta con el botón de ejecutar de cualquier editor y sin SQL Server. Con `DB_PASSWORD` usa SQL Server.
 
+En modo base en memoria se cargan solos unos eventos de ejemplo (sin fotos) y dos usuarios: administrador `admin@zenoir.com` / `Admin#2026ok` y comprador `usuario@zenoir.com` / `Usuario#2026ok`.
+
 **Front** (desde `frontend`):
 
 ```bash

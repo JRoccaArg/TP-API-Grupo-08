@@ -28,6 +28,7 @@ public class ZenoirprodApplication {
 		boolean sqlServerConfigurado = hayValor(System.getenv("DB_PASSWORD")) || hayValor(System.getenv("SPRING_DATASOURCE_URL"));
 		if (!perfilElegido && !sqlServerConfigurado) {
 			System.setProperty("spring.profiles.active", "dev");
+			System.setProperty("zenoir.datos-demo", "true"); // carga el catálogo de ejemplo (DatosDemo)
 			System.out.println("*** Sin DB_PASSWORD: se usa la base en memoria (perfil dev), los datos se pierden al apagar. "
 					+ "Para SQL Server definí DB_PASSWORD (ver README). ***");
 		}
