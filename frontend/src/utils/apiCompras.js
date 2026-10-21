@@ -4,9 +4,11 @@ import { pedir } from './pedir.js'
 // Pagar no manda nada: el back compra el carrito abierto, que tiene que estar en la pantalla de pago (EN_PAGO).
 export const pagarCarrito = (token) => pedir('POST', '/compras', token)
 
-// Pide el reembolso de una compra y devuelve la compra ya reembolsada. En el back esa acción se llama "cancelar" la compra:
-// queda en estado CANCELADA y sus entradas en CANCELADO. En la web eso se muestra como reembolsado, nunca como "cancelado".
-export const reembolsarCompra = (token, id) => pedir('POST', `/compras/${id}/cancelar`, token)
+// Pide el reembolso de las entradas de UN evento de una compra y devuelve la compra como quedó. El back solo lo permite si ese
+// evento se canceló o se reprogramó, y reembolsa las entradas emitidas (una ya usada no se reembolsa nunca). La compra pasa a CANCELADA
+// cuando ya no le queda ninguna entrada vigente; mientras tanto sigue CONFIRMADA. En la web se muestra siempre como reembolso.
+export const reembolsarEvento = (token, compraId, eventoId) =>
+  pedir('POST', `/compras/${compraId}/eventos/${eventoId}/reembolsar`, token)
 
 export const obtenerCompra = (token, id) => pedir('GET', `/compras/${id}`, token)
 

@@ -32,14 +32,23 @@ export const cantidadDeEntradas = (compra) => compra.detalles.reduce((total, det
 export const comprasDelEvento = (compras, eventoId) =>
   compras.filter((compra) => compra.detalles.some((detalle) => detalle.eventoId === eventoId))
 
-// Si ya se usó alguna entrada de la compra, la compra no se reembolsa (el reembolso es de la compra entera).
-export const tieneEntradaUsada = (compra) =>
-  compra.detalles.some((detalle) => detalle.tickets.some((ticket) => ticket.estado === 'UTILIZADO'))
+// Cómo están las entradas de un evento dentro de una compra: cuántas siguen emitidas (se pueden reembolsar), cuántas ya se
+// reembolsaron, cuántas se usaron (esas no se reembolsan nunca) y los importes (precio unitario de cada una).
+export function resumenDelEvento(compra, eventoId) {
+  const resumen = { total: 0, emitidas: 0, reembolsadas: 0, usadas: 0, montoEmitidas: 0, montoReembolsadas: 0 }
+  compra.detalles.filter((detalle) => detalle.eventoId === eventoId).forEach((detalle) => {
+    detalle.tickets.forEach((ticket) => {
+      resumen.total += 1
+      if (ticket.estado === 'UTILIZADO') resumen.usadas += 1
+      else if (ticket.estado === 'CANCELADO') { resumen.reembolsadas += 1; resumen.montoReembolsadas += Number(detalle.precioUnitario) }
+      else { resumen.emitidas += 1; resumen.montoEmitidas += Number(detalle.precioUnitario) }
+    })
+  })
+  return resumen
+}
 
-// El back solo reembolsa una compra que sigue confirmada, sin entradas usadas y cuyos eventos lo permiten todos.
-export const sePuedeReembolsar = (compra, eventos) =>
-  compra.estado === 'CONFIRMADA' && !tieneEntradaUsada(compra) &&
-  compra.detalles.every((detalle) => permiteReembolso(eventos[detalle.eventoId]))
+// El back reembolsa las entradas emitidas de un evento solo si ese evento se canceló o se reprogramó.
+export const sePuedeReembolsar = (compra, evento) => permiteReembolso(evento) && resumenDelEvento(compra, evento.id).emitidas > 0
 
 // La lista con la compra que devolvió el back en lugar de la que estaba.
 export const reemplazarCompra = (compras, nueva) => compras.map((compra) => (compra.id === nueva.id ? nueva : compra))

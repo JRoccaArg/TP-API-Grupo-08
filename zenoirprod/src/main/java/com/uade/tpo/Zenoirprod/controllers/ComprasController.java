@@ -72,11 +72,11 @@ public class ComprasController {
         return ResponseEntity.ok(respuesta);
     }
 
-    @PostMapping("/{id}/cancelar")
+    @PostMapping("/{id}/eventos/{eventoId}/reembolsar")
     @PreAuthorize("hasRole('ADMIN') or ((hasRole('USER') and @authorizationService.puedeAccederCompra(#id, authentication)))")
-    public ResponseEntity<CompraResponse> cancelar(@PathVariable Integer id)
+    public ResponseEntity<CompraResponse> reembolsarEvento(@PathVariable Integer id, @PathVariable Integer eventoId)
             throws CompraInexistenteException, CompraNoCancelableException,
             DevolucionNoPermitidaException {
-        return ResponseEntity.ok(CompraResponse.fromEntity(service.cancelar(id)));
+        return ResponseEntity.ok(CompraResponse.fromEntity(service.reembolsarEvento(id, eventoId)));
     }
 }

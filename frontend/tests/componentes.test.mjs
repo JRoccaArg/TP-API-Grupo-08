@@ -5,7 +5,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { createServer } from 'vite'
 
-let servidor, formatos, fechas, Cinta, BarraProximaFecha, FilaEntrada, BarraCompra, ResumenCompra, FlyerEvento, TarjetaFlyer, FiltrosEventos
+let servidor, AvisoEventoAfectado, formatos, fechas, Cinta, BarraProximaFecha, FilaEntrada, BarraCompra, ResumenCompra, FlyerEvento, TarjetaFlyer, FiltrosEventos
 const evento = { id: 1, titulo: 'Noche de prueba', estado: 'ACTIVO', imagenes: [] }
 const oferta = {
   id: 1, tipoEntradaNombre: 'General', estado: 'ACTIVO', cantidadDisponible: 3,
@@ -25,6 +25,7 @@ before(async () => {
   BarraCompra = (await servidor.ssrLoadModule('/src/components/BarraCompra.jsx')).default
   ResumenCompra = (await servidor.ssrLoadModule('/src/components/ResumenCompra.jsx')).default
   formatos = await servidor.ssrLoadModule('/src/utils/formatos.js')
+  AvisoEventoAfectado = (await servidor.ssrLoadModule('/src/components/AvisoEventoAfectado.jsx')).default
   fechas = await servidor.ssrLoadModule('/src/utils/fechas.js')
   Cinta = (await servidor.ssrLoadModule('/src/components/Cinta.jsx')).default
   BarraProximaFecha = (await servidor.ssrLoadModule('/src/components/BarraProximaFecha.jsx')).default
@@ -175,4 +176,18 @@ test('la barra de precios tiene dos tiradores y usa el máximo real del catálog
   assert.match(html, /\$5\.000 – \$25\.000/)
   assert.match(html, /aria-label="Precio mínimo"/)
   assert.match(html, /aria-label="Precio máximo"/)
+})
+test('el aviso de un evento cancelado ofrece reembolsar solo sus entradas, con el importe, y avisa de las usadas', () => {
+  const detalle = (eventoId, estados) => ({ eventoId, precioUnitario: 4000, tickets: estados.map((estado, id) => ({ id, estado })) })
+  const compras = [{ id: 7, estado: 'CONFIRMADA', total: 20000, detalles: [detalle(1, ['EMITIDO', 'EMITIDO', 'UTILIZADO']), detalle(2, ['EMITIDO'])] }]
+  const mostrar = (lista) => renderToStaticMarkup(createElement(AvisoEventoAfectado,
+    { evento: { id: 1, estado: 'CANCELADO' }, compras: lista, token: 't', onReembolsada: () => {} }))
+  const html = mostrar(compras)
+  assert.match(html, /Este evento fue cancelado/)
+  assert.match(html, /3 entradas de este evento/)
+  assert.match(html, /Pedir reembolso de \$8\.000/)
+  assert.match(html, /Una entrada ya se usó y no se reembolsa/)
+  const reembolsada = [{ ...compras[0], detalles: [detalle(1, ['CANCELADO', 'CANCELADO', 'UTILIZADO']), detalle(2, ['EMITIDO'])] }]
+  assert.match(mostrar(reembolsada), /Reembolso de \$8\.000 pedido/)
+  assert.doesNotMatch(mostrar(reembolsada), /Pedir reembolso/)
 })

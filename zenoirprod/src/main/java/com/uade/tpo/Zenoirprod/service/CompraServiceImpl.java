@@ -141,35 +141,30 @@ public class CompraServiceImpl implements CompraService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Compra cancelar(Integer id)
+    public Compra reembolsarEvento(Integer id, Integer eventoId)
             throws CompraInexistenteException, CompraNoCancelableException,
             DevolucionNoPermitidaException {
 
         Compra compra = compraRepository.findById(id)
                 .orElseThrow(CompraInexistenteException::new);
-        if (compra.getEstado() == EstadoCompra.CANCELADA) {
-            throw new CompraNoCancelableException();
+
+        // El reembolso es de las entradas de UN evento de la compra: una compra puede mezclar eventos, y solo se reembolsan
+        // los que se cancelaron o reprogramaron. Los demas eventos de la compra no se tocan.
+        List<DetalleCompra> delEvento = compra.getDetalles().stream()
+                .filter(detalle -> detalle.getEventoTipoEntrada().getEvento().getId().equals(eventoId))
+                .toList();
+        if (delEvento.isEmpty()) {
+            throw new DevolucionNoPermitidaException("La compra no incluye entradas de ese evento");
+        }
+        String estadoEvento = delEvento.get(0).getEventoTipoEntrada().getEvento().getEstado();
+        // La devolucion (reembolso) se permite solo si el evento fue cancelado o reprogramado.
+        if (!EVENTO_CANCELADO.equalsIgnoreCase(estadoEvento) && !EVENTO_REPROGRAMADO.equalsIgnoreCase(estadoEvento)) {
+            throw new DevolucionNoPermitidaException();
         }
 
-        for (DetalleCompra detalle : compra.getDetalles()) {
-            String estadoEvento = detalle.getEventoTipoEntrada().getEvento().getEstado();
-            // La devolucion (reembolso) se permite solo si el evento fue cancelado o reprogramado.
-            if (!EVENTO_CANCELADO.equalsIgnoreCase(estadoEvento) && !EVENTO_REPROGRAMADO.equalsIgnoreCase(estadoEvento)) {
-                throw new DevolucionNoPermitidaException();
-            }
-        }
-
-        // Una entrada ya usada no se reembolsa, y el reembolso es de toda la compra: si se uso alguna, no hay reembolso.
-        for (DetalleCompra detalle : compra.getDetalles()) {
-            for (Ticket ticket : detalle.getTickets()) {
-                if (ticket.getEstado() == EstadoTicket.UTILIZADO) {
-                    throw new DevolucionNoPermitidaException(
-                            "No hay reembolso: ya se uso una entrada de esta compra");
-                }
-            }
-        }
-
-        for (DetalleCompra detalle : compra.getDetalles()) {
+        // Solo se reembolsan las entradas emitidas: una ya usada no se reembolsa nunca y una ya reembolsada no se repite.
+        int reembolsadas = 0;
+        for (DetalleCompra detalle : delEvento) {
             EventoTipoEntrada ete = bloquearOferta(detalle.getEventoTipoEntrada().getId())
                     .orElseThrow(CompraNoCancelableException::new);
 
@@ -182,11 +177,21 @@ public class CompraServiceImpl implements CompraService {
             }
             if (aDevolver > 0) {
                 devolverStock(ete, aDevolver);
+                reembolsadas += aDevolver;
             }
         }
+        if (reembolsadas == 0) {
+            throw new CompraNoCancelableException();
+        }
 
-        compra.setEstado(EstadoCompra.CANCELADA);
-        compra.setFechaCancelacion(FechaCatalogo.ahora());
+        // La compra solo pasa a CANCELADA cuando ya no le queda ninguna entrada sin reembolsar (ni una usada).
+        boolean todasReembolsadas = compra.getDetalles().stream()
+                .flatMap(detalle -> detalle.getTickets().stream())
+                .allMatch(ticket -> ticket.getEstado() == EstadoTicket.CANCELADO);
+        if (todasReembolsadas) {
+            compra.setEstado(EstadoCompra.CANCELADA);
+            compra.setFechaCancelacion(FechaCatalogo.ahora());
+        }
         return compraRepository.save(compra);
     }
 

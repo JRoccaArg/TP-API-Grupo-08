@@ -12,3 +12,6 @@ Thumbs.db
 **/src/main/resources/application.properties
 
 # Las fuentes de tests se versionan; target/ se ignora en zenoirprod/.gitignore.
+
+# Credenciales locales del back (mail): se leen solas desde zenoirprod/config
+zenoirprod/config/

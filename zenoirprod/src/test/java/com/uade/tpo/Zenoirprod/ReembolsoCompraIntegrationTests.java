@@ -17,6 +17,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.uade.tpo.Zenoirprod.controllers.config.JwtService;
@@ -42,8 +43,9 @@ import com.uade.tpo.Zenoirprod.repository.TipoEntradaRepository;
 import com.uade.tpo.Zenoirprod.repository.UserRepository;
 import com.uade.tpo.Zenoirprod.util.FechaCatalogo;
 
-// Reembolso de una compra (POST /compras/{id}/cancelar): solo si el evento fue cancelado o reprogramado y no se uso ninguna de
-// sus entradas. Se hace sobre toda la compra: sus entradas quedan anuladas (ya no sirven en la puerta) y el stock vuelve a la oferta.
+// Reembolso de las entradas de UN evento de una compra (POST /compras/{id}/eventos/{eventoId}/reembolsar): solo si ese evento
+// fue cancelado o reprogramado. Se reembolsan sus entradas emitidas (una ya usada no se reembolsa nunca): quedan anuladas (ya no
+// sirven en la puerta) y el stock vuelve a la oferta. La compra pasa a CANCELADA solo cuando ninguna de sus entradas sigue vigente.
 @SpringBootTest
 @ActiveProfiles("dev") // siempre H2 en memoria: estas pruebas nunca tocan la base real
 @AutoConfigureMockMvc
@@ -88,7 +90,7 @@ class ReembolsoCompraIntegrationTests {
     }
 
     @Test
-    void unEventoCanceladoPermiteReembolsarTodaLaCompraYDevuelveElStock() throws Exception {
+    void unEventoCanceladoPermiteReembolsarSusEntradasYDevuelveElStock() throws Exception {
         reembolsoPermitido("CANCELADO");
     }
 
@@ -102,49 +104,101 @@ class ReembolsoCompraIntegrationTests {
         EventoTipoEntrada oferta = crearOferta(crearEvento("ACTIVO"), 100, 97);
         Compra compra = guardarCompra(oferta, 3);
 
-        mockMvc.perform(post("/compras/" + compra.getId() + "/cancelar").header("Authorization", "Bearer " + tokenComprador))
-                .andExpect(status().isConflict());
+        reembolsar(compra, oferta, tokenComprador).andExpect(status().isConflict());
 
         assertEquals(EstadoCompra.CONFIRMADA, compraRepository.findById(compra.getId()).orElseThrow().getEstado());
         assertEquals(97, eventoTipoEntradaRepository.findById(oferta.getId()).orElseThrow().getCantidadDisponible());
     }
 
     @Test
-    void otroUsuarioNoPuedeReembolsarUnaCompraAjenaYUnaCompraNoSeReembolsaDosVeces() throws Exception {
+    void otroUsuarioNoPuedeReembolsarUnaCompraAjenaYLasEntradasNoSeReembolsanDosVeces() throws Exception {
         EventoTipoEntrada oferta = crearOferta(crearEvento("CANCELADO"), 100, 97);
         Compra compra = guardarCompra(oferta, 3);
 
-        mockMvc.perform(post("/compras/" + compra.getId() + "/cancelar").header("Authorization", "Bearer " + tokenOtroUsuario))
-                .andExpect(status().isForbidden());
-        mockMvc.perform(post("/compras/" + compra.getId() + "/cancelar").header("Authorization", "Bearer " + tokenComprador))
-                .andExpect(status().isOk());
-        mockMvc.perform(post("/compras/" + compra.getId() + "/cancelar").header("Authorization", "Bearer " + tokenComprador))
-                .andExpect(status().isConflict());
+        reembolsar(compra, oferta, tokenOtroUsuario).andExpect(status().isForbidden());
+        reembolsar(compra, oferta, tokenComprador).andExpect(status().isOk());
+        reembolsar(compra, oferta, tokenComprador).andExpect(status().isConflict());
 
         assertEquals(100, eventoTipoEntradaRepository.findById(oferta.getId()).orElseThrow().getCantidadDisponible());
     }
 
     @Test
-    void unaCompraConUnaEntradaYaUsadaNoSePuedeReembolsarYNoCambiaNada() throws Exception {
+    void unaEntradaYaUsadaNoSeReembolsaPeroLasDemasSiYLaCompraSigueConfirmada() throws Exception {
         EventoTipoEntrada oferta = crearOferta(crearEvento("CANCELADO"), 100, 97);
         Compra compra = guardarCompra(oferta, 3, EstadoTicket.UTILIZADO);
 
-        mockMvc.perform(post("/compras/" + compra.getId() + "/cancelar").header("Authorization", "Bearer " + tokenComprador))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.message").value("No hay reembolso: ya se uso una entrada de esta compra"));
+        reembolsar(compra, oferta, tokenComprador)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("CONFIRMADA"))
+                .andExpect(jsonPath("$.detalles[0].tickets[0].estado").value("UTILIZADO"))
+                .andExpect(jsonPath("$.detalles[0].tickets[1].estado").value("CANCELADO"))
+                .andExpect(jsonPath("$.detalles[0].tickets[2].estado").value("CANCELADO"));
 
-        Compra guardada = compraRepository.findById(compra.getId()).orElseThrow();
-        assertEquals(EstadoCompra.CONFIRMADA, guardada.getEstado());
-        assertEquals(EstadoTicket.UTILIZADO, guardada.getDetalles().get(0).getTickets().get(0).getEstado());
-        assertEquals(EstadoTicket.EMITIDO, guardada.getDetalles().get(0).getTickets().get(1).getEstado());
-        assertEquals(97, eventoTipoEntradaRepository.findById(oferta.getId()).orElseThrow().getCantidadDisponible());
+        assertEquals(99, eventoTipoEntradaRepository.findById(oferta.getId()).orElseThrow().getCantidadDisponible());
+        // Las dos ya estan reembolsadas y la otra esta usada: no queda nada para reembolsar.
+        reembolsar(compra, oferta, tokenComprador).andExpect(status().isConflict());
+    }
+
+    @Test
+    void siTodasLasEntradasDelEventoYaSeUsaronNoHayNadaParaReembolsar() throws Exception {
+        EventoTipoEntrada oferta = crearOferta(crearEvento("CANCELADO"), 100, 99);
+        Compra compra = guardarCompra(oferta, 1, EstadoTicket.UTILIZADO);
+
+        reembolsar(compra, oferta, tokenComprador).andExpect(status().isConflict());
+
+        assertEquals(EstadoCompra.CONFIRMADA, compraRepository.findById(compra.getId()).orElseThrow().getEstado());
+        assertEquals(99, eventoTipoEntradaRepository.findById(oferta.getId()).orElseThrow().getCantidadDisponible());
+    }
+
+    @Test
+    void enUnaCompraConVariosEventosSeReembolsaSoloElEventoCanceladoYLosDemasQuedanIntactos() throws Exception {
+        EventoTipoEntrada cancelada = crearOferta(crearEvento("CANCELADO"), 100, 97);
+        EventoTipoEntrada activa = crearOferta(crearEvento("ACTIVO"), 100, 98);
+        Compra compra = guardarCompraMixta(cancelada, 3, activa, 2);
+
+        reembolsar(compra, cancelada, tokenComprador)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("CONFIRMADA"))
+                .andExpect(jsonPath("$.detalles[0].tickets[0].estado").value("CANCELADO"))
+                .andExpect(jsonPath("$.detalles[1].tickets[0].estado").value("EMITIDO"))
+                .andExpect(jsonPath("$.detalles[1].tickets[1].estado").value("EMITIDO"));
+
+        assertEquals(100, eventoTipoEntradaRepository.findById(cancelada.getId()).orElseThrow().getCantidadDisponible());
+        assertEquals(98, eventoTipoEntradaRepository.findById(activa.getId()).orElseThrow().getCantidadDisponible());
+        // El evento que sigue en pie no se puede reembolsar.
+        reembolsar(compra, activa, tokenComprador).andExpect(status().isConflict());
+    }
+
+    @Test
+    void siSeReembolsanTodosLosEventosDeLaCompraEstaPasaACancelada() throws Exception {
+        EventoTipoEntrada una = crearOferta(crearEvento("CANCELADO"), 100, 97);
+        EventoTipoEntrada otra = crearOferta(crearEvento("REPROGRAMADO"), 100, 98);
+        Compra compra = guardarCompraMixta(una, 3, otra, 2);
+
+        reembolsar(compra, una, tokenComprador).andExpect(status().isOk()).andExpect(jsonPath("$.estado").value("CONFIRMADA"));
+        reembolsar(compra, otra, tokenComprador).andExpect(status().isOk()).andExpect(jsonPath("$.estado").value("CANCELADA"));
+    }
+
+    @Test
+    void unEventoQueNoEstaEnLaCompraNoSePuedeReembolsar() throws Exception {
+        EventoTipoEntrada propia = crearOferta(crearEvento("CANCELADO"), 100, 97);
+        EventoTipoEntrada ajena = crearOferta(crearEvento("CANCELADO"), 100, 97);
+        Compra compra = guardarCompra(propia, 3);
+
+        reembolsar(compra, ajena, tokenComprador).andExpect(status().isConflict());
+        assertEquals(97, eventoTipoEntradaRepository.findById(propia.getId()).orElseThrow().getCantidadDisponible());
+    }
+
+    private ResultActions reembolsar(Compra compra, EventoTipoEntrada oferta, String token) throws Exception {
+        return mockMvc.perform(post("/compras/" + compra.getId() + "/eventos/" + oferta.getEvento().getId() + "/reembolsar")
+                .header("Authorization", "Bearer " + token));
     }
 
     private void reembolsoPermitido(String estadoEvento) throws Exception {
         EventoTipoEntrada oferta = crearOferta(crearEvento(estadoEvento), 100, 97);
         Compra compra = guardarCompra(oferta, 3);
 
-        mockMvc.perform(post("/compras/" + compra.getId() + "/cancelar").header("Authorization", "Bearer " + tokenComprador))
+        reembolsar(compra, oferta, tokenComprador)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.estado").value("CANCELADA"))
                 .andExpect(jsonPath("$.detalles[0].tickets.length()").value(3))
@@ -193,6 +247,15 @@ class ReembolsoCompraIntegrationTests {
 
     // Igual, pero la primera entrada queda en el estado indicado (por ejemplo, ya usada).
     private Compra guardarCompra(EventoTipoEntrada oferta, int cantidad, EstadoTicket estadoDeLaPrimera) {
+        return guardar(List.of(detalle(oferta, cantidad, estadoDeLaPrimera)));
+    }
+
+    // Una compra con entradas de dos eventos distintos (dos detalles).
+    private Compra guardarCompraMixta(EventoTipoEntrada una, int cantidadUna, EventoTipoEntrada otra, int cantidadOtra) {
+        return guardar(List.of(detalle(una, cantidadUna, EstadoTicket.EMITIDO), detalle(otra, cantidadOtra, EstadoTicket.EMITIDO)));
+    }
+
+    private DetalleCompra detalle(EventoTipoEntrada oferta, int cantidad, EstadoTicket estadoDeLaPrimera) {
         List<Ticket> tickets = new ArrayList<>();
         for (int i = 0; i < cantidad; i++) {
             Ticket ticket = new Ticket();
@@ -201,19 +264,22 @@ class ReembolsoCompraIntegrationTests {
             ticket.setFechaEmision(FechaCatalogo.ahora());
             tickets.add(ticket);
         }
-        BigDecimal subtotal = new BigDecimal("18000.00").multiply(BigDecimal.valueOf(cantidad));
         DetalleCompra detalle = new DetalleCompra();
         detalle.setEventoTipoEntrada(oferta);
         detalle.setCantidad(cantidad);
         detalle.setPrecioUnitario(new BigDecimal("18000.00"));
-        detalle.setSubtotal(subtotal);
+        detalle.setSubtotal(new BigDecimal("18000.00").multiply(BigDecimal.valueOf(cantidad)));
         detalle.setTickets(tickets);
+        return detalle;
+    }
+
+    private Compra guardar(List<DetalleCompra> detalles) {
         Compra compra = new Compra();
         compra.setUsuario(comprador);
         compra.setEstado(EstadoCompra.CONFIRMADA);
         compra.setFechaCompra(FechaCatalogo.ahora());
-        compra.setTotal(subtotal);
-        compra.setDetalles(new ArrayList<>(List.of(detalle)));
+        compra.setTotal(detalles.stream().map(DetalleCompra::getSubtotal).reduce(BigDecimal.ZERO, BigDecimal::add));
+        compra.setDetalles(new ArrayList<>(detalles));
         return compraRepository.save(compra);
     }
 }

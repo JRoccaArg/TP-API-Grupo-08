@@ -2,7 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import {
   agruparPorEvento, cantidadDeEntradas, comprasDelEvento, eventoAfectado, eventoCancelado, eventoReprogramado,
-  permiteReembolso, reemplazarCompra, sePuedeReembolsar, tieneEntradaUsada,
+  permiteReembolso, reemplazarCompra, resumenDelEvento, sePuedeReembolsar,
 } from '../src/utils/compras.js'
 
 const AHORA = Date.parse('2026-10-20T12:00:00-03:00')
@@ -26,19 +26,19 @@ test('sin el evento cargado, el grupo conserva el título que trae la entrada', 
 })
 
 const compra = (id, estado, eventoIds) => ({
-  id, estado, total: 1000, detalles: eventoIds.map((eventoId) => ({ eventoId, tickets: [{ id: id * 10 + eventoId }, { id: id * 10 + eventoId + 100 }] })),
+  id, estado, total: 1000, detalles: eventoIds.map((eventoId) => ({ eventoId, precioUnitario: 500, tickets: [{ id: id * 10 + eventoId, estado: 'EMITIDO' }, { id: id * 10 + eventoId + 100, estado: 'EMITIDO' }] })),
 })
 
-test('una compra se puede reembolsar solo si sigue confirmada y todos sus eventos lo permiten', () => {
-  const cancelados = { 1: { estado: 'CANCELADO' }, 2: { estado: 'cancelado' }, 3: { estado: 'ACTIVO' } }
+test('las entradas de un evento se pueden reembolsar solo si ese evento se canceló o reprogramó, aunque la compra tenga otros', () => {
+  const cancelados = { 1: { id: 1, estado: 'CANCELADO' }, 2: { id: 2, estado: 'cancelado' }, 3: { id: 3, estado: 'ACTIVO' } }
   assert.equal(eventoCancelado(cancelados[1]), true)
   assert.equal(eventoCancelado(cancelados[2]), true)
   assert.equal(eventoCancelado(cancelados[3]), false)
   assert.equal(eventoCancelado(undefined), false)
-  assert.equal(sePuedeReembolsar(compra(1, 'CONFIRMADA', [1, 2]), cancelados), true)
-  assert.equal(sePuedeReembolsar(compra(1, 'CONFIRMADA', [1, 3]), cancelados), false)
-  assert.equal(sePuedeReembolsar(compra(1, 'CANCELADA', [1]), cancelados), false)
-  assert.equal(sePuedeReembolsar(compra(1, 'CONFIRMADA', [9]), cancelados), false)
+  const mixta = compra(1, 'CONFIRMADA', [1, 3])
+  assert.equal(sePuedeReembolsar(mixta, cancelados[1]), true)
+  assert.equal(sePuedeReembolsar(mixta, cancelados[3]), false)
+  assert.equal(sePuedeReembolsar(compra(1, 'CONFIRMADA', [9]), cancelados[1]), false)
 })
 
 test('encuentra las compras de un evento, cuenta sus entradas y reemplaza la reembolsada sin tocar las demás', () => {
@@ -59,16 +59,17 @@ test('un evento reprogramado cuenta como afectado y, como el cancelado, permite 
   assert.equal(permiteReembolso({ estado: 'CANCELADO' }), true)
   assert.equal(permiteReembolso({ estado: 'REPROGRAMADO' }), true)
   assert.equal(permiteReembolso({ estado: 'ACTIVO' }), false)
-  assert.equal(sePuedeReembolsar(compra(1, 'CONFIRMADA', [1]), { 1: { estado: 'REPROGRAMADO' } }), true)
+  assert.equal(sePuedeReembolsar(compra(1, 'CONFIRMADA', [1]), { id: 1, estado: 'REPROGRAMADO' }), true)
 })
 
-test('una compra con una entrada ya usada no se puede reembolsar, aunque el evento esté cancelado', () => {
-  const cancelados = { 1: { estado: 'CANCELADO' } }
-  const conUsada = compra(1, 'CONFIRMADA', [1])
+test('una entrada usada no se reembolsa, pero las demás del evento sí; el resumen separa emitidas, reembolsadas y usadas', () => {
+  const cancelado = { id: 1, estado: 'CANCELADO' }
+  const conUsada = compra(1, 'CONFIRMADA', [1, 2])
   conUsada.detalles[0].tickets[0].estado = 'UTILIZADO'
-  assert.equal(tieneEntradaUsada(conUsada), true)
-  assert.equal(sePuedeReembolsar(conUsada, cancelados), false)
-  const sinUsar = compra(2, 'CONFIRMADA', [1])
-  assert.equal(tieneEntradaUsada(sinUsar), false)
-  assert.equal(sePuedeReembolsar(sinUsar, cancelados), true)
+  assert.deepEqual(resumenDelEvento(conUsada, 1), { total: 2, emitidas: 1, reembolsadas: 0, usadas: 1, montoEmitidas: 500, montoReembolsadas: 0 })
+  assert.equal(sePuedeReembolsar(conUsada, cancelado), true)
+  conUsada.detalles[0].tickets[1].estado = 'CANCELADO'
+  assert.deepEqual(resumenDelEvento(conUsada, 1), { total: 2, emitidas: 0, reembolsadas: 1, usadas: 1, montoEmitidas: 0, montoReembolsadas: 500 })
+  assert.equal(sePuedeReembolsar(conUsada, cancelado), false)
+  assert.equal(resumenDelEvento(conUsada, 2).emitidas, 2) // el otro evento de la compra no cambia
 })

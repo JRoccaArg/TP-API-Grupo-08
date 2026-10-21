@@ -63,7 +63,6 @@ export default function MisEntradas({ usuario }) {
           <AvisoEventoAfectado
             evento={elegido.evento}
             compras={compras}
-            eventos={eventos}
             token={token}
             onReembolsada={(nueva) => setCompras((actuales) => reemplazarCompra(actuales, nueva))}
           />
