@@ -9,10 +9,10 @@ import ListaEntradas from './ListaEntradas.jsx'
 const ESTADOS = {
   FINALIZADO: 'Esta edición ya finalizó.', CANCELADO: 'Este evento fue cancelado.',
   REPROGRAMADO: 'Este evento fue reprogramado. La venta no está habilitada.',
+  BORRADOR: 'Vista previa: este evento es un borrador y todavía no lo ve el público.',
 }
 
-// La página del evento ya cargado: flyer, datos, entradas para elegir y la barra de compra.
-// No tiene estado propio: recibe lo que se ve y avisa lo que el usuario hace (cambiar cantidad, actualizar, confirmar).
+// La página de un evento ya cargado. Sin estado propio: recibe lo que se ve y avisa lo que hace el usuario (cambiar cantidad, actualizar, confirmar)
 export default function ContenidoEvento({ evento, seleccion, ahora, volverA, aviso, enviando, conectado, onCambiar, onActualizar, onConfirmar }) {
   const estado = evento.estado?.toUpperCase()
   return (

@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { ajustarSeleccion, estadoOferta, resumenEntradas, totalSeleccion } from '../src/utils/eventos.js'
+import { ajustarSeleccion, estadoOferta, resumenEntradas, totalSeleccion, detalleDisponible} from '../src/utils/eventos.js'
 import {
   leerFiltrosCatalogo, normalizarImporteFiltro, precioDesdeEnRango, validarRangoPrecios,
 } from '../src/utils/filtrosCatalogo.js'
@@ -163,4 +163,12 @@ test('la tarjeta muestra el precio de una oferta dentro del rango, incluido cero
   assert.equal(precioDesdeEnRango(e, { precioMin: '0', precioMax: '0' }, AHORA), 0)
   assert.equal(precioDesdeEnRango(e, { precioMin: '100', precioMax: '200' }, AHORA), null)
   assert.equal(precioDesdeEnRango(e, { precioMin: '-1' }, AHORA), null)
+})
+
+test('un borrador solo se ve en el detalle si quien mira es administrador (vista previa)', () => {
+  const base = { idValido: true, cargando: false, error: null }
+  assert.equal(detalleDisponible({ ...base, evento: { estado: 'BORRADOR' } }), false)
+  assert.equal(detalleDisponible({ ...base, evento: { estado: 'BORRADOR' }, esAdmin: true }), true)
+  assert.equal(detalleDisponible({ ...base, evento: { estado: 'ACTIVO' } }), true)
+  assert.equal(detalleDisponible({ ...base, cargando: true, evento: { estado: 'ACTIVO' }, esAdmin: true }), false)
 })

@@ -34,11 +34,12 @@ function DetalleEvento({ id, usuario, onConfirmarSeleccion, cargaCarrito }) {
   const origen = location.state?.volverA || pendiente?.volverA
   const volverA = rutaDeVuelta(origen)
   const idValido = /^\d+$/.test(id) && Number(id) >= 1
+  const token = usuario?.rol === 'ADMIN' ? usuario.token : undefined // con su sesión el administrador ve también los borradores (vista previa)
 
   useEffect(() => {
     if (!idValido) return undefined
     let activo = true
-    obtenerEvento(id, undefined, { fotosDelLugar: true }).then((datos) => {
+    obtenerEvento(id, token, { fotosDelLugar: true }).then((datos) => {
       if (!activo) return
       setEvento(datos)
       setAhora(Date.now())
@@ -50,7 +51,7 @@ function DetalleEvento({ id, usuario, onConfirmarSeleccion, cargaCarrito }) {
       setCargando(false)
     })
     return () => { activo = false }
-  }, [id, idValido, intento])
+  }, [id, idValido, intento, token])
 
   useEffect(() => {
     const reloj = setInterval(() => setAhora(Date.now()), 1000)
@@ -70,7 +71,6 @@ function DetalleEvento({ id, usuario, onConfirmarSeleccion, cargaCarrito }) {
     return () => { activo = false }
   }, [pendiente, evento, usuario, cargaCarrito?.cargando, cargaCarrito?.error])
 
-  // Al confirmar se verifica y se entrega la selección al carrito (ver confirmarSeleccion); acá se actualiza la pantalla.
   useEffect(() => {
     if (!confirmacion || typeof onConfirmarSeleccion !== 'function') return undefined
     let activo = true
@@ -105,7 +105,7 @@ function DetalleEvento({ id, usuario, onConfirmarSeleccion, cargaCarrito }) {
 
   const reintentar = () => { setCargando(true); setError(null); setIntento(intento + 1) }
 
-  if (!detalleDisponible({ idValido, cargando, error, evento })) {
+  if (!detalleDisponible({ idValido, cargando, error, evento, esAdmin: usuario?.rol === 'ADMIN' })) {
     return <EstadoDetalle idValido={idValido} cargando={cargando} error={error} evento={evento} volverA={volverA} onReintentar={reintentar} />
   }
 

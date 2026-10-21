@@ -7,9 +7,10 @@ const tienePrecio = (oferta) => Number.isFinite(oferta.precioFinal) && oferta.pr
 // El back pasa el evento a FINALIZADO con un pequeño retraso; mientras tanto, si ya llegó su fecha de fin, se muestra como finalizado.
 const eventoTerminado = (evento, ahora) => Boolean(evento.fechaHoraFin) && ahora >= fechaApi(evento.fechaHoraFin).getTime()
 
-// ¿Se puede mostrar el detalle? No si el id no es válido, si todavía carga, si falló, o si el evento es un borrador.
-export const detalleDisponible = ({ idValido, cargando, error, evento }) =>
-  idValido && !cargando && !error && evento?.estado?.toUpperCase() !== 'BORRADOR'
+// ¿Se puede mostrar el detalle? No si el id no es válido, si todavía carga, si falló, o si el evento es un borrador
+// (el administrador sí ve los borradores: es la vista previa antes de publicarlos).
+export const detalleDisponible = ({ idValido, cargando, error, evento, esAdmin = false }) =>
+  idValido && !cargando && !error && (esAdmin || evento?.estado?.toUpperCase() !== 'BORRADOR')
 
 export function estadoOferta(oferta, evento, ahora = Date.now()) {
   const estadoEvento = eventoTerminado(evento, ahora) && estado(evento.estado) === 'ACTIVO' ? 'FINALIZADO' : estado(evento.estado)
