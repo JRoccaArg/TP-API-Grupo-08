@@ -1,5 +1,6 @@
 import Boton from './Boton.jsx'
 import { diaYFecha, horario } from '../utils/fechas.js'
+import { miles } from '../utils/formatos.js'
 
 // Un evento real en la lista del administrador: su portada, cuándo y dónde es, su estado y sus entradas.
 export default function FilaEventoAdmin({ evento }) {
@@ -28,7 +29,7 @@ export default function FilaEventoAdmin({ evento }) {
         ) : (
           <>
             <p>{evento.ofertas.length} tipos de entrada</p>
-            <strong>{disponibles} disponibles</strong>
+            <strong>{miles(disponibles)} disponibles</strong>
           </>
         )}
       </div>

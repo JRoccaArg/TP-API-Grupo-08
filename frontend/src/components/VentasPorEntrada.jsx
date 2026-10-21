@@ -1,5 +1,5 @@
 import { porcentaje } from '../utils/estadisticas.js'
-import { precio } from '../utils/formatos.js'
+import { miles, precio } from '../utils/formatos.js'
 
 // Tabla del resumen del evento: por cada entrada, cuántas se vendieron de su cupo, cuántas quedan y lo recaudado.
 export default function VentasPorEntrada({ porEntrada }) {
@@ -29,7 +29,7 @@ export default function VentasPorEntrada({ porEntrada }) {
                 <span className="oro-relleno" style={{ width: `${porcentaje(entrada.vendidas, entrada.cupo)}%` }} />
               </span>
             </td>
-            <td>{entrada.disponibles}</td>
+            <td>{miles(entrada.disponibles)}</td>
             <td>{precio(Number(entrada.recaudado))}</td>
           </tr>
         ))}

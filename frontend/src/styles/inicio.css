@@ -87,6 +87,16 @@
   text-transform: uppercase;
 }
 
+/* Un título o un lugar larguísimos se cortan con "…": si la barra creciera, taparía el texto del hero. */
+.barra-fecha__nombre span,
+.barra-fecha__celda span {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
 .barra-fecha__celda {
   display: flex;
   flex-direction: column;
@@ -115,7 +125,8 @@
   -webkit-text-stroke: 1.2px rgba(216, 188, 120, 0.65);
 }
 
-.cinta__grupo { display: flex; flex: none; gap: 48px; padding-right: 48px; }
+.cinta__grupo { display: flex; flex: none; }
+.cinta__lista { display: flex; flex: none; gap: 48px; padding-right: 48px; }
 .cinta__item { display: flex; gap: 48px; }
 .cinta__item i { font-style: normal; -webkit-text-stroke: 0; }
 

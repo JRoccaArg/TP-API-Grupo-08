@@ -5,7 +5,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { createServer } from 'vite'
 
-let servidor, FilaEntrada, BarraCompra, ResumenCompra, FlyerEvento, TarjetaFlyer, FiltrosEventos
+let servidor, formatos, fechas, Cinta, BarraProximaFecha, FilaEntrada, BarraCompra, ResumenCompra, FlyerEvento, TarjetaFlyer, FiltrosEventos
 const evento = { id: 1, titulo: 'Noche de prueba', estado: 'ACTIVO', imagenes: [] }
 const oferta = {
   id: 1, tipoEntradaNombre: 'General', estado: 'ACTIVO', cantidadDisponible: 3,
@@ -24,6 +24,10 @@ before(async () => {
   FilaEntrada = (await servidor.ssrLoadModule('/src/components/FilaEntrada.jsx')).default
   BarraCompra = (await servidor.ssrLoadModule('/src/components/BarraCompra.jsx')).default
   ResumenCompra = (await servidor.ssrLoadModule('/src/components/ResumenCompra.jsx')).default
+  formatos = await servidor.ssrLoadModule('/src/utils/formatos.js')
+  fechas = await servidor.ssrLoadModule('/src/utils/fechas.js')
+  Cinta = (await servidor.ssrLoadModule('/src/components/Cinta.jsx')).default
+  BarraProximaFecha = (await servidor.ssrLoadModule('/src/components/BarraProximaFecha.jsx')).default
   FlyerEvento = (await servidor.ssrLoadModule('/src/components/FlyerEvento.jsx')).default
 })
 after(async () => { await servidor?.close() })
@@ -110,4 +114,39 @@ test('el resumen del carrito avisa que el reloj del pago no se reinicia si ya se
   assert.match(mostrarResumen('ACTIVO'), /15 minutos más/)
   assert.match(mostrarResumen('EN_PAGO'), /no se reinicia/)
   assert.doesNotMatch(mostrarResumen('EN_PAGO'), /15 minutos más/)
+})
+
+test('un importe con centavos lleva siempre dos decimales y uno entero ninguno; las cantidades llevan separador de miles', () => {
+  assert.equal(formatos.precio(0.5), '$0,50')
+  assert.equal(formatos.precio(1234.5), '$1.234,50')
+  assert.equal(formatos.precio(9000), '$9.000')
+  assert.equal(formatos.miles(2000000), '2.000.000')
+})
+test('un evento de un dia o mas aclara el dia en que termina; uno de una noche no', () => {
+  assert.equal(fechas.horario('2026-10-21T00:01:00-03:00', '2026-10-24T00:01:00-03:00'), '00:01 a 24.10 00:01 h')
+  assert.equal(fechas.horario('2026-10-21T22:00:00-03:00', '2026-10-22T04:00:00-03:00'), '22 a 04 h')
+})
+test('la barra de la proxima fecha corta los titulos largos y marca el evento que ya empezo', () => {
+  const evento = { id: 1, titulo: 'Titulo '.repeat(30), locacionNombre: 'Lugar', fechaHoraInicio: '2999-01-01T22:00:00-03:00', fechaHoraFin: '2999-01-02T04:00:00-03:00' }
+  const mostrar = (cambios) => renderToStaticMarkup(createElement(MemoryRouter, null,
+    createElement(BarraProximaFecha, { evento: { ...evento, ...cambios }, origen: {} })))
+  assert.match(mostrar({}), /Próxima/)
+  assert.match(mostrar({}), /DÍAS · HORAS · MIN/)
+  assert.match(mostrar({}), /<h2 class="barra-fecha__nombre" title="Titulo/)
+  const enCurso = mostrar({ fechaHoraInicio: '2020-01-01T22:00:00-03:00', fechaHoraFin: '2999-01-02T04:00:00-03:00' })
+  assert.match(enCurso, /Ocurre/)
+  assert.match(enCurso, /EN CURSO/)
+  assert.doesNotMatch(enCurso, /DÍAS · HORAS · MIN/)
+})
+test('la cinta se repite hasta cubrir la pantalla con pocos eventos y mantiene su velocidad con muchos', () => {
+  const eventos = (cuantos, titulo) => Array.from({ length: cuantos }, (_, i) => ({ id: i + 1, titulo }))
+  const listas = (html) => (html.match(/class="cinta__lista"/g) || []).length
+  const duracion = (html) => Number(html.match(/animation-duration:(\d+)s/)[1])
+  const vacia = renderToStaticMarkup(createElement(Cinta, { eventos: [] }))
+  const pocos = renderToStaticMarkup(createElement(Cinta, { eventos: eventos(1, 'Noche') }))
+  const muchos = renderToStaticMarkup(createElement(Cinta, { eventos: eventos(200, 'M'.repeat(150)) }))
+  assert.ok(listas(vacia) > 2 && listas(pocos) > 2)
+  assert.equal(listas(muchos), 2)
+  assert.ok(duracion(vacia) >= 10 && duracion(vacia) < 40)
+  assert.ok(duracion(muchos) > duracion(pocos))
 })

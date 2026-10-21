@@ -1,6 +1,6 @@
 import SelectorCantidad from './SelectorCantidad.jsx'
 import { fechaCorta } from '../utils/fechas.js'
-import { precio } from '../utils/formatos.js'
+import { miles, precio } from '../utils/formatos.js'
 import { estadoOferta } from '../utils/eventos.js'
 
 const AVISOS = {
@@ -19,7 +19,7 @@ export default function FilaEntrada({ oferta, evento, cantidad, onCambiar, ahora
           {conDescuento && <span className="fila-entrada__descuento oro-texto">−{oferta.porcentajeDescuento}%</span>}
         </h3>
         {oferta.tipoEntradaDescripcion && <p className="fila-entrada__descripcion">{oferta.tipoEntradaDescripcion}</p>}
-        <p>{estadoVenta === 'EN_VENTA' ? `${oferta.cantidadDisponible} disponibles` : 'Disponibilidad sujeta al estado de venta'}</p>
+        <p>{estadoVenta === 'EN_VENTA' ? `${miles(oferta.cantidadDisponible)} disponibles` : 'Disponibilidad sujeta al estado de venta'}</p>
       </div>
       <div className="fila-entrada__precio">
         {conDescuento && <s>{precio(oferta.precio)}</s>}

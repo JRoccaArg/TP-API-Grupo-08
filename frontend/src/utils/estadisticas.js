@@ -1,3 +1,4 @@
+import { precio } from './formatos.js'
 import { pedir } from './pedir.js'
 
 // Cómo viene un evento (solo ADMIN): { vendidas, cupoTotal, recaudado, compras, ingresados, porEntrada: [...] }.
@@ -17,9 +18,9 @@ export const datosDelResumen = (estadisticas) => [
   },
   {
     etiqueta: 'Recaudado',
-    valor: `$${Number(estadisticas.recaudado).toLocaleString('es-AR')}`,
+    valor: precio(Number(estadisticas.recaudado)),
     detalle: estadisticas.compras > 0
-      ? `Promedio por compra: $${Math.round(estadisticas.recaudado / estadisticas.compras).toLocaleString('es-AR')}`
+      ? `Promedio por compra: ${precio(Math.round(estadisticas.recaudado / estadisticas.compras))}`
       : 'Todavía no hay compras',
   },
   {

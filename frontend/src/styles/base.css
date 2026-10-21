@@ -15,6 +15,7 @@ body {
   color: var(--blanco);
   font-family: var(--fuente-ui);
   overflow-x: hidden;
+  overflow-wrap: anywhere; /* un texto sin espacios (un título larguísimo) se parte en vez de salirse de su tarjeta */
 }
 
 a {
