@@ -55,7 +55,7 @@ export default function Carrito({ usuario, carrito, carga, vencido, eventos, onC
       <PasosCompra paso={2} />
       <BannerReserva
         vencimiento={vencimientoMs(carrito)}
-        mensaje="Tus entradas están reservadas. Si se termina el tiempo, las liberamos."
+        mensaje="Tus entradas están reservadas. El tiempo es uno solo para todo el carrito: lo que sumes después vence junto con lo demás, aunque queden menos de 15 minutos. Si se termina, las liberamos."
       />
       <div className="compra__grilla">
         <section>

@@ -87,7 +87,7 @@ function DetalleEvento({ id, usuario, onConfirmarSeleccion, cargaCarrito }) {
           setAviso('La disponibilidad o los precios cambiaron. Revisá la selección actualizada.')
           return
         }
-        setAviso('Agregamos las entradas a tu carrito. Las reservamos por 15 minutos.')
+        setAviso('Agregamos las entradas a tu carrito. Quedan reservadas hasta que termine el tiempo del carrito (mirá el reloj).')
         if (confirmacion.retomada) navigate('/carrito', { replace: true })
       })
       .catch((fallo) => {

@@ -18,7 +18,7 @@ export default function BarraCompra({ seleccion, ofertas, onConfirmar, conectado
       </div>
       <p className="barra-compra__nota">
         {conectado
-          ? 'Las entradas se reservan al agregarlas al carrito: tenés 15 minutos para pagar.'
+          ? 'Las entradas se reservan al agregarlas al carrito. Tenés 15 minutos desde la primera entrada que sumás, y ese tiempo es el mismo para todo el carrito.'
           : 'Seleccionar entradas no reserva stock. La compra todavía no está habilitada.'}
       </p>
     </>

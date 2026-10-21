@@ -5,7 +5,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { createServer } from 'vite'
 
-let servidor, FilaEntrada, BarraCompra, FlyerEvento, TarjetaFlyer, FiltrosEventos
+let servidor, FilaEntrada, BarraCompra, ResumenCompra, FlyerEvento, TarjetaFlyer, FiltrosEventos
 const evento = { id: 1, titulo: 'Noche de prueba', estado: 'ACTIVO', imagenes: [] }
 const oferta = {
   id: 1, tipoEntradaNombre: 'General', estado: 'ACTIVO', cantidadDisponible: 3,
@@ -23,6 +23,7 @@ before(async () => {
   FiltrosEventos = (await servidor.ssrLoadModule('/src/components/FiltrosEventos.jsx')).default
   FilaEntrada = (await servidor.ssrLoadModule('/src/components/FilaEntrada.jsx')).default
   BarraCompra = (await servidor.ssrLoadModule('/src/components/BarraCompra.jsx')).default
+  ResumenCompra = (await servidor.ssrLoadModule('/src/components/ResumenCompra.jsx')).default
   FlyerEvento = (await servidor.ssrLoadModule('/src/components/FlyerEvento.jsx')).default
 })
 after(async () => { await servidor?.close() })
@@ -96,4 +97,17 @@ test('los campos conservan importes inválidos y muestran el motivo de validaci�
   assert.match(html, /value="-1"/)
   assert.match(html, /aria-invalid="true"/)
   assert.match(html, /role="alert">Los precios no pueden ser negativos/)
+})
+test('la barra de compra aclara que el tiempo de reserva es uno solo para todo el carrito', () => {
+  const html = renderToStaticMarkup(createElement(BarraCompra, {
+    seleccion: [{ ofertaId: 1, cantidad: 1 }], ofertas: [oferta], conectado: true,
+  }))
+  assert.match(html, /mismo para todo el carrito/)
+})
+test('el resumen del carrito avisa que el reloj del pago no se reinicia si ya se abrió', () => {
+  const mostrarResumen = (estado) => renderToStaticMarkup(createElement(MemoryRouter, null,
+    createElement(ResumenCompra, { carrito: { id: 1, estado, items: [], total: 0 }, onIrAPagar: () => {} })))
+  assert.match(mostrarResumen('ACTIVO'), /15 minutos más/)
+  assert.match(mostrarResumen('EN_PAGO'), /no se reinicia/)
+  assert.doesNotMatch(mostrarResumen('EN_PAGO'), /15 minutos más/)
 })

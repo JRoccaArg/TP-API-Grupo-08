@@ -28,7 +28,11 @@ export default function ResumenCompra({ carrito, onIrAPagar }) {
       <IrAPagar onIrAPagar={onIrAPagar} clase="boton--ancho boton--grande">
         Ir a pagar <Icono nombre="flecha" />
       </IrAPagar>
-      <p className="resumen__nota">Al continuar abrís el pago y tenés 15 minutos más para completarlo.</p>
+      <p className="resumen__nota">
+        {carrito.estado === 'EN_PAGO'
+          ? 'Ya abriste el pago: el tiempo sigue corriendo desde la primera vez y no se reinicia.'
+          : 'Al continuar abrís el pago y tenés 15 minutos más para completarlo.'}
+      </p>
     </aside>
   )
 }
