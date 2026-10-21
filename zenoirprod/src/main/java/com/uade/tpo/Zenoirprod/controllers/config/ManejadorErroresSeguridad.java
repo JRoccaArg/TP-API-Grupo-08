@@ -17,23 +17,22 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
-// Respuestas de seguridad (401 y 403). Se resuelven en el filtro de Spring Security, antes de llegar a los
-// controllers, por eso no las puede tomar el ManejadorErrores. Los mensajes son siempre los mismos a proposito:
-// no se aclara si falta el token, si esta vencido, si el recurso existe ni que condicion fallo.
+// Respuestas 401 y 403. Salen del filtro de Spring Security, antes de llegar a los controllers, así que no las toma ManejadorErrores.
+// Los mensajes son siempre los mismos a propósito: no se aclara si falta el token, si venció ni si el recurso existe.
 @Component
 @RequiredArgsConstructor
 public class ManejadorErroresSeguridad implements AuthenticationEntryPoint, AccessDeniedHandler {
 
     private final ObjectMapper objectMapper;
 
-    // Sin token, o token invalido o vencido.
+    // 401: sin token, o token inválido o vencido
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response,
             AuthenticationException authException) throws IOException {
         escribir(request, response, HttpStatus.UNAUTHORIZED, "Debe iniciar sesion para acceder a este recurso");
     }
 
-    // Usuario autenticado sin permiso para la operacion (o para ese recurso).
+    // 403: usuario autenticado sin permiso para la operación o el recurso
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response,
             AccessDeniedException accessDeniedException) throws IOException {

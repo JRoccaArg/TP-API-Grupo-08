@@ -15,10 +15,9 @@ import com.uade.tpo.Zenoirprod.entity.Evento;
 @Repository
 public interface EventosRepository extends JpaRepository<Evento, Integer> {
 
-    // EXISTS evita duplicar eventos por sus distintas ofertas. WHERE se ejecuta antes de LIMIT/OFFSET.
-    // Orden: catalogo -> fecha de inicio descendente (primero la mas futura) o, con antiguosPrimero, ascendente
-    // (primero la mas antigua); proximo -> fecha ascendente; resto -> id.
-    // El precio final replica precio - descuento redondeado (PrecioCalculator), no el precio base.
+    // EXISTS evita duplicar eventos con varias ofertas; el WHERE se aplica antes del LIMIT/OFFSET.
+    // Orden: catálogo -> fecha de inicio descendente (ascendente con antiguosPrimero); próximo -> fecha ascendente; el resto -> id.
+    // El precio final usa la misma cuenta que PrecioCalculator (precio - descuento redondeado).
     @Query("""
             select e from Evento e
             where lower(replace(replace(replace(replace(replace(replace(replace(
@@ -99,7 +98,6 @@ public interface EventosRepository extends JpaRepository<Evento, Integer> {
             @Param("orden") String orden,
             @Param("ahora") LocalDateTime ahora, Pageable pageable);
 
-    // Orden del catalogo por defecto: la fecha mas futura primero.
     default Page<Evento> buscar(String nombre, Integer categoriaId, BigDecimal precioMin, BigDecimal precioMax,
             boolean catalogo, boolean proximo, LocalDateTime ahora, Pageable pageable) {
         return buscar(nombre, categoriaId, precioMin, precioMax, catalogo, proximo, false, ahora, pageable);
@@ -111,7 +109,6 @@ public interface EventosRepository extends JpaRepository<Evento, Integer> {
             """)
     BigDecimal precioMaximoCatalogo();
 
-    // Pasa a FINALIZADO los eventos ACTIVOS cuya fecha de fin ya llego. Devuelve cuantos cambio.
     @Modifying(clearAutomatically = true)
     @Query("update Evento e set e.estado = 'FINALIZADO' where e.estado = 'ACTIVO' and e.fechaHoraFin <= :ahora")
     int finalizarVencidos(@Param("ahora") LocalDateTime ahora);

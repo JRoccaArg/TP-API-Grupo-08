@@ -3,7 +3,7 @@ import FormTarjeta from './FormTarjeta.jsx'
 import TarjetaVisual from './TarjetaVisual.jsx'
 
 // Tarjeta + formulario. Sabe en qué campo está el cursor (para girar la tarjeta) y cuáles ya se tocaron
-// (los errores se muestran al salir de un campo, o todos juntos cuando se intentó pagar).
+// (los errores aparecen al salir de un campo, o todos juntos al intentar pagar).
 export default function PagoTarjeta({ tarjeta, errores, mostrarTodos, onCambiar, onProbar }) {
   const [foco, setFoco] = useState('')
   const [tocados, setTocados] = useState({})

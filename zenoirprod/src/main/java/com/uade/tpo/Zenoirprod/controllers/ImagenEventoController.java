@@ -43,14 +43,12 @@ public class ImagenEventoController {
     @Autowired
     private EventosService eventosService;
 
-    // El servicio de imagenes declara "throws Exception" (por la lectura del archivo), por eso se propaga aca.
     @GetMapping("eventos/{eventoId}/imagenes")
     public ResponseEntity<Page<ImagenEvento>> getImagenesPorEventoId(@PathVariable Integer eventoId,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size,
             Authentication authentication) throws Exception {
-        // Las fotos de un evento en borrador solo las lista el administrador (el archivo de cada foto queda abierto:
-        // lo piden las etiquetas <img>, que no mandan la sesion).
+        // Los borradores solo los lista el admin (el archivo de cada foto queda abierto porque <img> no manda la sesión)
         if (!Permisos.puedeVer(eventosService.getEventoPorId(eventoId).orElseThrow(EventoInexistenteException::new), authentication)) {
             throw new EventoInexistenteException();
         }
@@ -78,8 +76,7 @@ public class ImagenEventoController {
                 .body(imagen.getDatos());
     }
 
-    // Value es la ruta del endpoint y consumes es el tipo de contenido que se espera recibir en la solicitud
-    // Osea, espera recibir un formulario Multipart en lugar de un JSON (esto contemplarlo al usar insomnia)
+    // Recibe un formulario multipart y no un JSON (tenerlo en cuenta al probar con Insomnia)
     @PostMapping(value = "eventos/{eventoId}/imagenes", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ImagenEvento> postImagen(@PathVariable Integer eventoId, @ModelAttribute ImagenEventoRequest imagenEventoRequest)

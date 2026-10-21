@@ -3,8 +3,7 @@ import Boton from './Boton.jsx'
 import EdicionCategoria from './EdicionCategoria.jsx'
 import { eliminarCategoria } from '../utils/apiCategorias.js'
 
-// Una categoría en la lista del administrador: se ve, se edita ahí mismo (EdicionCategoria) o se elimina.
-// Eliminar pide una segunda confirmación; si la categoría tiene eventos el back responde 409 y no se borra.
+// Una categoría de la lista del admin. Eliminar pide segunda confirmación; si tiene eventos el back responde 409 y no se borra
 export default function FilaCategoria({ categoria, token, onActualizada, onEliminada }) {
   const [editando, setEditando] = useState(false)
   const [aviso, setAviso] = useState('')

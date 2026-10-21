@@ -3,8 +3,7 @@ import { eliminarOferta } from '../utils/apiAdmin.js'
 import { vendidas } from '../utils/formOferta.js'
 import { precio } from '../utils/formatos.js'
 
-// Una entrada ya cargada en el evento, con sus datos y las acciones de editarla o quitarla.
-// Quitar pide una segunda confirmación y se hace acá mismo; avisa con onQuitada(id) cuando el back la borró.
+// Una entrada ya cargada en el evento, con sus datos y las acciones de editarla o quitarla (quitar pide segunda confirmación; avisa con onQuitada(id))
 export default function ResumenOferta({ oferta, token, onEditar, onQuitada }) {
   const [confirmando, setConfirmando] = useState(false)
   const [ocupado, setOcupado] = useState(false)

@@ -5,7 +5,7 @@ import PasosCompra from './PasosCompra.jsx'
 import { entradasDeCompra } from '../utils/compras.js'
 import { precio } from '../utils/formatos.js'
 
-// La compra confirmada, con sus entradas emitidas. Solo muestra datos: "eventos" trae el evento de cada entrada, por id.
+// "eventos" trae el evento de cada entrada, por id. Solo muestra datos
 export default function CompraOk({ compra, eventos }) {
   const entradas = entradasDeCompra(compra)
 

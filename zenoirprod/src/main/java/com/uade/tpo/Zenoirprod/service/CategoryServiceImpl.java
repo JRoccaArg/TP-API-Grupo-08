@@ -76,7 +76,6 @@ public class CategoryServiceImpl implements CategoryService {
         if (nombre == null || nombre.isBlank()) {
             throw new CategoryInvalidaException();
         }
-        // Mas largo que la columna de la base daria un error 500: se rechaza antes con un 400.
         if (Textos.excede(nombre, 100)) {
             throw new CategoryInvalidaException("El nombre no puede superar los 100 caracteres");
         }

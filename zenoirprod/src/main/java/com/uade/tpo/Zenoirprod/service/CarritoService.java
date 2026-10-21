@@ -18,20 +18,12 @@ import com.uade.tpo.Zenoirprod.exceptions.VentaNoHabilitadaException;
 
 public interface CarritoService {
 
-    /**
-     * Devuelve el carrito abierto del usuario (ACTIVO o EN_PAGO), o crea uno nuevo si no tiene o si se le vencio.
-     * Un usuario tiene como maximo un carrito abierto: dos pedidos simultaneos no crean dos.
-     */
     Carrito obtenerOCrearActivo(User usuario);
 
     Page<Carrito> getPorUsuario(Integer usuarioId, PageRequest pageRequest);
 
-    // Todas las operaciones siguientes actuan sobre el carrito abierto del usuario (ACTIVO o EN_PAGO).
-    // Agregar o subir la cantidad aparta las entradas en el acto (se descuentan del stock) y quitar, bajar la
-    // cantidad, vaciar y abandonar las devuelven. Las entradas quedan apartadas hasta fechaVencimiento: el reloj de
-    // armado arranca con la primera entrada y, al iniciar el pago, empieza uno nuevo (el reloj de pago).
+    // Reglas de la reserva (relojes, bloqueos): ver el comentario de CarritoServiceImpl
 
-    /** Agrega la entrada al carrito activo del usuario; si todavia no tiene uno, lo crea. */
     Carrito agregarItem(User usuario, ItemCarritoRequest request)
             throws ItemCarritoInvalidoException, EventoTipoEntradaInexistenteException,
             EventoTipoEntradaNoDisponibleException, EventoNoDisponibleException,
@@ -48,21 +40,12 @@ public interface CarritoService {
 
     Carrito vaciar(Integer usuarioId) throws CarritoActivoInexistenteException;
 
-    /** Abandona el carrito: devuelve las entradas apartadas y vacia sus items. */
     Carrito abandonar(Integer usuarioId) throws CarritoActivoInexistenteException;
 
-    /**
-     * Entrada a la pantalla de pago: pasa el carrito a EN_PAGO y arranca un reloj de pago nuevo, contado desde ese
-     * momento. Las entradas ya estaban apartadas; solo se vuelve a validar que el evento y las ofertas sigan a la
-     * venta. Si ya estaba EN_PAGO lo devuelve tal cual, sin reiniciar el reloj.
-     */
+    /** Pasa a EN_PAGO y arranca el reloj de pago; si ya estaba EN_PAGO lo devuelve igual, sin reiniciarlo. */
     Carrito iniciarPago(Integer usuarioId)
             throws CarritoActivoInexistenteException, CarritoVacioException,
             EventoTipoEntradaNoDisponibleException, EventoNoDisponibleException, VentaNoHabilitadaException;
 
-    /**
-     * Si el carrito sigue abierto pero ya vencio, devuelve sus entradas, vacia sus items y lo deja ABANDONADO.
-     * Lo llama el job de limpieza, un carrito por vez.
-     */
     void abandonarSiVencido(Integer carritoId);
 }

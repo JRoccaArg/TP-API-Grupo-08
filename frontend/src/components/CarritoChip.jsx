@@ -4,7 +4,6 @@ import MiniCarrito from './MiniCarrito.jsx'
 import Reloj from './Reloj.jsx'
 import { cantidadItems, vencimientoMs } from '../utils/carrito.js'
 
-// Botón del carrito del header: siempre en el mismo lugar, con la cantidad y el tiempo de reserva.
 export default function CarritoChip({ carrito, eventos, onIrAPagar }) {
   const [abierto, setAbierto] = useState(false)
   const cantidad = cantidadItems(carrito)

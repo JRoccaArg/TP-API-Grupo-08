@@ -2,9 +2,8 @@ import SelectorCantidad from './SelectorCantidad.jsx'
 import { fechaCorta, horario } from '../utils/fechas.js'
 import { precio } from '../utils/formatos.js'
 
-// Una entrada dentro del carrito: flyer, datos, cantidad, subtotal y botón para quitarla.
-// "evento" (flyer, fecha y lugar) se pide aparte y puede faltar: la línea se muestra igual con lo que trae el carrito.
-// No llama al backend: avisa la nueva cantidad con onCambiar (con 0 se quita) y quien la usa se ocupa.
+// Una entrada del carrito. "evento" (flyer, fecha y lugar) se pide aparte y puede faltar: la línea se muestra igual.
+// No llama al back: avisa la nueva cantidad con onCambiar (con 0 se quita) y quien la usa se ocupa.
 export default function LineaCarrito({ item, evento, ocupado, onCambiar }) {
   const portada = evento?.imagenes?.[0]
 

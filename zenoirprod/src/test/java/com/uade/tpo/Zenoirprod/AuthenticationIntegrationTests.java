@@ -17,7 +17,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SpringBootTest
-@ActiveProfiles("dev") // siempre H2 en memoria: estas pruebas nunca tocan la base real
+@ActiveProfiles("dev") // H2 en memoria, nunca la base real
 @AutoConfigureMockMvc
 class AuthenticationIntegrationTests {
 

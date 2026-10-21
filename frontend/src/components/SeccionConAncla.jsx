@@ -1,9 +1,8 @@
 import { useEffect, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
 
-// Sección del inicio a la que se puede llegar con un ancla ("/#fotos"). Si se viene desde otra pantalla, la página
-// no baja sola: cuando el catálogo ya cargó ("listo", así las secciones no se mueven más) baja suave hasta acá.
-// Es el mismo recurso que usa SeccionFechas (useRef con scrollIntoView). Dónde termina lo ajusta scroll-margin-top en el CSS.
+// Sección del inicio a la que se llega con un ancla ("/#fotos"). Si se viene de otra pantalla la página no baja sola: cuando el catálogo
+// ya cargó ("listo", así las secciones no se mueven más) baja suave hasta acá, con useRef + scrollIntoView (igual que SeccionFechas).
 export default function SeccionConAncla({ id, className, listo, children }) {
   const { hash } = useLocation()
   const seccion = useRef(null)

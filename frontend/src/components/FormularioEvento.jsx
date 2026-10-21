@@ -4,8 +4,7 @@ import CampoSelect from './CampoSelect.jsx'
 import { estadosEvento } from '../data/catalogos.js'
 import { opcionesDeEstados } from '../utils/opciones.js'
 
-// Formulario de datos del evento, con los campos que pide el backend. No guarda nada por sí solo:
-// muestra "datos" y avisa cada cambio con onCambiar(campo, valor); quien lo usa decide cuándo guardar.
+// Datos del evento, con los campos que pide el back. No guarda nada: muestra "datos" y avisa cada cambio con onCambiar(campo, valor).
 // El lugar y la categoría se eligen de una lista; con "crear nuevo" se escribe el nombre y se crea al guardar el evento.
 export default function FormularioEvento({ datos, onCambiar, locaciones, categorias }) {
   const cambiar = (campo) => (evento) => onCambiar(campo, evento.target.value)

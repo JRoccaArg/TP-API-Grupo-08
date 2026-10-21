@@ -2,7 +2,6 @@ import Boton from './Boton.jsx'
 import Icono from './Icono.jsx'
 import PasosCompra from './PasosCompra.jsx'
 
-// Pantalla que reemplaza al pago cuando se termina el tiempo: las entradas ya se liberaron.
 export default function TiempoAgotado() {
   return (
     <main className="pagina compra">

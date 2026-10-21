@@ -2,7 +2,6 @@ import { estadoOferta } from './eventos.js'
 
 // Los filtros del catálogo (nombre, categoría, precio, orden y página) viven en la URL; el back hace la búsqueda.
 // Acá se leen y validan, y se calcula qué precio mostrar en una tarjeta cuando hay un rango de precios.
-// Los campos conservan lo escrito; sólo normalizamos al comparar o consultar la API.
 export const normalizarImporteFiltro = (valor) => String(valor ?? '').trim().replace(',', '.')
 
 export function validarRangoPrecios(precioMin = '', precioMax = '') {
@@ -42,7 +41,6 @@ export function leerFiltrosCatalogo(parametros) {
   }
 }
 
-// ¿Hay algún filtro puesto (nombre, categoría o precio)? El orden y la página no cuentan.
 export const hayFiltros = (filtros) =>
   Boolean(filtros.busqueda || filtros.categoria || filtros.precioMin !== '' || filtros.precioMax !== '' || (filtros.estadoEvento && filtros.estadoEvento !== 'proximos'))
 

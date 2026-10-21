@@ -1,8 +1,7 @@
 import Boton from './Boton.jsx'
 
-// Resultado grande y claro de la verificación: ✓ o ✕, un título, un mensaje y los datos de la entrada.
-// "children" es lo que va abajo (por ejemplo, el botón para registrar el ingreso). Solo muestra lo que recibe.
-// "volverA" (opcional): si se llegó desde el escáner, un botón para escanear la entrada siguiente.
+// Resultado de la verificación: ✓ o ✕, un título, un mensaje y los datos de la entrada. "children" va abajo (por ejemplo el botón
+// para registrar el ingreso). "volverA" (opcional): si se llegó desde el escáner, un botón para escanear la siguiente.
 export default function ResultadoVerificacion({ valido, titulo, mensaje, datos = [], volverA, children }) {
   return (
     <main className="pagina">

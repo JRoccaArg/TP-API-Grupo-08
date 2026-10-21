@@ -2,8 +2,7 @@ import Boton from './Boton.jsx'
 import CampoLinea from './CampoLinea.jsx'
 import { agruparNumero, formatearVencimiento } from '../utils/tarjeta.js'
 
-// Los cuatro campos de la tarjeta. No guarda nada: recibe los datos y los errores ya calculados.
-// "onCambiar(campo, texto)" avisa lo escrito; "onFoco(campo)" y "onSalir(campo)" avisan dónde está el cursor.
+// Los cuatro campos de la tarjeta. No guarda nada: onCambiar(campo, texto) avisa lo escrito; onFoco(campo) y onSalir(campo), dónde está el cursor
 export default function FormTarjeta({ tarjeta, errores, onCambiar, onFoco, onSalir, onProbar }) {
   const propiedades = (campo) => ({
     nombre: campo,

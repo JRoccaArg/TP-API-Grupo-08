@@ -1,5 +1,3 @@
-// Ayudas del escáner de QR del admin.
-
 // El QR guarda un link como "http://.../verificar/<código>": de ahí sale el código. Si el texto no es un link,
 // se toma como código tal cual (por ejemplo, un QR viejo que solo tiene el código).
 export function codigoDesdeQr(texto) {

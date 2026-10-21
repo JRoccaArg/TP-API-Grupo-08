@@ -6,10 +6,9 @@ import { estadosOfertaEditables } from '../data/catalogos.js'
 import { TIPO_NUEVO } from '../utils/formOferta.js'
 import { opcionesDeCatalogo, opcionesDeEstados } from '../utils/opciones.js'
 
-// Formulario de una entrada del evento: el tipo (uno que ya existe o uno nuevo), su precio, cupo y estado.
-// No hay fechas de venta: se vende hasta que termina el evento y se habilita o frena con el estado (activa o pausada).
-// No guarda nada por sí solo: muestra "datos" y avisa los cambios con onCambiar({ campo: valor, ... }).
-// En la edición el tipo no se cambia (se muestra su nombre) y "vendidas" evita bajar el cupo por debajo de lo vendido.
+// No hay fechas de venta: se vende hasta que termina el evento y el estado (activa o pausada) la habilita o la frena.
+// No guarda nada: muestra "datos" y avisa los cambios con onCambiar({ campo: valor }).
+// Al editar el tipo no se cambia y "vendidas" evita bajar el cupo por debajo de lo vendido.
 export default function FormEntrada({
   datos, edicion, tipoNombre, tipos, vendidas, token, ocupado, aviso,
   onCambiar, onTipoCreado, onGuardar, onCancelar,

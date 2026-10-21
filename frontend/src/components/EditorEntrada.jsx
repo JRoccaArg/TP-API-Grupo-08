@@ -3,8 +3,7 @@ import FormEntrada from './FormEntrada.jsx'
 import { actualizarOferta, crearOferta } from '../utils/apiAdmin.js'
 import { ofertaAFormulario, ofertaVacia, validarOferta, vendidas } from '../utils/formOferta.js'
 
-// Alta o edición de una entrada del evento. Guarda en el back y avisa con onGuardada(entrada) lo que respondió.
-// "oferta" es la entrada que se edita; sin ella es un alta.
+// Alta o edición de una entrada del evento ("oferta" es la que se edita; sin ella es un alta). Avisa con onGuardada(entrada)
 export default function EditorEntrada({ evento, oferta, tipos, token, onGuardada, onTipoCreado, onCancelar }) {
   const [datos, setDatos] = useState(oferta ? ofertaAFormulario(oferta) : ofertaVacia)
   const [aviso, setAviso] = useState('')

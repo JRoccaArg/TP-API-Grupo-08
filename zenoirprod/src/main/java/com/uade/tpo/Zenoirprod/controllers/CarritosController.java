@@ -35,7 +35,7 @@ import com.uade.tpo.Zenoirprod.exceptions.VentaNoHabilitadaException;
 import com.uade.tpo.Zenoirprod.service.CarritoService;
 import com.uade.tpo.Zenoirprod.util.PageableFactory;
 
-// Todas las operaciones sobre el carrito actuan sobre el carrito ACTIVO del usuario autenticado (sale del token).
+// Todo actúa sobre el carrito abierto del usuario del token
 @RestController
 @RequestMapping("carritos")
 public class CarritosController {
@@ -51,8 +51,6 @@ public class CarritosController {
                 .body(CarritoResponse.fromEntity(carrito));
     }
 
-    // Devuelve el carrito abierto del usuario; si no tiene uno (nunca armo uno, pago el anterior o se le vencio el
-    // tiempo) crea uno vacio. Un usuario tiene como maximo un carrito abierto, asi que el frontend siempre tiene uno.
     @GetMapping("/activo")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<CarritoResponse> getActivo(@AuthenticationPrincipal User usuario) {
@@ -106,9 +104,7 @@ public class CarritosController {
         return ResponseEntity.ok(CarritoResponse.fromEntity(service.vaciar(usuario.getId())));
     }
 
-    // Lo llama el frontend al abrir la pantalla de pago: el carrito pasa a EN_PAGO y arranca un reloj de pago nuevo.
-    // La respuesta trae el resumen (items, precios, total y fechaVencimiento). Volver a llamarlo no reinicia el reloj.
-    // El boton de pagar de esa pantalla es POST /compras.
+    // Al abrir la pantalla de pago (el botón de pagar de esa pantalla es POST /compras)
     @PostMapping("/activo/iniciar-pago")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<CarritoResponse> iniciarPago(@AuthenticationPrincipal User usuario)

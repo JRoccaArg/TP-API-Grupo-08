@@ -2,8 +2,7 @@ import Icono from './Icono.jsx'
 
 const MAXIMO_MB = 10
 
-// Caja para elegir varias fotos a la vez. Revisa que sean imágenes y que no pesen de más; después avisa con
-// onElegir(archivos) o, si alguna no sirve, con onError(mensaje). Subirlas es cosa de quien la usa.
+// Caja para elegir varias fotos a la vez. Revisa que sean imágenes y que no pesen de más; avisa con onElegir(archivos) o onError(mensaje).
 export default function SubirFotos({ ocupado, onElegir, onError }) {
   const elegir = (cambio) => {
     const archivos = Array.from(cambio.target.files)

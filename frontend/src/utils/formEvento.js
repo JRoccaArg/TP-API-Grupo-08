@@ -6,7 +6,6 @@ export const formularioVacio = {
   titulo: '', descripcion: '', estado: 'BORRADOR', inicio: '', fin: '', lugar: '', direccion: '', categoria: '',
 }
 
-// De un evento que devolvió el back a los datos que maneja el formulario (todo texto, como los campos).
 export const eventoAFormulario = (evento) => ({
   titulo: evento.titulo || '',
   descripcion: evento.descripcion || '',
@@ -22,7 +21,6 @@ export const eventoAFormulario = (evento) => ({
 const normalizar = (texto) => texto.trim().replace(/\s+/g, ' ').toLowerCase()
 export const buscarPorNombre = (lista, nombre) => lista.find((item) => normalizar(item.nombre) === normalizar(nombre))
 
-// ¿Lo escrito es un nombre nuevo (que se va a crear al guardar)?
 export const esNuevo = (lista, nombre) => nombre.trim() !== '' && !buscarPorNombre(lista, nombre)
 
 // Devuelve el primer problema que encuentra, o '' si está todo bien. El back vuelve a validar.

@@ -67,7 +67,6 @@ public class ImagenLocacionController {
                 .body(imagen.getDatos());
     }
 
-    // El servicio declara "throws Exception" en crear y actualizar (por la lectura del archivo), por eso se propaga aca.
     @PostMapping(value = "locaciones/{locacionId}/imagenes",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('ADMIN')")

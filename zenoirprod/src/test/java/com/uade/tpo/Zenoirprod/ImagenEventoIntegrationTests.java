@@ -36,7 +36,7 @@ import com.uade.tpo.Zenoirprod.service.ImagenEventoService;
 import com.uade.tpo.Zenoirprod.util.FechaCatalogo;
 
 @SpringBootTest
-@ActiveProfiles("dev") // siempre H2 en memoria: estas pruebas nunca tocan la base real
+@ActiveProfiles("dev") // H2 en memoria, nunca la base real
 @AutoConfigureMockMvc
 @Transactional
 @WithMockUser(roles = "ADMIN")

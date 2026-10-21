@@ -5,8 +5,8 @@ import ResumenOferta from './ResumenOferta.jsx'
 import { obtenerTiposEntrada } from '../utils/apiAdmin.js'
 import { admiteEntradas } from '../utils/formOferta.js'
 
-// Panel lateral con las entradas del evento: se ven, se agregan, se editan y se quitan. La lista se acomoda con lo que
-// responde el back en cada alta, cambio o baja. Sin "evento" (se está creando) todavía no se pueden cargar entradas.
+// Panel lateral con las entradas del evento (ver, agregar, editar, quitar). La lista se acomoda con lo que responde el back.
+// Sin "evento" (se está creando) todavía no se pueden cargar entradas.
 export default function PanelEntradas({ evento, token }) {
   const [ofertas, setOfertas] = useState(evento?.ofertas || [])
   const [tipos, setTipos] = useState([])

@@ -9,7 +9,6 @@ import { actualizarEvento, alinearVentas, eliminarEvento } from '../utils/apiAdm
 import { eventoAFormulario, validarEvento } from '../utils/formEvento.js'
 import { guardarEvento } from '../utils/guardarEvento.js'
 
-// Edición de un evento ya cargado: sus datos, sus fotos y sus entradas. Al guardar los datos vuelve al resumen del evento.
 export default function EdicionEvento({ evento, locaciones, categorias, token }) {
   const navigate = useNavigate()
   const opciones = { locaciones, categorias }
@@ -38,7 +37,6 @@ export default function EdicionEvento({ evento, locaciones, categorias, token })
         return (cambioElFin ? alinearVentas(token, evento.id, datos.fin) : Promise.resolve([]))
           .then((movidas) => ({ actualizado, movidas }))
       })
-      // Al guardar se vuelve al resumen del evento, que muestra la confirmación (así se nota que se guardó).
       .then(({ actualizado, movidas }) => navigate(`/admin/${evento.id}`, {
         state: {
           aviso: `Guardaste los cambios de "${actualizado.titulo}".${movidas.length ? ` La venta de ${movidas.length} ${movidas.length === 1 ? 'entrada' : 'entradas'} ahora cierra cuando termina el evento.` : ''}`,

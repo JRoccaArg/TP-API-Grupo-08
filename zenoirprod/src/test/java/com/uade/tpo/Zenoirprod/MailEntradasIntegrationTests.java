@@ -50,11 +50,11 @@ import jakarta.mail.Part;
 import jakarta.mail.Session;
 import jakarta.mail.internet.MimeMessage;
 
-// Mail con las entradas: el envio real se reemplaza por uno simulado (@MockBean) y se revisa el mail que se armo.
-// Sin @Transactional: el mail se arma en otro hilo (@Async), que tiene que poder leer la compra ya guardada.
-// Por eso los datos se borran a mano al terminar (la base H2 de los tests la comparten todas las clases).
+// Mail con las entradas: el envío real se reemplaza por uno simulado (@MockBean) y se revisa el mail que se armó.
+// Sin @Transactional porque el mail se arma en otro hilo (@Async), que tiene que poder leer la compra ya guardada.
+// Por eso los datos se borran a mano al terminar (la base H2 la comparten todas las clases de test).
 @SpringBootTest
-@ActiveProfiles("dev") // siempre H2 en memoria: estas pruebas nunca tocan la base real
+@ActiveProfiles("dev") // H2 en memoria, nunca la base real
 @TestPropertySource(properties = { "zenoir.mail.activo=true", "zenoir.mail.remitente=zenoir@test.com" })
 class MailEntradasIntegrationTests {
 
@@ -96,7 +96,7 @@ class MailEntradasIntegrationTests {
         ArgumentCaptor<MimeMessage> enviado = ArgumentCaptor.forClass(MimeMessage.class);
         verify(mailSender, timeout(5000)).send(enviado.capture()); // espera al hilo del @Async
         MimeMessage mail = enviado.getValue();
-        mail.saveChanges(); // completa las cabeceras de cada parte (lo hace el envio real, que aca esta simulado)
+        mail.saveChanges(); // completa las cabeceras (lo hace el envío real, que acá está simulado)
         assertEquals("lucia.mail.entradas@zenoir.test", mail.getAllRecipients()[0].toString());
         assertEquals("Tus entradas de Zenoir", mail.getSubject());
 
@@ -110,7 +110,7 @@ class MailEntradasIntegrationTests {
         assertEquals(2, qrs);
     }
 
-    // Junta las partes "hoja" del mail (el HTML y cada imagen), entrando en las partes que tienen otras adentro.
+    // Junta las partes finales del mail (el HTML y cada imagen), entrando en las que tienen otras adentro
     private void recorrer(Part parte, List<Part> hojas) throws Exception {
         if (parte.getContent() instanceof Multipart multipart) {
             for (int i = 0; i < multipart.getCount(); i++) {

@@ -1,8 +1,7 @@
 import Boton from './Boton.jsx'
 import Logo from './Logo.jsx'
 
-// Estructura de login y registro: foto con el logo a la izquierda y el formulario a la derecha.
-// El formulario entra como "children": así este componente se reutiliza sin tocarlo.
+// Estructura de login y registro: foto con el logo a la izquierda y el formulario a la derecha (entra como children)
 export default function LayoutAcceso({ foto, alt, titulo, children }) {
   return (
     <div className="acceso">

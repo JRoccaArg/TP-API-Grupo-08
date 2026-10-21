@@ -1,8 +1,6 @@
-// Campo de formulario con una línea fina abajo. Sirve controlado (valor + onChange)
-// o sin controlar (valorInicial), según lo que necesite la pantalla.
-// "error" es opcional: con un texto (o '' para reservar el lugar) muestra el aviso debajo del campo.
-// "accion" es opcional: un botón que se dibuja adentro del campo, a la derecha (por ejemplo, el ojo de la contraseña).
-// "sugerencias" es opcional: una lista de textos que el navegador ofrece mientras se escribe (<datalist>).
+// Campo de formulario con una línea fina abajo. Puede ser controlado (valor + onChange) o sin controlar (valorInicial).
+// Opcionales: "error" (un texto, o '' para reservar el lugar), "accion" (botón adentro del campo, por ejemplo el ojo de la
+// contraseña) y "sugerencias" (lista de textos que el navegador ofrece mientras se escribe, <datalist>).
 export default function CampoLinea({
   etiqueta,
   nombre,

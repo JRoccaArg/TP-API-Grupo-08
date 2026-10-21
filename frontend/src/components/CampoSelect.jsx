@@ -1,5 +1,4 @@
-// Lista desplegable con el mismo estilo que CampoLinea. "opciones" es [{ valor, texto }].
-// Sirve sin controlar (valorInicial) o controlada (valor + onChange), según lo que necesite la pantalla.
+// Lista desplegable con el estilo de CampoLinea. "opciones" es [{ valor, texto }]. Controlada (valor + onChange) o sin controlar (valorInicial)
 export default function CampoSelect({ etiqueta, nombre, opciones, valorInicial, valor, onChange }) {
   return (
     <label className="campo">

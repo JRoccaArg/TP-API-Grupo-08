@@ -1,5 +1,4 @@
-// Auspiciantes de "Nos acompañan". Los logos son SVG blancos (pensados para el fondo negro).
-// El tamaño de cada uno se ajusta en CSS (.sponsors__logo--id) para que ninguno pese más que otro.
+// Auspiciantes de "Nos acompañan". Los logos son SVG blancos (para el fondo negro) y su tamaño se ajusta en CSS (.sponsors__logo--id).
 // El orden alterna logos anchos y altos para que la cinta tenga ritmo.
 import merle from '../assets/sponsors/merle.svg'
 import uade from '../assets/sponsors/uade.svg'

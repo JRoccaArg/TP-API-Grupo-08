@@ -4,7 +4,6 @@ import Icono from './Icono.jsx'
 import { cuentaRegresiva, fechaApi, fechaCorta, horario } from '../utils/fechas.js'
 import { dos } from '../utils/formatos.js'
 
-// Franja al pie del hero con la próxima fecha y cuánto falta.
 export default function BarraProximaFecha({ evento, origen }) {
   const [ahora, setAhora] = useState(() => Date.now())
 

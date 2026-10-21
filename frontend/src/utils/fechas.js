@@ -1,4 +1,3 @@
-// Eventos y ventanas de venta usan la zona compartida del catálogo.
 import { capitalizar } from './formatos.js'
 
 export const ZONA_CATALOGO = 'America/Argentina/Buenos_Aires'
@@ -29,7 +28,7 @@ export const diaMes = (iso) => new Intl.DateTimeFormat('es-AR', {
   timeZone: ZONA_CATALOGO, day: '2-digit', month: '2-digit',
 }).format(fechaApi(iso)).replace('/', '.')
 export const fechaCorta = (iso) => `${partes(iso).weekday.slice(0, 3).toUpperCase()} ${diaMes(iso)}`
-// Un evento de una noche: "22 a 4 h". Si dura un dia o mas, se aclara el dia en que termina: "00:01 a 24.10 00:01 h".
+// Un evento de una noche: "22 a 4 h". Si dura un día o más, se aclara el día en que termina: "00:01 a 24.10 00:01 h"
 const UN_DIA = 24 * 60 * UN_MINUTO
 export const horario = (inicio, fin) => (fechaApi(fin) - fechaApi(inicio) >= UN_DIA
   ? `${hora(inicio)} a ${diaMes(fin)} ${hora(fin)} h` : `${hora(inicio)} a ${hora(fin)} h`)

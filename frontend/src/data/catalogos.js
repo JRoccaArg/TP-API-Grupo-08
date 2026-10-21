@@ -1,4 +1,3 @@
-// Opciones de los selects del panel de administración.
 export const categorias = [
   { id: 1, nombre: 'Música' },
   { id: 2, nombre: 'Comedia' },

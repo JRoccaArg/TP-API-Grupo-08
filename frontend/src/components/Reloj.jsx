@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { formatearTiempo } from '../utils/formatos.js'
 
-// Cuenta regresiva hasta "vencimiento" (milisegundos). Se recalcula cada segundo.
 export default function Reloj({ vencimiento }) {
   const [restante, setRestante] = useState(null)
 

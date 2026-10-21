@@ -20,8 +20,7 @@ const ETIQUETAS = {
   REPROGRAMADO: 'EVENTO REPROGRAMADO',
 }
 
-// Tarjeta con el flyer de un evento (estética original). El estado y el precio salen de las entradas que trae la API.
-// Si el evento ya terminó o se canceló se muestra apagada y sin precio.
+// Tarjeta con el flyer de un evento. Estado y precio salen de las entradas que trae la API; si el evento terminó o se canceló se ve apagada y sin precio
 export default function TarjetaFlyer({ evento, ahora, indice = 0, filtroPrecio = {} }) {
   const location = useLocation()
   const { estado, precioDesde: precioGeneral } = resumenEntradas(evento, ahora)

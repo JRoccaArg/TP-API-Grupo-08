@@ -3,7 +3,6 @@ import SeccionConAncla from './SeccionConAncla.jsx'
 import TarjetaLugar from './TarjetaLugar.jsx'
 import { obtenerLocacionesConFotos } from '../utils/apiAdmin.js'
 
-// Cabecera (título a la izquierda, bajada a la derecha) y una tarjeta por cada locación que hay cargada en el back.
 export default function SeccionDonde({ listo }) {
   const [lugares, setLugares] = useState(null) // null = todavía cargando
   const [error, setError] = useState('')

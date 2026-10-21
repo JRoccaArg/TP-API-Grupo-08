@@ -51,7 +51,6 @@ public class ImagenEventoServiceImpl implements ImagenEventoService {
             throw new EventoInexistenteException();
         }
 
-         // Validaciones respecto al archivo
         if (!Imagenes.esValida(archivo)) {
             throw new ImagenInvalidaException(Imagenes.MENSAJE);
         }
@@ -131,7 +130,6 @@ public class ImagenEventoServiceImpl implements ImagenEventoService {
         return imagenEvento;
     }
 
-    // El nombre del archivo y la descripcion tienen que entrar en su columna de la base (un texto mas largo daria un error 500).
     private void validarTextos(String descripcion, MultipartFile archivo) throws ImagenInvalidaException {
         if (Textos.excede(descripcion, 255) || Textos.excede(archivo.getOriginalFilename(), 255)) {
             throw new ImagenInvalidaException("El nombre del archivo y la descripcion no pueden superar los 255 caracteres");

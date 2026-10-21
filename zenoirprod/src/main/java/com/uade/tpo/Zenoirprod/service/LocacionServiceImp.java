@@ -74,7 +74,6 @@ public class LocacionServiceImp implements LocacionService {
                 || direccion == null || direccion.isBlank()) {
             throw new LocacionInvalidaException();
         }
-        // Mas largo que la columna de la base daria un error 500: se rechaza antes con un 400.
         if (Textos.excede(nombre, 150)) {
             throw new LocacionInvalidaException("El nombre no puede superar los 150 caracteres");
         }

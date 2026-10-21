@@ -114,7 +114,7 @@ public class EventoTipoEntradaServiceImp implements EventoTipoEntradaService {
             throw new EventoTipoEntradaInvalidoException();
         }
 
-        // Se bloquea la fila: una compra simultanea no puede quedar pisada por esta edicion (ni al reves).
+        // Se bloquea la fila para que una compra simultánea no quede pisada por esta edición (ni al revés)
         EventoTipoEntrada entrada = eventoTipoEntradaRepository.findByIdForUpdate(id)
                 .orElseThrow(EventoTipoEntradaInexistenteException::new);
 
@@ -165,7 +165,6 @@ public class EventoTipoEntradaServiceImp implements EventoTipoEntradaService {
         }
 
         if (request.getEstado() != null) {
-            // El estado no puede contradecir el stock real de la entrada.
             if (request.getEstado() == EstadoEventoTipoEntrada.ACTIVO
                     && entrada.getCantidadDisponible() == 0) {
                 throw new EventoTipoEntradaInvalidoException();
@@ -198,8 +197,7 @@ public class EventoTipoEntradaServiceImp implements EventoTipoEntradaService {
                 ? entrada.getPorcentajeDescuento()
                 : BigDecimal.ZERO;
 
-        // Delegado en PrecioCalculator para que el catalogo y la compra usen
-        // exactamente la misma formula y el mismo redondeo.
+        // Se delega en PrecioCalculator para que el catálogo y la compra usen la misma fórmula y el mismo redondeo
         return PrecioCalculator.precioConDescuento(entrada.getPrecio(), porcentaje);
     }
 
@@ -215,7 +213,7 @@ public class EventoTipoEntradaServiceImp implements EventoTipoEntradaService {
         boolean entradaActiva = entrada.getEstado() == EstadoEventoTipoEntrada.ACTIVO;
         boolean eventoActivo = "ACTIVO".equalsIgnoreCase(entrada.getEvento().getEstado());
         boolean hayStock = entrada.getCantidadDisponible() >= cantidad;
-        // Un evento que ya termino no vende, aunque el proceso programado todavia no lo haya pasado a FINALIZADO.
+        // Un evento que ya terminó no vende, aunque el job todavía no lo haya pasado a FINALIZADO
         boolean eventoVigente = !entrada.getEvento().haFinalizado(ahora);
 
         return ventaEnFecha(entrada, ahora) && entradaActiva && eventoActivo && eventoVigente && hayStock;
@@ -276,8 +274,7 @@ public class EventoTipoEntradaServiceImp implements EventoTipoEntradaService {
         eventoTipoEntradaRepository.save(entrada);
     }
 
-    // Una fecha de inicio/fin nula significa "sin restricción" en ese extremo,
-    // igual que en CompraServiceImpl. Evita NPE si la entrada quedara sin fechas.
+    // Una fecha de inicio o fin nula significa "sin restricción" en ese extremo (igual que en CompraServiceImpl)
     private boolean ventaEnFecha(EventoTipoEntrada entrada, LocalDateTime ahora) {
         boolean inicioOk = entrada.getFechaInicioVenta() == null
                 || !ahora.isBefore(entrada.getFechaInicioVenta());
@@ -302,7 +299,7 @@ public class EventoTipoEntradaServiceImp implements EventoTipoEntradaService {
         validarFechas(request.getFechaInicioVenta(), request.getFechaFinVenta());
     }
 
-    // La venta de una entrada no puede seguir abierta despues de que termina el evento.
+    // La venta de una entrada no puede seguir abierta después de que termina el evento
     private void validarCierreDeVenta(LocalDateTime finVenta, Evento evento) throws EventoTipoEntradaInvalidoException {
         if (finVenta != null && evento.getFechaHoraFin() != null && finVenta.isAfter(evento.getFechaHoraFin())) {
             throw new EventoTipoEntradaInvalidoException("La venta de la entrada no puede terminar despues del fin del evento");

@@ -4,8 +4,7 @@ import PaginacionEventos from './PaginacionEventos.jsx'
 import TarjetaFlyer from './TarjetaFlyer.jsx'
 import { EVENTOS_POR_PAGINA } from '../utils/apiEventos.js'
 
-// Lo que va debajo de los filtros: el estado de la carga (cargando, error o sin eventos) o, con datos, el aviso de
-// lo que no se pudo cargar, la cantidad encontrada, el orden, las tarjetas y la paginación.
+// Lo que va debajo de los filtros: la carga (cargando, error o sin eventos) o los resultados con su orden y paginación.
 // "referencia" es el div de resultados al que se baja al cambiar de página.
 export default function ResultadosCatalogo({
   eventos, filtros, total, pagina, paginas, ahora, cargando, error, referencia, onReintentar, onLimpiar, onOrden, onPagina,

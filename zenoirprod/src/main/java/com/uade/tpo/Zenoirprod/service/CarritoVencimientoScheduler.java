@@ -12,9 +12,8 @@ import com.uade.tpo.Zenoirprod.util.FechaCatalogo;
 
 import lombok.extern.slf4j.Slf4j;
 
-// Libera las entradas de los carritos abiertos (en armado o en pago) cuyo tiempo vencio. Cada carrito se procesa en su propia
-// transaccion (via CarritoService): si uno falla, los demas se liberan igual y el fallido se reintenta en la
-// proxima pasada.
+// Libera las entradas de los carritos abiertos (en armado o en pago) cuyo tiempo venció. Cada carrito va en su propia
+// transacción (vía CarritoService): si uno falla, los demás se liberan igual y el fallido se reintenta en la próxima pasada.
 @Slf4j
 @Component
 public class CarritoVencimientoScheduler {

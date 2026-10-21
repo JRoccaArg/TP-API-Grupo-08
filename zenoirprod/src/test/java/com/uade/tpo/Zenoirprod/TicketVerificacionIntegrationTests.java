@@ -42,11 +42,11 @@ import com.uade.tpo.Zenoirprod.repository.TipoEntradaRepository;
 import com.uade.tpo.Zenoirprod.repository.UserRepository;
 import com.uade.tpo.Zenoirprod.util.FechaCatalogo;
 
-// Verificacion de entradas por QR: el organizador (ADMIN) consulta un ticket y registra el ingreso.
+// Verificación de entradas por QR: el organizador (ADMIN) consulta un ticket y registra el ingreso
 @SpringBootTest
-@ActiveProfiles("dev") // siempre H2 en memoria: estas pruebas nunca tocan la base real
+@ActiveProfiles("dev") // H2 en memoria, nunca la base real
 @AutoConfigureMockMvc
-@Transactional // cada prueba deshace lo que creo
+@Transactional // cada test deshace lo que crea
 class TicketVerificacionIntegrationTests {
 
     private static final String CODIGO = "11111111-aaaa-bbbb-cccc-222222222222";

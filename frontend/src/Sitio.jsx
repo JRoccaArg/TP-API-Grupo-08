@@ -26,7 +26,6 @@ export default function Sitio({ usuario, sesionVencida, onIngresar, onSalir }) {
   const venceEn = vencimientoMs(carrito)
   const carga = { cargando: Boolean(token) && cargadoPara !== token && !errorCarga, error: errorCarga }
 
-  // Al iniciar sesión (o al recargar la página) se pide el carrito al back.
   useEffect(() => {
     if (!token) return undefined
     let activo = true
@@ -67,7 +66,6 @@ export default function Sitio({ usuario, sesionVencida, onIngresar, onSalir }) {
     return () => { activo = false; clearTimeout(reloj) }
   }, [token, venceEn, revision, carrito.id])
 
-  // Cada acción devuelve una promesa: sale bien con el carrito nuevo, o falla con el mensaje del back.
   const aplicar = (pedido) => pedido.then((nuevo) => {
     setCarrito(nuevo)
     setVencido(false)
@@ -104,7 +102,6 @@ export default function Sitio({ usuario, sesionVencida, onIngresar, onSalir }) {
       controlar404(aplicar(cantidad > 0 ? cambiarCantidad(token, itemId, cantidad) : quitarItem(token, itemId))),
     vaciar: () => controlar404(aplicar(vaciarCarrito(token))),
     irAPagar: () => controlar404(aplicar(iniciarPago(token))),
-    // Pagar compra el carrito: queda una compra confirmada y el carrito vuelve a empezar vacío.
     pagar: () => controlar404(pagarCarrito(token).then((compra) => {
       setCarrito(carritoVacio)
       setVencido(false)

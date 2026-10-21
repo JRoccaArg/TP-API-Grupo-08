@@ -38,16 +38,12 @@ import com.uade.tpo.Zenoirprod.repository.UserRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
-// Reserva de stock: las entradas de un carrito abierto ya estan descontadas de cantidadDisponible. Se apartan al
-// agregarlas y se devuelven si el usuario las quita, vacia o abandona el carrito, o si se vence el tiempo.
-//   ACTIVO   -> el usuario esta armando el carrito. Reloj de armado: fechaVencimiento = primera entrada + 15 min,
-//               no se renueva al agregar mas.
-//   EN_PAGO  -> entro a la pantalla de pago. Reloj de pago nuevo: fechaVencimiento = ese momento + 15 min. Sigue
-//               pudiendo modificar el carrito, sin tocar el reloj.
-//   CONVERTIDO / ABANDONADO -> terminales. Al abandonar o vencer se devuelven las entradas y se vacian los items.
-// Pagar (CompraServiceImpl) no vuelve a descontar stock.
-//
-// Orden de bloqueos, siempre el mismo para evitar deadlocks entre pedidos simultaneos:
+// Reserva de stock: las entradas de un carrito abierto ya están descontadas de cantidadDisponible. Se apartan al agregarlas
+// y se devuelven si el usuario las quita, vacía o abandona el carrito, o si se vence el tiempo. Pagar no vuelve a descontar.
+//   ACTIVO   -> está armando el carrito. Reloj de armado: primera entrada + 15 min, no se renueva al agregar más.
+//   EN_PAGO  -> entró a la pantalla de pago. Reloj de pago nuevo: ese momento + 15 min. Puede seguir modificando el carrito.
+//   CONVERTIDO / ABANDONADO -> terminales. Al abandonar o vencer se devuelven las entradas y se vacían los items.
+// Orden de bloqueos, siempre el mismo para evitar deadlocks entre pedidos simultáneos:
 //   usuario -> carrito -> ofertas (EventoTipoEntrada) ordenadas por id.
 @Service
 public class CarritoServiceImpl implements CarritoService {
@@ -68,18 +64,17 @@ public class CarritoServiceImpl implements CarritoService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Carrito obtenerOCrearActivo(User usuario) {
-        // Se bloquea la fila del usuario para que dos pedidos simultaneos no creen dos carritos abiertos.
+        // Se bloquea al usuario para que dos pedidos simultáneos no creen dos carritos abiertos
         User bloqueado = userRepository.findByIdForUpdate(usuario.getId())
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
         LocalDateTime ahora = FechaCatalogo.ahora();
 
-        // El carrito se lee ya bloqueado, para no pisar una compra o un vencimiento que lo este cerrando.
         Optional<Carrito> existente = carritoRepository.findEnCursoForUpdate(bloqueado.getId());
         if (existente.isPresent()) {
             if (existente.get().estaVigente(ahora)) {
                 return existente.get();
             }
-            // Se le vencio el tiempo y el job todavia no lo libero: se libera ahora y empieza uno nuevo.
+            // Se le venció el tiempo y el job todavía no lo liberó: se libera ahora y empieza uno nuevo
             abandonarYLiberar(existente.get(), ahora);
         }
 
@@ -108,15 +103,14 @@ public class CarritoServiceImpl implements CarritoService {
             throw new ItemCarritoInvalidoException();
         }
 
-        // Agregar el primer item crea el carrito si el usuario todavia no tiene uno abierto.
-        // Si algo falla mas abajo, la transaccion se revierte y no queda un carrito vacio de mas.
+        // El primer item crea el carrito; si algo falla más abajo se revierte todo
         Carrito carrito = obtenerOCrearActivo(usuario);
 
         EventoTipoEntrada ete = bloquearOferta(request.getEventoTipoEntradaId())
                 .orElseThrow(EventoTipoEntradaInexistenteException::new);
         LocalDateTime ahora = FechaCatalogo.ahora();
 
-        // Solo la cantidad nueva necesita stock: lo que el usuario ya tenia en el carrito esta apartado.
+        // Solo la cantidad nueva necesita stock: lo que ya estaba en el carrito está apartado
         validarVendible(ete, request.getCantidad(), ahora);
         reservar(ete, request.getCantidad());
 
@@ -134,8 +128,7 @@ public class CarritoServiceImpl implements CarritoService {
             carrito.getItems().add(item);
         }
 
-        // La primera entrada arranca el reloj de armado; las siguientes no lo renuevan. Un carrito EN_PAGO ya
-        // tiene su reloj de pago y tampoco se toca.
+        // La primera entrada arranca el reloj de armado (las siguientes no lo renuevan); un carrito EN_PAGO conserva su reloj de pago
         if (carrito.getFechaVencimiento() == null) {
             carrito.setFechaVencimiento(ahora.plusMinutes(armadoMinutos));
         }
@@ -221,8 +214,7 @@ public class CarritoServiceImpl implements CarritoService {
             EventoTipoEntradaNoDisponibleException, EventoNoDisponibleException, VentaNoHabilitadaException {
 
         Carrito carrito = carritoAbiertoBloqueado(usuarioId);
-        // Ya esta en la pantalla de pago (por ejemplo el usuario recargo): el reloj no se reinicia, asi nadie puede
-        // retener entradas entrando a pagar una y otra vez.
+        // Ya estaba en la pantalla de pago: no se reinicia el reloj, así nadie retiene entradas entrando a pagar una y otra vez
         if (carrito.getEstado() == EstadoCarrito.EN_PAGO) {
             return carrito;
         }
@@ -231,7 +223,7 @@ public class CarritoServiceImpl implements CarritoService {
         }
 
         LocalDateTime ahora = FechaCatalogo.ahora();
-        // Las entradas ya estan apartadas: solo se avisa ahora si el admin pauso la oferta o cancelo el evento.
+        // Las entradas ya están apartadas: solo se avisa ahora si el admin pausó la oferta o canceló el evento
         for (ItemCarrito item : carrito.getItems()) {
             validarVenta(item.getEventoTipoEntrada(), ahora);
         }
@@ -246,14 +238,13 @@ public class CarritoServiceImpl implements CarritoService {
     @Transactional(rollbackFor = Exception.class)
     public void abandonarSiVencido(Integer carritoId) {
         LocalDateTime ahora = FechaCatalogo.ahora();
-        // Se vuelve a mirar el estado ya con el carrito bloqueado: puede haber sido pagado o abandonado mientras tanto.
+        // Se vuelve a mirar el estado con el carrito ya bloqueado: pudo pagarse o abandonarse mientras tanto
         carritoRepository.findByIdForUpdate(carritoId)
                 .filter(carrito -> EstadoCarrito.EN_CURSO.contains(carrito.getEstado()) && !carrito.estaVigente(ahora))
                 .ifPresent(carrito -> abandonarYLiberar(carrito, ahora));
     }
 
-    // Carrito abierto (ACTIVO o EN_PAGO) del usuario, bloqueado para modificarlo. Uno vencido se trata como
-    // inexistente: sus entradas las libera el job (o el proximo "agregar") y no se puede operar sobre el.
+    // Carrito abierto del usuario (ACTIVO o EN_PAGO), bloqueado para modificarlo. Uno vencido se trata como inexistente (lo libera el job)
     private Carrito carritoAbiertoBloqueado(Integer usuarioId) throws CarritoActivoInexistenteException {
         Carrito carrito = carritoRepository.findEnCursoForUpdate(usuarioId)
                 .orElseThrow(CarritoActivoInexistenteException::new);
@@ -263,7 +254,6 @@ public class CarritoServiceImpl implements CarritoService {
         return carrito;
     }
 
-    // Solo busca entre los items del carrito abierto del propio usuario: un itemId ajeno nunca se encuentra.
     private ItemCarrito buscarItem(Carrito carrito, Integer itemId) throws ItemCarritoInexistenteException {
         return carrito.getItems().stream()
                 .filter(item -> item.getId().equals(itemId))
@@ -271,8 +261,7 @@ public class CarritoServiceImpl implements CarritoService {
                 .orElseThrow(ItemCarritoInexistenteException::new);
     }
 
-    // Para apartar entradas: evento y oferta a la venta, y stock para la cantidad pedida. Una oferta AGOTADO se
-    // informa como falta de stock, que es lo que ve el usuario cuando otros tienen apartadas todas las entradas.
+    // Para apartar entradas: evento y oferta a la venta, y stock para la cantidad pedida (AGOTADO se informa como falta de stock)
     private void validarVendible(EventoTipoEntrada ete, int cantidad, LocalDateTime ahora)
             throws EventoNoDisponibleException, EventoTipoEntradaNoDisponibleException,
             VentaNoHabilitadaException, StockInsuficienteException {
@@ -294,8 +283,7 @@ public class CarritoServiceImpl implements CarritoService {
         }
     }
 
-    // Para entradas que ya estan apartadas: no se mira el stock. AGOTADO es normal (puede estarlo por este mismo
-    // carrito); lo que bloquea es que el admin pause o finalice la oferta, o cancele el evento.
+    // Para entradas ya apartadas no se mira el stock (AGOTADO es normal); solo bloquea que se pause o finalice la oferta o se cancele el evento
     private void validarVenta(EventoTipoEntrada ete, LocalDateTime ahora)
             throws EventoNoDisponibleException, EventoTipoEntradaNoDisponibleException, VentaNoHabilitadaException {
         if (!EVENTO_ACTIVO.equalsIgnoreCase(ete.getEvento().getEstado())) {
@@ -319,14 +307,12 @@ public class CarritoServiceImpl implements CarritoService {
         }
     }
 
-    // Dice cual entrada falto y cuantas quedan, para que el usuario sepa que cantidad puede pedir.
     private StockInsuficienteException sinStock(EventoTipoEntrada ete) {
         int quedan = Math.max(ete.getCantidadDisponible(), 0);
         return new StockInsuficienteException("No hay stock suficiente de " + ete.getTipoEntrada().getNombre()
                 + " (" + ete.getEvento().getTitulo() + "): " + (quedan == 1 ? "queda 1" : "quedan " + quedan));
     }
 
-    // La oferta debe llegar ya bloqueada (bloquearOferta).
     private void reservar(EventoTipoEntrada ete, int cantidad) {
         ete.setCantidadDisponible(ete.getCantidadDisponible() - cantidad);
         if (ete.getCantidadDisponible() == 0) {
@@ -335,7 +321,6 @@ public class CarritoServiceImpl implements CarritoService {
         eventoTipoEntradaRepository.save(ete);
     }
 
-    // La oferta debe llegar ya bloqueada (bloquearOferta).
     private void devolver(EventoTipoEntrada ete, int cantidad) {
         ete.setCantidadDisponible(ete.getCantidadDisponible() + cantidad);
         if (ete.getEstado() == EstadoEventoTipoEntrada.AGOTADO && ete.getCantidadDisponible() > 0) {
@@ -349,17 +334,15 @@ public class CarritoServiceImpl implements CarritoService {
                 .ifPresent(ete -> devolver(ete, item.getCantidad()));
     }
 
-    // Bloquea la fila de la oferta y trae su stock actual. El refresh es necesario: la oferta ya viene cargada con
-    // los items del carrito, con el stock de antes de esperar el bloqueo. Sin refrescar se pisaria lo que otra
-    // operacion confirmo mientras tanto (se perderian reservas o devoluciones).
+    // Bloquea la fila de la oferta y trae el stock actual. El refresh hace falta porque la oferta ya viene cargada con
+    // los items del carrito, con el stock de antes del bloqueo; sin él se pisaría lo que otra operación confirmó mientras tanto.
     private Optional<EventoTipoEntrada> bloquearOferta(Integer id) {
         Optional<EventoTipoEntrada> oferta = eventoTipoEntradaRepository.findByIdForUpdate(id);
         oferta.ifPresent(entityManager::refresh);
         return oferta;
     }
 
-    // Devuelve al stock las entradas apartadas, con las ofertas bloqueadas ordenadas por id (igual que en la
-    // compra). Un carrito sin vencimiento no aparto nada (esta vacio o es anterior a la reserva): no hay que devolver.
+    // Devuelve al stock las entradas apartadas (ofertas bloqueadas por id, como en la compra). Sin vencimiento no apartó nada
     private void devolverItems(Carrito carrito) {
         if (carrito.getFechaVencimiento() == null) {
             return;
@@ -370,13 +353,11 @@ public class CarritoServiceImpl implements CarritoService {
         ordenados.forEach(this::devolverItem);
     }
 
-    // Un carrito que se queda sin entradas vuelve a ser uno que se esta armando, sin reloj.
     private void volverAActivo(Carrito carrito) {
         carrito.setEstado(EstadoCarrito.ACTIVO);
         carrito.setFechaVencimiento(null);
     }
 
-    // Cierra el carrito devolviendo las entradas apartadas (si las habia) y vaciando sus items.
     private void abandonarYLiberar(Carrito carrito, LocalDateTime ahora) {
         devolverItems(carrito);
         carrito.getItems().clear();

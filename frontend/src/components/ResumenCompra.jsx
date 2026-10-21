@@ -2,7 +2,6 @@ import Icono from './Icono.jsx'
 import IrAPagar from './IrAPagar.jsx'
 import { precio } from '../utils/formatos.js'
 
-// Cuadro lateral del carrito: renglones, total y botón para ir a pagar.
 export default function ResumenCompra({ carrito, onIrAPagar }) {
   return (
     <aside className="resumen" aria-label="Resumen">

@@ -7,7 +7,6 @@ const REGLAS = [
   { id: 'simbolo', texto: 'Un símbolo (! @ # $ %)', cumple: (clave) => /[^A-Za-z0-9ÁÉÍÓÚÑáéíóúñ\s]/.test(clave) },
 ]
 
-// Cada requisito con un "cumple" verdadero o falso para esa contraseña.
 export const evaluarClave = (clave) => REGLAS.map((regla) => ({ id: regla.id, texto: regla.texto, cumple: regla.cumple(clave) }))
 
 export const claveValida = (clave) => REGLAS.every((regla) => regla.cumple(clave))

@@ -1,7 +1,6 @@
 import { porcentaje } from '../utils/estadisticas.js'
 import { miles, precio } from '../utils/formatos.js'
 
-// Tabla del resumen del evento: por cada entrada, cuántas se vendieron de su cupo, cuántas quedan y lo recaudado.
 export default function VentasPorEntrada({ porEntrada }) {
   if (porEntrada.length === 0) {
     return <p className="admin__vacio">Este evento todavía no tiene entradas. Agregalas desde "Editar evento".</p>

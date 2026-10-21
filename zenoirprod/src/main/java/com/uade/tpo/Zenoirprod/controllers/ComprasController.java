@@ -46,7 +46,7 @@ public class ComprasController {
             EventoTipoEntradaInexistenteException, EventoTipoEntradaNoDisponibleException,
             VentaNoHabilitadaException, EventoNoDisponibleException {
         Compra compra = service.crearCompra(usuario);
-        // La compra ya quedo guardada: recien ahora se mandan las entradas por mail (en segundo plano, no demora la respuesta).
+        // Con la compra ya guardada se mandan las entradas por mail (en segundo plano)
         mailService.enviarEntradas(compra.getId());
         return ResponseEntity
                 .created(URI.create("/compras/" + compra.getId()))

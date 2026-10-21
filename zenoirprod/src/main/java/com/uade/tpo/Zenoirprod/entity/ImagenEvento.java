@@ -43,7 +43,7 @@ public class ImagenEvento {
     @JsonIgnore
     private byte[] datos;
 
-    //Si no pones el tipo como String, en lugar del Strin guarda 0 y 1
+    // Con EnumType.STRING se guarda el nombre; si no, se guardaría el número (0, 1, ...)
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TipoImagenEvento tipoImagenEvento;

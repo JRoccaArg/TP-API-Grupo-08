@@ -1,4 +1,3 @@
-// Convierte listas del catálogo en las opciones { valor, texto } que usa CampoSelect.
 import { capitalizar } from './formatos.js'
 
 export const opcionesDeCatalogo = (lista) => lista.map((item) => ({ valor: item.id, texto: item.nombre }))

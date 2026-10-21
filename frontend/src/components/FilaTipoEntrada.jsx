@@ -3,8 +3,7 @@ import Boton from './Boton.jsx'
 import EdicionTipoEntrada from './EdicionTipoEntrada.jsx'
 import { eliminarTipoEntrada } from '../utils/apiAdmin.js'
 
-// Un tipo de entrada en la lista del administrador: se ve, se edita ahí mismo (EdicionTipoEntrada) o se elimina.
-// Eliminar pide una segunda confirmación; si el tipo ya está en algún evento el back responde 409 y no se borra.
+// Un tipo de entrada de la lista del admin. Eliminar pide segunda confirmación; si ya está en algún evento el back responde 409
 export default function FilaTipoEntrada({ tipo, token, onActualizado, onEliminado }) {
   const [editando, setEditando] = useState(false)
   const [aviso, setAviso] = useState('')

@@ -46,12 +46,12 @@ import com.uade.tpo.Zenoirprod.repository.TipoEntradaRepository;
 import com.uade.tpo.Zenoirprod.repository.UserRepository;
 import com.uade.tpo.Zenoirprod.util.FechaCatalogo;
 
-// Validaciones de datos y visibilidad: el registro dice que dato esta mal, los textos demasiado largos dan 400 (y no 500),
-// los borradores solo los ve un administrador, la venta no puede terminar despues del evento y las imagenes se revisan.
+// Validaciones de datos y visibilidad: el registro dice qué dato está mal, los textos demasiado largos dan 400 (no 500),
+// los borradores solo los ve un admin, la venta no puede terminar después del evento y las imágenes se revisan.
 @SpringBootTest
-@ActiveProfiles("dev") // siempre H2 en memoria: estas pruebas nunca tocan la base real
+@ActiveProfiles("dev") // H2 en memoria, nunca la base real
 @AutoConfigureMockMvc
-@Transactional // cada prueba deshace lo que creo
+@Transactional // cada test deshace lo que crea
 class ValidacionesIntegrationTests {
 
     @Autowired private MockMvc mockMvc;
@@ -179,7 +179,7 @@ class ValidacionesIntegrationTests {
         mockMvc.perform(get("/eventos/" + borrador.getId()).header("Authorization", "Bearer " + tokenAdmin))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.titulo").value("Borrador secreto"));
 
-        // El listado sin catalogo=true lo traia: ahora a un visitante o usuario nunca le llega un borrador.
+        // El listado sin catalogo=true los traía: ahora un visitante o usuario nunca recibe un borrador
         mockMvc.perform(get("/eventos?page=0&size=100"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.content[*].titulo", not(hasItem("Borrador secreto"))));
         mockMvc.perform(get("/eventos?page=0&size=100").header("Authorization", "Bearer " + tokenAdmin))
@@ -265,7 +265,7 @@ class ValidacionesIntegrationTests {
                 .andExpect(status().isBadRequest());
     }
 
-    // --- imagenes ---
+    // --- imágenes ---
 
     private MockMultipartFile archivo(String tipoContenido, byte[] datos) {
         return new MockMultipartFile("archivo", "foto.png", tipoContenido, datos);
@@ -276,15 +276,15 @@ class ValidacionesIntegrationTests {
         Evento evento = crearEvento("Evento con fotos", "ACTIVO", 30);
         byte[] png = {(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A};
 
-        // Dice ser PNG pero son letras: se rechaza.
+        // Dice ser PNG pero son letras: se rechaza
         mockMvc.perform(multipart("/eventos/" + evento.getId() + "/imagenes").file(archivo("image/png", "esto no es un png".getBytes()))
                         .param("tipoImagenEvento", "GALERIA").param("orden", "1").header("Authorization", "Bearer " + tokenAdmin))
                 .andExpect(status().isBadRequest()).andExpect(jsonPath("$.message", containsString("imagen")));
-        // Un tipo que no es de los permitidos: se rechaza.
+        // Un tipo que no está permitido: se rechaza
         mockMvc.perform(multipart("/eventos/" + evento.getId() + "/imagenes").file(archivo("image/svg+xml", png))
                         .param("tipoImagenEvento", "GALERIA").param("orden", "1").header("Authorization", "Bearer " + tokenAdmin))
                 .andExpect(status().isBadRequest());
-        // Una imagen de verdad: se acepta.
+        // Una imagen de verdad: se acepta
         mockMvc.perform(multipart("/eventos/" + evento.getId() + "/imagenes").file(archivo("image/png", png))
                         .param("tipoImagenEvento", "GALERIA").param("orden", "1").header("Authorization", "Bearer " + tokenAdmin))
                 .andExpect(status().isCreated());

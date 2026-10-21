@@ -7,8 +7,7 @@ import TituloAdmin from '../components/TituloAdmin.jsx'
 import { codigoDesdeQr, mensajeDeCamara } from '../utils/escaner.js'
 
 // Pantalla "/admin/:id/escanear": abre la cámara para leer el QR de las entradas del evento. Solo ADMIN.
-// Al leer un QR pasa a la verificación de siempre (/verificar/<código>) avisando de qué evento viene,
-// para que marque si la entrada es de otro evento y ofrezca volver a escanear la siguiente.
+// Al leer un QR pasa a /verificar/<código> avisando de qué evento viene, para marcar si la entrada es de otro y ofrecer escanear la siguiente.
 export default function EscanearQR({ usuario }) {
   const { id } = useParams()
   const navigate = useNavigate()

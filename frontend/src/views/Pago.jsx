@@ -13,9 +13,8 @@ import TotalPago from '../components/TotalPago.jsx'
 import { vencimientoMs } from '../utils/carrito.js'
 import { erroresTarjeta, limpiarCampo, tarjetaPrueba, tarjetaValida, tarjetaVacia } from '../utils/tarjeta.js'
 
-// Pantalla "/pago": paso 3. Se llega con "Ir a pagar", que ya pasó el carrito a EN_PAGO en el back (con su reloj de pago).
-// El cobro es de demostración: solo se revisa el formato de la tarjeta (nunca se envía) y "Pagar" le pide al back
-// que compre el carrito. Con la compra confirmada se pasa a su pantalla.
+// Pantalla "/pago" (paso 3): se llega con "Ir a pagar", que ya pasó el carrito a EN_PAGO en el back (con su reloj de pago).
+// El cobro es de demostración: solo se revisa el formato de la tarjeta (nunca se envía) y "Pagar" le pide al back que compre el carrito.
 export default function Pago({ usuario, carrito, carga, vencido, onPagar }) {
   const navigate = useNavigate()
   const [tarjeta, setTarjeta] = useState(tarjetaVacia)

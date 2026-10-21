@@ -20,7 +20,6 @@ import com.uade.tpo.Zenoirprod.exceptions.VentaNoHabilitadaException;
 
 public interface CompraService {
 
-    /** Paga (simulado, sin pasarela) todos los items del carrito EN_PAGO del usuario. */
     Compra crearCompra(User usuario)
             throws CarritoActivoInexistenteException, CarritoVacioException, PagoNoIniciadoException,
             EventoTipoEntradaInexistenteException, EventoTipoEntradaNoDisponibleException,
@@ -30,10 +29,6 @@ public interface CompraService {
 
     Page<Compra> getPorUsuario(Integer usuarioId, PageRequest pageRequest);
 
-    /**
-     * Reembolsa las entradas emitidas de un evento (cancelado o reprogramado) dentro de una compra. Las usadas no se reembolsan.
-     * La compra pasa a CANCELADA solo cuando todas sus entradas quedaron reembolsadas.
-     */
     Compra reembolsarEvento(Integer id, Integer eventoId)
             throws CompraInexistenteException, CompraNoCancelableException,
             DevolucionNoPermitidaException;

@@ -1,4 +1,3 @@
-// Funciones puras de formato: reciben un dato y devuelven el texto listo para mostrar.
 export const dos = (numero) => String(numero).padStart(2, '0')
 
 export const capitalizar = (texto) => texto.charAt(0).toUpperCase() + texto.slice(1)
@@ -9,7 +8,6 @@ export const precio = (importe) => `$${importe.toLocaleString('es-AR', {
   maximumFractionDigits: 2,
 })}`
 
-// Cantidades con separador de miles (2.000.000), igual que los importes.
 export const miles = (numero) => numero.toLocaleString('es-AR')
 
 export const iniciales = (nombre) =>

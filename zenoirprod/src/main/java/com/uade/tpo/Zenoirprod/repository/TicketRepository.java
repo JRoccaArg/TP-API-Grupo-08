@@ -16,7 +16,7 @@ import com.uade.tpo.Zenoirprod.entity.Ticket;
 public interface TicketRepository extends JpaRepository<Ticket, Integer> {
     Optional<Ticket> findByCodigoQr(String codigoQr);
 
-    // Bloqueo pesimista para evitar el doble uso del mismo ticket ante requests concurrentes.
+    // Bloqueo pesimista para que el mismo ticket no se use dos veces con pedidos simultáneos
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select t from Ticket t where t.codigoQr = :codigoQr")
     Optional<Ticket> findByCodigoQrForUpdate(@Param("codigoQr") String codigoQr);

@@ -4,9 +4,8 @@ import Boton from './Boton.jsx'
 import { compartirImagen, nombreArchivo } from '../utils/imagenEntrada.js'
 import { urlVerificacion } from '../utils/verificacion.js'
 
-// Botones de una entrada: descargar el QR como imagen (PNG) y compartirlo con el menú del celular.
-// La imagen sale de un <canvas> oculto que dibuja qrcode.react: cuando ya está dibujado, se pasa a PNG con toDataURL.
-// Para leer el canvas se usa useRef (el mismo recurso que SeccionFechas). El borde blanco ayuda a escanearlo.
+// Descargar el QR como PNG y compartirlo con el menú del celular. La imagen sale de un <canvas> oculto que dibuja qrcode.react
+// (se pasa a PNG con toDataURL). El canvas se lee con useRef, igual que en SeccionFechas.
 export default function AccionesEntrada({ entrada, titulo }) {
   const lienzo = useRef(null)
   const [png, setPng] = useState('')

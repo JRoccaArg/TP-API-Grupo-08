@@ -1,7 +1,6 @@
 import Boton from './Boton.jsx'
 
-// Franja que avisa que la sesión se cerró porque el back ya no la acepta (venció o el token dejó de servir).
-// Queda a la vista hasta que la persona ingresa de nuevo.
+// Aviso de que la sesión se cerró porque el back ya no la acepta (venció o el token dejó de servir). Queda hasta que se vuelve a ingresar
 export default function AvisoSesion() {
   return (
     <div className="aviso-sesion" role="status">

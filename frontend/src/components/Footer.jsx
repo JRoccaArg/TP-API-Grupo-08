@@ -1,4 +1,3 @@
-// Medios de contacto oficiales de Zenoir. Las redes se abren en otra pestaña.
 export default function Footer() {
   return (
     <footer className="pie">

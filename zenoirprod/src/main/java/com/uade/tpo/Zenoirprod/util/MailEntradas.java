@@ -4,12 +4,11 @@ import java.util.List;
 
 import org.springframework.web.util.HtmlUtils;
 
-// Arma el HTML del mail con las entradas de una compra (estetica de Zenoir: negro y dorado).
-// Los mails se ven en clientes muy distintos (Gmail, Outlook, el celular): por eso se usan tablas y estilos en linea.
-// Cada QR va como imagen adjunta "en linea": en el HTML se la nombra con "cid:<id>" (ver MailServiceImpl).
+// HTML del mail con las entradas de una compra (negro y dorado).
+// Usa tablas y estilos en línea porque los clientes de mail (Gmail, Outlook, el celular) no soportan CSS moderno.
+// Cada QR va como imagen adjunta en línea: el HTML la nombra con "cid:<id>" (ver MailServiceImpl).
 public final class MailEntradas {
 
-    // Lo que se muestra de cada entrada. "cid" es el nombre con el que se adjunta la imagen de su QR.
     public record EntradaMail(String cid, String evento, String fecha, String lugar, String tipo, String codigo) {
     }
 
@@ -53,7 +52,7 @@ public final class MailEntradas {
                 """.formatted(texto(comprador), tarjetas, urlMisEntradas);
     }
 
-    // Los datos que vienen de la base (nombre, titulo del evento) se escapan para que no rompan el HTML.
+    // Se escapan los datos de la base (nombre, título) para que no rompan el HTML
     private static String texto(String valor) {
         return HtmlUtils.htmlEscape(valor == null ? "" : valor);
     }

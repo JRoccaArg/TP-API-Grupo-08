@@ -6,7 +6,6 @@ import { precio } from '../utils/formatos.js'
 // El tamaño del total baja con la cantidad de cifras para que un importe grande entre en el cuadro sin partirse en dos líneas.
 const tamanoDelTotal = (texto) => (texto.length <= 8 ? 80 : texto.length <= 10 ? 64 : texto.length <= 13 ? 48 : 36)
 
-// Cuadro lateral del pago con el detalle, el total y el botón "Pagar".
 // Sin onPagar el cobro todavía no está conectado al backend: el botón queda deshabilitado (no se simula un pago).
 export default function TotalPago({ carrito, pagando = false, onPagar }) {
   const total = precio(carrito.total)

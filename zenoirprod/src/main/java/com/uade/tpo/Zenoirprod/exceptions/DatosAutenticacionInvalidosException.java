@@ -9,7 +9,6 @@ public class DatosAutenticacionInvalidosException extends Exception {
     public DatosAutenticacionInvalidosException() {
     }
 
-    // Con un motivo propio: el manejador de errores lo usa en lugar del generico.
     public DatosAutenticacionInvalidosException(String mensaje) {
         super(mensaje);
     }

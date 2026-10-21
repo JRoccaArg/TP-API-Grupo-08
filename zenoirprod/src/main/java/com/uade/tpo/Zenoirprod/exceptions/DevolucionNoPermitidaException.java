@@ -9,7 +9,6 @@ public class DevolucionNoPermitidaException extends Exception {
     public DevolucionNoPermitidaException() {
     }
 
-    // Con un motivo propio: el manejador de errores lo usa en lugar del generico.
     public DevolucionNoPermitidaException(String mensaje) {
         super(mensaje);
     }

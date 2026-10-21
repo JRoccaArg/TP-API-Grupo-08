@@ -1,8 +1,7 @@
 import Aviso from './Aviso.jsx'
 import Boton from './Boton.jsx'
 
-// Lo que se ve en lugar del evento cuando todavía no se puede mostrar (ver detalleDisponible): el id no es válido,
-// se está cargando, el evento no existe (o es un borrador) o falló la carga.
+// Lo que se ve en lugar del evento cuando todavía no se puede mostrar (ver detalleDisponible)
 export default function EstadoDetalle({ idValido, cargando, error, evento, volverA, onReintentar }) {
   if (!idValido) return <Aviso mensaje="No encontramos este evento." boton="Volver al catálogo" to={volverA} />
   if (cargando) return <main className="pagina aviso detalle-catalogo" role="status"><h1>Cargando evento…</h1></main>

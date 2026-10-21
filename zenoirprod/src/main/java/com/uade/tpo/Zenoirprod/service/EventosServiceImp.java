@@ -50,7 +50,6 @@ public class EventosServiceImp implements EventosService {
     }
 
 
-    // La llamada histórica conserva sus resultados, estados y paginación.
     public Page<Evento> getEventos(PageRequest pageRequest, String nombre, Integer categoriaId,
             BigDecimal precioMin, BigDecimal precioMax, boolean catalogo, boolean proximo, boolean antiguosPrimero)
             throws EventoInvalidoException {
@@ -66,13 +65,12 @@ public class EventosServiceImp implements EventosService {
                 && !catalogo && !proximo) {
             return getEventos(pageRequest);
         }
-        // Los caracteres de LIKE se buscan literalmente, igual que en el filtro anterior.
+        // Los caracteres de LIKE (% _ [) se buscan literalmente
         String patron = "%" + busqueda.replace("!", "!!").replace("%", "!%").replace("_", "!_").replace("[", "![") + "%";
         return eventosRepository.buscar(patron, categoriaId, precioMin, precioMax,
                 catalogo, proximo, antiguosPrimero, FechaCatalogo.ahora(), pageRequest);
     }
 
-    // Los filtros y el orden se resuelven en la base antes de contar y paginar.
     public Page<Evento> getCatalogo(PageRequest pageRequest, String nombre, Integer categoriaId,
             BigDecimal precioMin, BigDecimal precioMax, String estadoEvento, String orden) throws EventoInvalidoException {
         if (!Set.of("todos", "proximos", "en-curso", "finalizados", "cancelados").contains(estadoEvento)
@@ -148,7 +146,6 @@ public class EventosServiceImp implements EventosService {
             throws EventoInexistenteException, LocacionInexsistenteException,
             TituloEventoEnUsoException, FechaEventoInvalidaException,
             EventoInvalidoException, CategoryInexistenteException {
-        // Validaciones Previas a Updatear
         if (!eventosRepository.existsById(id)) {
             throw new EventoInexistenteException();
         }
@@ -178,7 +175,6 @@ public class EventosServiceImp implements EventosService {
             validarFechas(inicioFinal, finFinal, fechaHoraInicio != null);
         }
 
-        // Update del Evento
         if (titulo != null) {
             ev.setTitulo(titulo);
             huboCambios = true;
@@ -208,7 +204,7 @@ public class EventosServiceImp implements EventosService {
             huboCambios = true;
         }
         
-        // Guardo si hubo cambios, sino devuelvo el evento original
+        // Solo se guarda si hubo cambios; si no, se devuelve el evento original
         if (huboCambios) {
             return eventosRepository.save(ev);
         } else {
@@ -235,7 +231,6 @@ public class EventosServiceImp implements EventosService {
         validarLargoTitulo(titulo);
     }
 
-    // Un titulo mas largo que la columna de la base daria un error 500: se rechaza antes con un 400.
     private void validarLargoTitulo(String titulo) throws EventoInvalidoException {
         if (Textos.excede(titulo, LARGO_MAXIMO_TITULO)) {
             throw new EventoInvalidoException("El titulo no puede superar los " + LARGO_MAXIMO_TITULO + " caracteres");

@@ -41,11 +41,11 @@ import com.uade.tpo.Zenoirprod.repository.TipoEntradaRepository;
 import com.uade.tpo.Zenoirprod.repository.UserRepository;
 import com.uade.tpo.Zenoirprod.util.FechaCatalogo;
 
-// Estadisticas de un evento para el resumen del admin: solo cuentan las compras confirmadas.
+// Estadísticas de un evento para el resumen del admin: solo cuentan las compras confirmadas
 @SpringBootTest
-@ActiveProfiles("dev") // siempre H2 en memoria: estas pruebas nunca tocan la base real
+@ActiveProfiles("dev") // H2 en memoria, nunca la base real
 @AutoConfigureMockMvc
-@Transactional // cada prueba deshace lo que creo
+@Transactional // cada test deshace lo que crea
 class EstadisticasEventoIntegrationTests {
 
     @Autowired private MockMvc mockMvc;
@@ -83,7 +83,7 @@ class EstadisticasEventoIntegrationTests {
         EventoTipoEntrada general = crearOferta(evento, crearTipo("General estadisticas"), 100, 97);
         EventoTipoEntrada vip = crearOferta(evento, crearTipo("VIP estadisticas"), 50, 49);
 
-        // Compra confirmada: 2 generales (una ya ingreso) y 1 VIP. Compra cancelada: 1 general que no tiene que contar.
+        // Compra confirmada: 2 generales (una ya ingresó) y 1 VIP. Compra cancelada: 1 general que no tiene que contar
         guardarCompra(comprador, EstadoCompra.CONFIRMADA, List.of(
                 detalle(general, 2, "36000.00", EstadoTicket.UTILIZADO, EstadoTicket.EMITIDO),
                 detalle(vip, 1, "28000.00", EstadoTicket.EMITIDO)));

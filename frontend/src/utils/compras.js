@@ -28,7 +28,6 @@ export const permiteReembolso = (evento) => ESTADOS_CON_REEMBOLSO.includes(estad
 
 export const cantidadDeEntradas = (compra) => compra.detalles.reduce((total, detalle) => total + detalle.tickets.length, 0)
 
-// Las compras que incluyen entradas de ese evento.
 export const comprasDelEvento = (compras, eventoId) =>
   compras.filter((compra) => compra.detalles.some((detalle) => detalle.eventoId === eventoId))
 
@@ -47,10 +46,8 @@ export function resumenDelEvento(compra, eventoId) {
   return resumen
 }
 
-// El back reembolsa las entradas emitidas de un evento solo si ese evento se canceló o se reprogramó.
 export const sePuedeReembolsar = (compra, evento) => permiteReembolso(evento) && resumenDelEvento(compra, evento.id).emitidas > 0
 
-// La lista con la compra que devolvió el back en lugar de la que estaba.
 export const reemplazarCompra = (compras, nueva) => compras.map((compra) => (compra.id === nueva.id ? nueva : compra))
 
 // Agrupa las entradas por evento: [{ id, titulo, evento, entradas }]. Primero los eventos que todavía no terminaron

@@ -9,7 +9,6 @@ public class CategoryInvalidaException extends Exception {
     public CategoryInvalidaException() {
     }
 
-    // Con un motivo propio: el manejador de errores lo usa en lugar del generico.
     public CategoryInvalidaException(String mensaje) {
         super(mensaje);
     }

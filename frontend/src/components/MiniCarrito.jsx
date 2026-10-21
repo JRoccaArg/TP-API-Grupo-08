@@ -4,7 +4,6 @@ import Reloj from './Reloj.jsx'
 import { cantidadItems, vencimientoMs } from '../utils/carrito.js'
 import { precio } from '../utils/formatos.js'
 
-// Carrito desplegable que se abre desde el header.
 export default function MiniCarrito({ carrito, eventos, onCerrar, onIrAPagar }) {
   return (
     <div className="mini-carrito aparece-rapido" role="dialog" aria-label="Tu carrito">

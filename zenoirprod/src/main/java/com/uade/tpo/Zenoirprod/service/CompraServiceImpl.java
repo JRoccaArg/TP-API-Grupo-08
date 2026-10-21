@@ -67,17 +67,15 @@ public class CompraServiceImpl implements CompraService {
 
         LocalDateTime ahora = FechaCatalogo.ahora();
 
-        // La compra sale siempre del carrito abierto del usuario autenticado: no se recibe nada del cliente.
         Carrito carrito = carritoRepository.findEnCursoForUpdate(usuario.getId())
                 .orElseThrow(CarritoActivoInexistenteException::new);
-        // Un carrito EN_PAGO vencido ya no tiene sus entradas apartadas (las libera el job de limpieza): no se paga.
+        // Un carrito EN_PAGO vencido ya no tiene las entradas apartadas (las libera el job): no se paga
         if (!carrito.estaVigente(ahora)) {
             throw new CarritoActivoInexistenteException();
         }
         if (carrito.getItems().isEmpty()) {
             throw new CarritoVacioException();
         }
-        // Pagar es el paso siguiente a entrar a la pantalla de pago (iniciar el pago): ahi arranca el reloj de pago.
         if (carrito.getEstado() != EstadoCarrito.EN_PAGO) {
             throw new PagoNoIniciadoException();
         }
@@ -85,7 +83,7 @@ public class CompraServiceImpl implements CompraService {
         List<DetalleCompra> detalles = new ArrayList<>();
         BigDecimal total = BigDecimal.ZERO;
 
-        // El stock se bloquea siempre en el mismo orden para evitar deadlocks entre compras simultaneas.
+        // El stock se bloquea siempre en el mismo orden para evitar deadlocks entre compras simultáneas
         List<ItemCarrito> itemsOrdenados = new ArrayList<>(carrito.getItems());
         itemsOrdenados.sort(Comparator.comparing(item -> item.getEventoTipoEntrada().getId()));
 
@@ -107,7 +105,7 @@ public class CompraServiceImpl implements CompraService {
             detalle.setTickets(generarTickets(item.getCantidad(), ahora));
             detalles.add(detalle);
 
-            // El stock no se descuenta aca: ya quedo apartado cuando las entradas entraron al carrito.
+            // El stock no se descuenta acá: ya se apartó al agregar las entradas al carrito
             total = total.add(subtotal);
         }
 
@@ -148,8 +146,7 @@ public class CompraServiceImpl implements CompraService {
         Compra compra = compraRepository.findById(id)
                 .orElseThrow(CompraInexistenteException::new);
 
-        // El reembolso es de las entradas de UN evento de la compra: una compra puede mezclar eventos, y solo se reembolsan
-        // los que se cancelaron o reprogramaron. Los demas eventos de la compra no se tocan.
+        // El reembolso es de UN evento de la compra (puede tener varios): los demás no se tocan
         List<DetalleCompra> delEvento = compra.getDetalles().stream()
                 .filter(detalle -> detalle.getEventoTipoEntrada().getEvento().getId().equals(eventoId))
                 .toList();
@@ -157,12 +154,11 @@ public class CompraServiceImpl implements CompraService {
             throw new DevolucionNoPermitidaException("La compra no incluye entradas de ese evento");
         }
         String estadoEvento = delEvento.get(0).getEventoTipoEntrada().getEvento().getEstado();
-        // La devolucion (reembolso) se permite solo si el evento fue cancelado o reprogramado.
         if (!EVENTO_CANCELADO.equalsIgnoreCase(estadoEvento) && !EVENTO_REPROGRAMADO.equalsIgnoreCase(estadoEvento)) {
             throw new DevolucionNoPermitidaException();
         }
 
-        // Solo se reembolsan las entradas emitidas: una ya usada no se reembolsa nunca y una ya reembolsada no se repite.
+        // Se reembolsan solo las entradas emitidas: una usada no se reembolsa y una ya reembolsada no se repite
         int reembolsadas = 0;
         for (DetalleCompra detalle : delEvento) {
             EventoTipoEntrada ete = bloquearOferta(detalle.getEventoTipoEntrada().getId())
@@ -184,7 +180,7 @@ public class CompraServiceImpl implements CompraService {
             throw new CompraNoCancelableException();
         }
 
-        // La compra solo pasa a CANCELADA cuando ya no le queda ninguna entrada sin reembolsar (ni una usada).
+        // La compra pasa a CANCELADA solo cuando no le queda ninguna entrada sin reembolsar (ni una usada)
         boolean todasReembolsadas = compra.getDetalles().stream()
                 .flatMap(detalle -> detalle.getTickets().stream())
                 .allMatch(ticket -> ticket.getEstado() == EstadoTicket.CANCELADO);
@@ -195,17 +191,14 @@ public class CompraServiceImpl implements CompraService {
         return compraRepository.save(compra);
     }
 
-    // Bloquea la fila de la oferta y trae su stock actual. El refresh es necesario: la oferta ya viene cargada con
-    // la compra, con el stock de antes de esperar el bloqueo. Sin refrescar, dos cancelaciones simultaneas se
-    // pisan y se pierden devoluciones. Mismo criterio que CarritoServiceImpl.
+    // Bloquea la oferta y trae su stock actual (con refresh, como en CarritoServiceImpl) para no pisar devoluciones simultáneas
     private Optional<EventoTipoEntrada> bloquearOferta(Integer id) {
         Optional<EventoTipoEntrada> oferta = eventoTipoEntradaRepository.findByIdForUpdate(id);
         oferta.ifPresent(entityManager::refresh);
         return oferta;
     }
 
-    // El stock no se valida aca: las entradas del carrito ya estan reservadas. Una oferta AGOTADO es normal (puede
-    // estar agotada justamente por esta reserva); lo que la bloquea es que el admin la pause o la finalice.
+    // No se valida el stock: las entradas del carrito ya están reservadas (AGOTADO es normal); solo bloquea que se pause o finalice la oferta
     private void validarVenta(EventoTipoEntrada ete, LocalDateTime ahora)
             throws EventoTipoEntradaNoDisponibleException, VentaNoHabilitadaException,
             EventoNoDisponibleException {

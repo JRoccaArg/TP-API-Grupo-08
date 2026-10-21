@@ -15,8 +15,7 @@
     <description>Mi primer proyecto en Spring</description>
     <properties>
         <java.version>17</java.version>
-        <!-- Lombok 1.18.32 (el que trae el parent 3.1.11) no soporta JDK 23+.
-             Lo fijamos alto para que compile con cualquier JDK del equipo (17 a 25). -->
+        <!-- Lombok 1.18.32 (el del parent 3.1.11) no soporta JDK 23+: se fija una versión más nueva para compilar con JDK 17 a 25 -->
         <lombok.version>1.18.46</lombok.version>
     </properties>
     <dependencies>
@@ -52,15 +51,14 @@
         </dependency>
  
  
-        <!--Dependencia PARA conectar con SQL Server --> 
+        <!-- Driver para conectar con SQL Server -->
 		<dependency>
         	<groupId>com.microsoft.sqlserver</groupId>
         	<artifactId>mssql-jdbc</artifactId>
         	<scope>runtime</scope>
     	</dependency>
 
-        <!-- Base en memoria para el perfil "dev": permite levantar el proyecto
-             sin tener SQL Server instalado. Ver README. -->
+        <!-- Base H2 en memoria para el perfil "dev": se puede levantar sin SQL Server instalado (ver README) -->
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
@@ -112,7 +110,7 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- @WithMockUser y demas utilidades para testear endpoints protegidos -->
+        <!-- @WithMockUser y demás utilidades para testear endpoints protegidos -->
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-test</artifactId>
@@ -122,10 +120,8 @@
  
     <build>
         <plugins>
-            <!-- Desde JDK 23 javac ya no corre los procesadores de anotaciones que
-                 encuentra en el classpath: hay que declararlos explicitamente.
-                 Sin esto Lombok no genera getters/setters y el build falla con
-                 "cannot find symbol: method getX()". -->
+            <!-- Desde JDK 23 javac ya no corre solo los procesadores de anotaciones del classpath: hay que declararlos.
+                 Sin esto Lombok no genera getters/setters y el build falla con "cannot find symbol". -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>

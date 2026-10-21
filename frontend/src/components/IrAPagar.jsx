@@ -2,8 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Boton from './Boton.jsx'
 
-// Botón "Ir a pagar": pide al back abrir el pago y, cuando responde, pasa a la pantalla de pago.
-// onIrAPagar devuelve una promesa; si falla (por ejemplo, la venta se pausó) se muestra el mensaje del back acá mismo.
+// Pide al back abrir el pago y, cuando responde, pasa a la pantalla de pago. Si falla (ej. la venta se pausó) muestra el mensaje ahí mismo
 export default function IrAPagar({ onIrAPagar, onTerminar, clase = '', children }) {
   const navigate = useNavigate()
   const [ocupado, setOcupado] = useState(false)

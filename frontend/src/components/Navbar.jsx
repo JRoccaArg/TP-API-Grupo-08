@@ -3,10 +3,8 @@ import NavLinks from './NavLinks.jsx'
 import CarritoChip from './CarritoChip.jsx'
 import CuentaChip from './CuentaChip.jsx'
 
-// Header de todo el sitio. Cada pieza es otro componente: el Navbar solo las ordena.
-// Zonas fijas: logo, enlaces y, a la derecha, un casillero para el carrito y otro para la cuenta.
-// Los casilleros tienen siempre el mismo ancho (estén vacíos o no), así nada se corre al cambiar de pantalla o de sesión.
-// El carrito aparece solo para el rol USER (el admin no compra).
+// Header de todo el sitio: cada pieza es otro componente y el Navbar solo las ordena. El carrito aparece solo para el rol USER.
+// Los casilleros del carrito y de la cuenta tienen siempre el mismo ancho, así nada se corre al cambiar de pantalla o de sesión.
 export default function Navbar({ usuario, carrito, eventos, onSalir, onIrAPagar }) {
   return (
     <header className="navbar">

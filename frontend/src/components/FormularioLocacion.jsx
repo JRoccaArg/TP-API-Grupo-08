@@ -1,7 +1,5 @@
 import CampoLinea from './CampoLinea.jsx'
 
-// Formulario de datos de la locación. No guarda nada por sí solo:
-// muestra "datos" y avisa cada cambio con onCambiar(campo, valor); quien lo usa decide cuándo guardar.
 export default function FormularioLocacion({ datos, onCambiar }) {
   const cambiar = (campo) => (evento) => onCambiar(campo, evento.target.value)
 

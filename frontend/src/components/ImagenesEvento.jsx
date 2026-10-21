@@ -50,7 +50,6 @@ export default function ImagenesEvento({ eventoId, titulo, token, inicial }) {
   const mover = (indice, salto) => enFila(cambiosDeOrden(moverFoto(imagenes, indice, salto))
     .map(({ foto, orden }) => () => cambiarImagen(token, eventoId, foto.id, { orden }).then(guardada)))
 
-  // Quitar pide una segunda confirmación: el primer clic arma el botón, el segundo borra.
   const quitar = (imagen) => {
     if (aQuitar !== imagen.id) {
       setAQuitar(imagen.id)

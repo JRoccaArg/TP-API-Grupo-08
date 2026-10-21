@@ -1,5 +1,3 @@
-// Ayudas para descargar y compartir la imagen del QR de una entrada.
-
 // "After Palace" -> "after-palace" (sin tildes ni espacios), para el nombre del archivo.
 const sinEspacios = (texto) => texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
   .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')

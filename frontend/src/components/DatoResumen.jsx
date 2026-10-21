@@ -1,4 +1,3 @@
-// Una tarjeta del resumen del evento: un dato grande, una aclaración y, si corresponde, una barra de avance.
 export default function DatoResumen({ etiqueta, valor, detalle, progreso }) {
   return (
     <li className="dato-resumen">

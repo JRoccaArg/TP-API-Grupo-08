@@ -1,7 +1,6 @@
 import CodigoQR from './CodigoQR.jsx'
 import { diaYFecha, horario } from '../utils/fechas.js'
 
-// Entrada de la pantalla "Compra confirmada": datos del evento arriba y QR abajo. Solo muestra datos.
 export default function EntradaEmitida({ entrada, evento }) {
   return (
     <li className="emitida">

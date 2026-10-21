@@ -76,7 +76,6 @@ public class TipoEntradaServiceImp implements TipoEntradaService {
                 || descripcionBase == null || descripcionBase.isBlank()) {
             throw new TipoEntradaInvalidoException();
         }
-        // Mas largo que la columna de la base daria un error 500: se rechaza antes con un 400.
         if (Textos.excede(nombre, 100)) {
             throw new TipoEntradaInvalidoException("El nombre no puede superar los 100 caracteres");
         }

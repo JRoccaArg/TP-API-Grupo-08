@@ -7,7 +7,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 
-// Las fechas de eventos y ventas almacenadas sin zona son horarios de Buenos Aires.
+// Las fechas de eventos y ventas se guardan sin zona y son hora de Buenos Aires
 public final class FechaCatalogo extends JsonSerializer<LocalDateTime> {
     public static final ZoneId ZONA = ZoneId.of("America/Argentina/Buenos_Aires");
 

@@ -2,7 +2,7 @@ import Boton from './Boton.jsx'
 import { totalSeleccion } from '../utils/eventos.js'
 import { precio } from '../utils/formatos.js'
 
-// La selección es local. Sólo un callback de integración real puede continuar la operación.
+// Con conectado=false (compra no habilitada) la selección es solo local y el botón queda deshabilitado
 export default function BarraCompra({ seleccion, ofertas, onConfirmar, conectado, enviando }) {
   const cantidad = seleccion.reduce((total, item) => total + item.cantidad, 0)
   return (

@@ -1,7 +1,6 @@
 import Boton from './Boton.jsx'
 
-// Pantalla corta con un mensaje y un botón: sirve para "ingresá", "carrito vacío", "no existe", etc.
-// "state" (opcional) viaja con el link: por ejemplo, a dónde volver después de ingresar.
+// Pantalla corta con mensaje y botón ("ingresá", "carrito vacío", "no existe"...). "state" viaja con el link (por ejemplo, a dónde volver al ingresar)
 export default function Aviso({ mensaje, boton, to, state }) {
   return (
     <main className="pagina aviso">

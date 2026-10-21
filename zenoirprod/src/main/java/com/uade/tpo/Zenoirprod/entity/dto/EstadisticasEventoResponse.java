@@ -8,8 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-// Como viene un evento: entradas vendidas sobre el cupo, lo recaudado, cuantas compras hubo y cuantos ya ingresaron.
-// Solo cuentan las compras confirmadas; lo recaudado es lo que se pago (no el precio actual de la entrada).
+// Estadísticas de un evento: solo cuentan las compras confirmadas y lo recaudado es lo que se pagó, no el precio actual
 @Data
 @Builder
 @NoArgsConstructor

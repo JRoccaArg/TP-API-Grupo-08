@@ -1,6 +1,6 @@
--- Catalogo de prueba: instantanea del 2026-10-20. SQL Server.
--- Ejecutar sobre una base VACIA con las tablas generadas por Hibernate.
--- Las imagenes se incluyen como binarios originales, sin rutas externas.
+-- Datos de prueba (copia del 2026-10-20), para SQL Server.
+-- Ejecutar sobre una base sin datos, con las tablas ya creadas por Hibernate.
+-- Las fotos van como binarios originales, sin rutas externas.
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
 SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;

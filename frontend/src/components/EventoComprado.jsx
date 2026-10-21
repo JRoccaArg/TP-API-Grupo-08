@@ -4,8 +4,6 @@ import ImagenEvento from './ImagenEvento.jsx'
 import { eventoCancelado, eventoReprogramado } from '../utils/compras.js'
 import { diaYFecha, fechaLarga } from '../utils/fechas.js'
 
-// Un evento en "Mis entradas": su flyer, la fecha, el lugar y cuántas entradas tenés. Lleva a los QR de ese evento.
-// Usa el mismo estilo que las tarjetas de flyer del inicio.
 export default function EventoComprado({ grupo }) {
   const { evento, entradas } = grupo
   const titulo = evento?.titulo || grupo.titulo

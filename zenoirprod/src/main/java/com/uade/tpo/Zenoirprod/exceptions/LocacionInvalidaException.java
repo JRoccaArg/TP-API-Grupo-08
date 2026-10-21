@@ -9,7 +9,6 @@ public class LocacionInvalidaException extends Exception {
     public LocacionInvalidaException() {
     }
 
-    // Con un motivo propio: el manejador de errores lo usa en lugar del generico.
     public LocacionInvalidaException(String mensaje) {
         super(mensaje);
     }

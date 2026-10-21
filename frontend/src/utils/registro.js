@@ -13,7 +13,6 @@ export function edadEn(nacimiento, hoy = new Date()) {
   return edad
 }
 
-// Devuelve el primer problema que encuentra, o '' si está todo bien.
 export function validarRegistro(datos, hoy = new Date()) {
   if (!datos.firstname.trim() || datos.firstname.trim().length > LARGO_MAXIMO_NOMBRE) {
     return 'El nombre es obligatorio y no puede superar los 100 caracteres.'

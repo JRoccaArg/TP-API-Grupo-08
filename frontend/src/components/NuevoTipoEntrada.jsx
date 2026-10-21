@@ -4,8 +4,7 @@ import FormTipoEntrada from './FormTipoEntrada.jsx'
 import { crearTipoEntrada } from '../utils/apiAdmin.js'
 import { tipoVacio, validarTipo } from '../utils/formTipoEntrada.js'
 
-// Alta de un tipo de entrada nuevo. Se usa en la pantalla de tipos y dentro del evento: en los dos casos el tipo
-// queda guardado y disponible para cualquier otro evento. Avisa con onCreado(tipo) cuando se creó.
+// Alta de un tipo de entrada nuevo (se usa en la pantalla de tipos y dentro del evento). Queda guardado para cualquier otro evento. Avisa con onCreado(tipo)
 export default function NuevoTipoEntrada({ token, onCreado, onCancelar }) {
   const [datos, setDatos] = useState(tipoVacio)
   const [aviso, setAviso] = useState('')

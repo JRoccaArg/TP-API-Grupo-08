@@ -1,6 +1,5 @@
 const COPIAS = ['a', 'b']
 
-// Fila de fotos que se desplaza sola (hacia un lado o hacia el otro). Se repite para no cortar el bucle.
 export default function CintaFotos({ fotos, formato, inversa = false }) {
   return (
     <div className="cinta-fotos">

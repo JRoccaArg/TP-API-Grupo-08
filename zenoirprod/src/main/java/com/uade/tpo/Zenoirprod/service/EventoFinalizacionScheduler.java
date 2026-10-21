@@ -6,8 +6,8 @@ import org.springframework.stereotype.Component;
 
 import lombok.extern.slf4j.Slf4j;
 
-// Pasa a FINALIZADO los eventos ACTIVOS cuya fecha de fin ya llego. Corre al arrancar y despues una vez por hora.
-// Aunque este proceso tarde, la compra tambien se frena sola al llegar la fecha de fin (ver validarVenta).
+// Pasa a FINALIZADO los eventos ACTIVOS cuya fecha de fin ya llegó. Corre al arrancar y después una vez por hora.
+// Igual la compra se frena sola al llegar la fecha de fin (ver validarVenta).
 @Slf4j
 @Component
 public class EventoFinalizacionScheduler {

@@ -4,8 +4,8 @@ import java.io.IOException;
 
 import org.springframework.web.multipart.MultipartFile;
 
-// Revisa que un archivo subido sea de verdad una imagen (JPG, PNG o WEBP) y no pese mas de lo permitido: no alcanza con
-// confiar en el tipo que declara el cliente, asi que se mira tambien como empiezan sus bytes.
+// Revisa que el archivo sea de verdad una imagen (JPG, PNG o WEBP) y no pese de más. No alcanza con el tipo que
+// declara el cliente, por eso se miran también los primeros bytes.
 public final class Imagenes {
 
     public static final long TAMANO_MAXIMO = 10L * 1024 * 1024;

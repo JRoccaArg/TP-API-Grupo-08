@@ -28,7 +28,6 @@ export const agruparNumero = (digitos, marca = detectarMarca(digitos)) => {
   return partes.join(' ')
 }
 
-// Lo que se dibuja en la tarjeta: los dígitos escritos y puntos donde todavía faltan.
 export const numeroVisual = (digitos, marca) => {
   const total = largoNumero(marca)
   return agruparNumero((digitos + '•'.repeat(total)).slice(0, total), marca)
@@ -38,7 +37,6 @@ export const numeroVisual = (digitos, marca) => {
 export const formatearVencimiento = (digitos) =>
   digitos.length > 2 ? `${digitos.slice(0, 2)}/${digitos.slice(2)}` : digitos
 
-// Deja en cada campo solo lo que corresponde (el número y el CVV, dígitos; el nombre, letras).
 export const limpiarCampo = (campo, texto, numeroActual) => {
   if (campo === 'numero') {
     const digitos = soloDigitos(texto)
@@ -90,7 +88,6 @@ const errorVencimiento = (digitos, hoy) => {
 const errorCvv = (digitos, marca) =>
   digitos.length === largoCvv(marca) ? '' : `El código tiene ${largoCvv(marca)} dígitos.`
 
-// Devuelve el mensaje de cada campo ('' si está bien).
 export const erroresTarjeta = (tarjeta, hoy = new Date()) => {
   const marca = detectarMarca(tarjeta.numero)
   return {

@@ -11,7 +11,6 @@ public interface TicketService {
 
     Optional<Ticket> getPorId(Integer id);
 
-    // La compra del ticket con ese codigo QR (trae al comprador y el evento), vacia si el codigo no existe.
     Optional<Compra> getCompraPorCodigoQr(String codigoQr);
 
     Ticket utilizar(String codigoQr) throws TicketInexistenteException, TicketNoUtilizableException;

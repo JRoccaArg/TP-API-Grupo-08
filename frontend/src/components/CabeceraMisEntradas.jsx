@@ -1,9 +1,8 @@
 import { useEffect, useRef } from 'react'
 import Boton from './Boton.jsx'
 
-// Encabezado de "Mis entradas". Sin "grupo": la lista de eventos. Con "grupo": los QR de ese evento
-// y, si hay más de un evento, un botón para volver a elegir.
-// Al pasar de la lista a un evento (o volver) la página conserva el desplazamiento anterior: se lleva la vista arriba.
+// Encabezado de "Mis entradas": sin "grupo" la lista de eventos; con "grupo" los QR de ese evento (y un botón para volver si hay más de uno).
+// Al pasar de la lista a un evento (o volver) se lleva la vista arriba, porque la página conservaba el desplazamiento anterior.
 export default function CabeceraMisEntradas({ grupo, varios }) {
   const cabecera = useRef(null)
   const id = grupo?.id

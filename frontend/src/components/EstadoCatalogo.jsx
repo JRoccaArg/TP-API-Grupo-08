@@ -1,4 +1,3 @@
-// Lo que se muestra en lugar de las tarjetas cuando no hay nada para mostrar: cargando, con error o sin eventos publicados.
 export default function EstadoCatalogo({ cargando, error, onReintentar }) {
   if (cargando) {
     return (

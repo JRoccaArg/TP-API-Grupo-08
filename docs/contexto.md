@@ -47,6 +47,7 @@ Ver [[decisiones]] y [[arquitectura]].
 - No aceptar el rol enviado por un registro publico.
 - No guardar contraseñas sin codificar.
 - No incluir claves reales o archivos locales con credenciales en Git.
+- Comentarios en el codigo: pocos, cortos y en español con tildes. Solo para explicar un "por que" (bloqueos, reserva de stock, fechas) o ubicarse (ruta de cada pantalla). No repetir lo que dice el nombre del metodo ni el mismo comentario en controller, service y repository (auditados el 21/10/2026).
 
 ## Pendiente
 

@@ -59,12 +59,12 @@ public class MailServiceImpl implements MailService {
         }
         try {
             MimeMessage mensaje = mailSender.createMimeMessage();
-            MimeMessageHelper armado = new MimeMessageHelper(mensaje, true, "UTF-8"); // true: lleva imagenes adjuntas
+            MimeMessageHelper armado = new MimeMessageHelper(mensaje, true, "UTF-8"); // true = lleva imágenes adjuntas
             armado.setFrom(remitente, "Zenoir");
             armado.setTo(destino);
             armado.setSubject("Tus entradas de Zenoir");
             armado.setText(MailEntradas.html(compra.getUsuario().getFirstName(), entradas(compra), urlFront + "/mis-entradas"), true);
-            // Cada QR se adjunta "en linea" con el nombre que usa el HTML (cid). Va despues de setText, como pide Spring.
+            // Cada QR se adjunta en línea con el nombre (cid) que usa el HTML. Va después de setText, como pide Spring.
             for (Ticket ticket : tickets(compra)) {
                 byte[] qr = QrImagen.png(urlFront + "/verificar/" + ticket.getCodigoQr(), 440);
                 armado.addInline("qr-" + ticket.getId(), new ByteArrayResource(qr), "image/png");
@@ -93,7 +93,7 @@ public class MailServiceImpl implements MailService {
         return compra.getDetalles().stream().flatMap(detalle -> detalle.getTickets().stream()).toList();
     }
 
-    // "sábado 24 de octubre · 23:00 h" con la primera letra en mayuscula.
+    // Ej.: "sábado 24 de octubre · 23:00 h", con la primera letra en mayúscula
     private String fecha(LocalDateTime inicio) {
         String texto = inicio.format(FECHA);
         return Character.toUpperCase(texto.charAt(0)) + texto.substring(1);

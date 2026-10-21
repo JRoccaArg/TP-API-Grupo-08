@@ -74,8 +74,8 @@ public class AuthenticationService {
         return respuesta(user);
     }
 
-    // Cada dato se valida por separado para decirle a la persona cual esta mal. La contrasena pide lo mismo que el formulario
-    // del front: entre 8 y 64 caracteres con mayuscula, minuscula, numero y simbolo. Solo se acepta a mayores de edad (fiestas).
+    // Cada dato se valida por separado para decir cuál está mal. La contraseña pide lo mismo que el formulario del front
+    // (8 a 64 caracteres con mayúscula, minúscula, número y símbolo). Solo se aceptan mayores de edad.
     private void validarRegistro(RegisterRequest request) throws DatosAutenticacionInvalidosException {
         if (request == null) {
             throw new DatosAutenticacionInvalidosException();
@@ -133,7 +133,6 @@ public class AuthenticationService {
         return respuesta(user);
     }
 
-    // Datos que viajan junto al token: el front los usa para mostrar el nombre y decidir por rol.
     private AuthenticationResponse respuesta(User user) {
         return AuthenticationResponse.builder()
                 .accessToken(jwtService.generateToken(user))

@@ -18,7 +18,6 @@ export const cargarOpciones = () =>
 export const cargarEdicion = (id, token) =>
   obtenerEvento(id, token).then((evento) => cargarOpciones().then((opciones) => ({ evento, ...opciones })))
 
-// Todos los eventos (cualquier estado), con sus entradas e imágenes, del más lejano al más antiguo.
 export const obtenerEventosAdmin = (token) =>
   consultarPaginas('/eventos', token)
     .then((eventos) => completarEventos(eventos, token))
@@ -82,7 +81,6 @@ function conFotos(locaciones) {
     conFotos(resto).then((otras) => [{ ...primera, imagenes }, ...otras]))
 }
 
-// Todas las locaciones con sus fotos, por orden alfabético (son lecturas públicas: también las usa la portada).
 export const obtenerLocacionesConFotos = () =>
   obtenerLocaciones().then(conFotos).then((lista) => lista.sort((a, b) => a.nombre.localeCompare(b.nombre)))
 
@@ -134,7 +132,6 @@ const aOferta = (datos) => ({
   cantidadTotal: Number(datos.cantidad),
 })
 
-// Se vende desde que se crea hasta que termina el evento (ver ventaDelEvento).
 export const crearOferta = (token, evento, datos) =>
   pedir('POST', '/eventosTiposEntrada', token,
     { eventoId: evento.id, tipoEntradaId: Number(datos.tipoEntradaId), ...aOferta(datos), ...ventaDelEvento(evento), estado: datos.estado })

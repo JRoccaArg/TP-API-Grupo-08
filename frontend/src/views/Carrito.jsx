@@ -32,7 +32,6 @@ export default function Carrito({ usuario, carrito, carga, vencido, eventos, onC
   }
   if (carrito.items.length === 0) return <Aviso mensaje="Tu carrito está vacío." boton="Ver fechas" to="/" />
 
-  // Cada acción espera la respuesta del back: mientras tanto se bloquean los botones y, si falla, se muestra su mensaje.
   const hacer = (accion) => {
     setOcupado(true)
     setAviso('')

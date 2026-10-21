@@ -45,7 +45,6 @@ public class EventosController {
     @Autowired
     private EstadisticasService estadisticasService;
 
-    // Como viene el evento (ventas, recaudado, compras e ingresos): lo usa el resumen del evento en el panel del admin.
     @GetMapping("/{id}/estadisticas")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<EstadisticasEventoResponse> getEstadisticas(@PathVariable Integer id)
@@ -73,11 +72,11 @@ public class EventosController {
                     orden.equals("antiguos") ? "proximos" : orden);
             return ResponseEntity.ok(pagina.map(EventoResponse::fromEntity));
         }
-        // Solo afecta al catalogo: "lejanos" = la fecha mas futura primero; "antiguos" = la mas antigua primero.
+        // "lejanos": fecha más futura primero; "antiguos": la más vieja primero (solo afecta al catálogo)
         if (!orden.equals("lejanos") && !orden.equals("antiguos")) {
             throw new PaginacionInvalidaException("El orden debe ser 'lejanos' o 'antiguos'.");
         }
-        // Los borradores no estan publicados: solo el administrador los ve (sin sesion de admin siempre se pide el catalogo).
+        // Los borradores solo los ve el admin (sin sesión de admin siempre se pide el catálogo)
         boolean soloPublicados = catalogo || !Permisos.esAdmin(authentication);
         Page<Evento> pagina = eventosService.getEventos(PageableFactory.crear(page, size),
                 nombre, categoriaId, precioMin, precioMax, soloPublicados, proximo, orden.equals("antiguos"));

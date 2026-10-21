@@ -3,8 +3,8 @@ import CampoSelect from './CampoSelect.jsx'
 
 const ESTADOS = [{ valor: 'true', texto: 'Activo' }, { valor: 'false', texto: 'Inactivo' }]
 
-// Campos de un tipo de entrada: nombre y descripción (y, al editar, si está activo). No guarda nada por sí solo.
-// Un tipo inactivo deja de ofrecerse en los eventos nuevos, pero sigue en los que ya lo tienen.
+// Nombre y descripción de un tipo de entrada (y, al editar, si está activo).
+// Un tipo inactivo no se ofrece en eventos nuevos, pero sigue en los que ya lo tienen.
 export default function FormTipoEntrada({ datos, onCambiar, conEstado = false }) {
   const cambiar = (campo) => (evento) => onCambiar(campo, evento.target.value)
 

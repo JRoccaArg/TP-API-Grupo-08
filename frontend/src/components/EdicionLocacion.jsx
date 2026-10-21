@@ -7,7 +7,6 @@ import TituloAdmin from './TituloAdmin.jsx'
 import { actualizarLocacion, eliminarLocacion } from '../utils/apiAdmin.js'
 import { locacionAFormulario, validarLocacion } from '../utils/formLocacion.js'
 
-// Edición de una locación ya cargada: sus datos y sus fotos. Al guardar o eliminar vuelve a la lista de locaciones.
 export default function EdicionLocacion({ locacion, token }) {
   const navigate = useNavigate()
   const [datos, setDatos] = useState(locacionAFormulario(locacion))
@@ -29,7 +28,6 @@ export default function EdicionLocacion({ locacion, token }) {
     setOcupado(true)
     setAviso({ tipo: '', texto: '' })
     actualizarLocacion(token, locacion.id, datos)
-      // Al guardar se vuelve a la lista de locaciones, que muestra la confirmación.
       .then((actualizada) => navigate('/admin/locaciones', { state: { aviso: `Guardaste los cambios de "${actualizada.nombre}".` } }))
       .catch((fallo) => {
         setAviso({ tipo: 'error', texto: fallo.estado === 409 ? 'Ya existe otra locación con ese nombre.' : fallo.message })
@@ -37,7 +35,7 @@ export default function EdicionLocacion({ locacion, token }) {
       })
   }
 
-  // Eliminar pide una segunda confirmación. Si la locación tiene eventos, el back responde 409 y no se borra.
+  // Eliminar pide segunda confirmación. Si la locación tiene eventos, el back responde 409 y no se borra
   const eliminar = () => {
     if (!confirmando) {
       setConfirmando(true)

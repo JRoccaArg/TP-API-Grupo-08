@@ -5,10 +5,9 @@ import { comprasDelEvento, eventoCancelado, resumenDelEvento } from '../utils/co
 import { diaYFecha, horario } from '../utils/fechas.js'
 import { precio } from '../utils/formatos.js'
 
-// Lo que se ve en "Mis entradas" de un evento cancelado o reprogramado: qué pasó y, por cada compra con entradas de ese evento,
-// el reembolso. Se reembolsan solo las entradas de ESTE evento (la compra puede tener otros): quedan anuladas y el stock vuelve; una
-// ya usada no se reembolsa. La devolución del dinero es una demostración: no se mueve plata. No se puede deshacer: el primer clic
-// pide confirmación y el segundo lo pide. "onReembolsada" recibe la compra que respondió el back, para acomodarla en la lista.
+// Lo que se ve en "Mis entradas" de un evento cancelado o reprogramado: qué pasó y, por cada compra con entradas de ese evento, el reembolso.
+// Se reembolsan solo las de ESTE evento: quedan anuladas y vuelve el stock; las usadas no. El dinero es de demostración.
+// No se puede deshacer: el primer clic pide confirmación y el segundo reembolsa. onReembolsada recibe la compra que respondió el back.
 export default function AvisoEventoAfectado({ evento, compras, token, onReembolsada }) {
   const [confirmando, setConfirmando] = useState(null)
   const [pidiendo, setPidiendo] = useState(null)

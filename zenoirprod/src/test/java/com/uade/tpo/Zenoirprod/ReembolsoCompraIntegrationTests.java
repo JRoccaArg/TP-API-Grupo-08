@@ -44,12 +44,12 @@ import com.uade.tpo.Zenoirprod.repository.UserRepository;
 import com.uade.tpo.Zenoirprod.util.FechaCatalogo;
 
 // Reembolso de las entradas de UN evento de una compra (POST /compras/{id}/eventos/{eventoId}/reembolsar): solo si ese evento
-// fue cancelado o reprogramado. Se reembolsan sus entradas emitidas (una ya usada no se reembolsa nunca): quedan anuladas (ya no
-// sirven en la puerta) y el stock vuelve a la oferta. La compra pasa a CANCELADA solo cuando ninguna de sus entradas sigue vigente.
+// fue cancelado o reprogramado. Se reembolsan las emitidas (una usada nunca): quedan anuladas y el stock vuelve a la oferta.
+// La compra pasa a CANCELADA solo cuando ninguna de sus entradas sigue vigente.
 @SpringBootTest
-@ActiveProfiles("dev") // siempre H2 en memoria: estas pruebas nunca tocan la base real
+@ActiveProfiles("dev") // H2 en memoria, nunca la base real
 @AutoConfigureMockMvc
-@Transactional // cada prueba deshace lo que creo
+@Transactional // cada test deshace lo que crea
 class ReembolsoCompraIntegrationTests {
 
     @Autowired private MockMvc mockMvc;
@@ -135,7 +135,7 @@ class ReembolsoCompraIntegrationTests {
                 .andExpect(jsonPath("$.detalles[0].tickets[2].estado").value("CANCELADO"));
 
         assertEquals(99, eventoTipoEntradaRepository.findById(oferta.getId()).orElseThrow().getCantidadDisponible());
-        // Las dos ya estan reembolsadas y la otra esta usada: no queda nada para reembolsar.
+        // Las dos ya están reembolsadas y la otra está usada: no queda nada para reembolsar
         reembolsar(compra, oferta, tokenComprador).andExpect(status().isConflict());
     }
 
@@ -165,7 +165,7 @@ class ReembolsoCompraIntegrationTests {
 
         assertEquals(100, eventoTipoEntradaRepository.findById(cancelada.getId()).orElseThrow().getCantidadDisponible());
         assertEquals(98, eventoTipoEntradaRepository.findById(activa.getId()).orElseThrow().getCantidadDisponible());
-        // El evento que sigue en pie no se puede reembolsar.
+        // El evento que sigue en pie no se puede reembolsar
         reembolsar(compra, activa, tokenComprador).andExpect(status().isConflict());
     }
 
@@ -240,17 +240,17 @@ class ReembolsoCompraIntegrationTests {
         return eventoTipoEntradaRepository.save(oferta);
     }
 
-    // Una compra confirmada del comprador, con una entrada emitida por cada unidad.
+    // Compra confirmada del comprador, con una entrada emitida por cada unidad
     private Compra guardarCompra(EventoTipoEntrada oferta, int cantidad) {
         return guardarCompra(oferta, cantidad, EstadoTicket.EMITIDO);
     }
 
-    // Igual, pero la primera entrada queda en el estado indicado (por ejemplo, ya usada).
+    // Igual, pero la primera entrada queda en el estado indicado (por ejemplo, ya usada)
     private Compra guardarCompra(EventoTipoEntrada oferta, int cantidad, EstadoTicket estadoDeLaPrimera) {
         return guardar(List.of(detalle(oferta, cantidad, estadoDeLaPrimera)));
     }
 
-    // Una compra con entradas de dos eventos distintos (dos detalles).
+    // Compra con entradas de dos eventos distintos (dos detalles)
     private Compra guardarCompraMixta(EventoTipoEntrada una, int cantidadUna, EventoTipoEntrada otra, int cantidadOtra) {
         return guardar(List.of(detalle(una, cantidadUna, EstadoTicket.EMITIDO), detalle(otra, cantidadOtra, EstadoTicket.EMITIDO)));
     }

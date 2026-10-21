@@ -14,7 +14,6 @@ const crearOReusar = (crear, releer, nombre) =>
     })
   })
 
-// Devuelve el elemento con ese nombre (el que ya estaba o el recién creado) y la lista con él adentro.
 function asegurar(lista, nombre, crear, releer) {
   const existente = buscarPorNombre(lista, nombre)
   if (existente) return Promise.resolve({ elegido: existente, lista })

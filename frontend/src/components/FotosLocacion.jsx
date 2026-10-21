@@ -4,8 +4,7 @@ import SubirFotos from './SubirFotos.jsx'
 import { cambiarImagenLocacion, eliminarImagenLocacion, ordenarFotosLocacion, subirImagenLocacion, urlFotoLocacion } from '../utils/apiAdmin.js'
 import { cambiosDeOrden, moverFoto, reemplazarFoto, sinFoto } from '../utils/fotos.js'
 
-// Administrador de fotos de una locación (ya guardada): subir varias, reordenar y quitar. Sin portada: solo el orden.
-// Cada respuesta del back acomoda la lista en pantalla: no se vuelve a pedir nada.
+// Fotos de una locación (ya guardada): subir varias, reordenar y quitar. Sin portada, solo el orden. Cada respuesta del back acomoda la lista en pantalla
 export default function FotosLocacion({ locacionId, nombre, token, inicial }) {
   const [imagenes, setImagenes] = useState(inicial)
   const [ocupado, setOcupado] = useState(false)
@@ -16,7 +15,6 @@ export default function FotosLocacion({ locacionId, nombre, token, inicial }) {
   const guardada = (cambiada) =>
     setImagenes((actuales) => ordenarFotosLocacion(reemplazarFoto(actuales, urlFotoLocacion(locacionId, cambiada))))
 
-  // Los pedidos se hacen de a uno, en fila. Si uno falla se avisa; los anteriores ya quedaron en la lista.
   const enFila = (tareas) => {
     setOcupado(true)
     setError('')
@@ -35,7 +33,6 @@ export default function FotosLocacion({ locacionId, nombre, token, inicial }) {
   const mover = (indice, salto) => enFila(cambiosDeOrden(moverFoto(imagenes, indice, salto))
     .map(({ foto, orden }) => () => cambiarImagenLocacion(token, locacionId, foto.id, { orden }).then(guardada)))
 
-  // Quitar pide una segunda confirmación: el primer clic arma el botón, el segundo borra.
   const quitar = (imagen) => {
     if (aQuitar !== imagen.id) {
       setAQuitar(imagen.id)

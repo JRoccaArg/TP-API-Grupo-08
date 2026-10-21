@@ -9,7 +9,6 @@ public class EventoTipoEntradaInvalidoException extends Exception {
     public EventoTipoEntradaInvalidoException() {
     }
 
-    // Con un motivo propio: el manejador de errores lo usa en lugar del generico.
     public EventoTipoEntradaInvalidoException(String mensaje) {
         super(mensaje);
     }

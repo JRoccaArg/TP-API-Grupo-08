@@ -27,11 +27,8 @@ public class CarritoResponse {
     private EstadoCarrito estado;
     private LocalDateTime fechaCreacion;
     private LocalDateTime fechaActualizacion;
-    // Hasta cuando estan apartadas las entradas: el reloj de armado si esta ACTIVO, el de pago si esta EN_PAGO.
-    // Es null si el carrito no tiene entradas.
     private LocalDateTime fechaVencimiento;
     private List<ItemCarritoResponse> items;
-    // Suma de los subtotales: es el importe que se cobra al pagar.
     private BigDecimal total;
 
     public static CarritoResponse fromEntity(Carrito c) {

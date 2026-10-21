@@ -1,6 +1,5 @@
 import Boton from './Boton.jsx'
 
-// Una locación en la lista del administrador: su primera foto, nombre, dirección y cuántas fotos tiene.
 export default function FilaLocacionAdmin({ locacion }) {
   const foto = locacion.imagenes[0]
   const cantidad = locacion.imagenes.length

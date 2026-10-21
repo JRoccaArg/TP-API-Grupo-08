@@ -19,7 +19,6 @@ public class DetalleCompraResponse {
 
     private Integer id;
     private Integer eventoTipoEntradaId;
-    // Para que el front muestre el evento (flyer, fecha y lugar) de cada entrada comprada.
     private Integer eventoId;
     private String eventoTitulo;
     private String tipoEntradaNombre;

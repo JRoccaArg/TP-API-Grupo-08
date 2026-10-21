@@ -14,7 +14,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-// Lo que ve el organizador al escanear un QR: los datos del ticket mas a quien pertenece y a que evento da acceso.
+// Lo que ve el organizador al escanear un QR: el ticket, a quién pertenece y a qué evento da acceso
 @Data
 @Builder
 @NoArgsConstructor
@@ -34,7 +34,7 @@ public class TicketVerificacionResponse {
     private String locacionNombre;
     private String tipoEntradaNombre;
 
-    // Busca dentro de la compra el ticket con ese codigo y arma la respuesta con su detalle. Null si no esta.
+    // Busca en la compra el ticket con ese código y arma la respuesta; null si no está
     public static TicketVerificacionResponse fromCompra(Compra compra, String codigoQr) {
         for (DetalleCompra detalle : compra.getDetalles()) {
             for (Ticket ticket : detalle.getTickets()) {

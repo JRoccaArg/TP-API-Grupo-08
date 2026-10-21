@@ -3,8 +3,8 @@ import { sponsors } from '../data/sponsors.js'
 const COPIAS = ['a', 'b']
 const VUELTAS = ['1', '2']
 
-// "Nos acompañan": logos que se desplazan solos. Mismo truco que Cinta: dos grupos iguales para que el bucle no tenga corte.
-// Cada grupo repite la lista dos veces para que alcance a cubrir pantallas anchas (hasta ~5000 px).
+// "Nos acompañan": logos que se desplazan solos. Mismo truco que Cinta (dos grupos iguales para que el bucle no tenga corte);
+// cada grupo repite la lista dos veces para cubrir pantallas anchas (hasta ~5000 px).
 export default function Sponsors() {
   return (
     <section className="sponsors">

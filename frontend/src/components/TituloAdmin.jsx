@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom'
 
-// Encabezado de las pantallas de administración: migas de pan, título y una bajada opcional.
 export default function TituloAdmin({ migas = [], titulo, resaltado, bajada }) {
   return (
     <div>

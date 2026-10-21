@@ -1,8 +1,7 @@
 import MarcaTarjeta from './MarcaTarjeta.jsx'
 import { detectarMarca, formatearVencimiento, numeroVisual } from '../utils/tarjeta.js'
 
-// Tarjeta dibujada con lo que se va escribiendo. "foco" es el campo que se está editando:
-// ese dato se subraya y, si es el CVV, la tarjeta gira para mostrar el dorso.
+// Tarjeta dibujada con lo que se va escribiendo. "foco" es el campo que se edita: se subraya y, si es el CVV, la tarjeta gira al dorso
 export default function TarjetaVisual({ tarjeta, foco }) {
   const marca = detectarMarca(tarjeta.numero)
   const subrayar = (campo) => `tarjeta-visual__dato ${foco === campo ? 'tarjeta-visual__dato--activo' : ''}`

@@ -31,7 +31,7 @@ import com.uade.tpo.Zenoirprod.util.FechaCatalogo;
 import jakarta.persistence.EntityManager;
 
 @SpringBootTest
-@ActiveProfiles("dev") // siempre H2 en memoria: estas pruebas nunca tocan la base real
+@ActiveProfiles("dev") // H2 en memoria, nunca la base real
 @Transactional
 class EventosCategoriasIntegrationTests {
 

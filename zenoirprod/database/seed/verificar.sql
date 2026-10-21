@@ -1,4 +1,4 @@
--- Verificacion de la instantanea. Ejecutar antes de agregar o editar datos.
+-- Chequeo de los datos de prueba. Ejecutar antes de agregar o editar datos.
 SET NOCOUNT ON;
 IF (SELECT COUNT_BIG(*) FROM dbo.[categorias]) <> 7 THROW 50003, N'Cantidad inesperada en categorias.', 1;
 IF (SELECT COUNT_BIG(*) FROM dbo.[locaciones]) <> 2 THROW 50003, N'Cantidad inesperada en locaciones.', 1;

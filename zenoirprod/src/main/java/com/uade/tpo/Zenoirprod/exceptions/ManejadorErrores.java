@@ -38,20 +38,16 @@ import com.uade.tpo.Zenoirprod.entity.dto.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 
-// Punto unico donde las excepciones se traducen a una respuesta HTTP con el motivo del error.
-// Extiende ResponseEntityExceptionHandler para que tambien los errores propios de Spring (metodo no permitido,
-// tipo de contenido, parametro faltante, JSON roto, ruta inexistente) salgan con el mismo formato y un mensaje.
-// Las unicas respuestas que no pasan por aca son las de seguridad (401/403): ver ManejadorErroresSeguridad.
+// Acá se traducen las excepciones a una respuesta HTTP con el motivo del error. Extiende ResponseEntityExceptionHandler para que
+// los errores de Spring (método no permitido, JSON roto, ruta inexistente) salgan con el mismo formato. Las 401/403 van por ManejadorErroresSeguridad.
 @Slf4j
 @RestControllerAdvice
 public class ManejadorErrores extends ResponseEntityExceptionHandler {
 
     private static final String ERROR_INESPERADO = "Ocurrio un error inesperado, intente nuevamente mas tarde";
 
-    // Nuestras excepciones de negocio: el status y el motivo salen de su @ResponseStatus. Si la excepcion trae un
-    // mensaje propio (por ejemplo, que entrada se quedo sin stock) se usa ese en lugar del motivo generico.
-    // Las de seguridad se vuelven a lanzar para que las resuelva ManejadorErroresSeguridad con su mensaje generico.
-    // Cualquier otra es un error inesperado: el detalle queda solo en el log y el cliente no recibe datos internos.
+    // Excepciones de negocio: status y motivo salen de su @ResponseStatus (o de su mensaje propio). Las de seguridad se relanzan.
+    // Cualquier otra es un error inesperado: el detalle queda en el log y el cliente no recibe datos internos.
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> manejarExcepcion(Exception ex, HttpServletRequest request)
             throws Exception {
@@ -75,8 +71,8 @@ public class ManejadorErrores extends ResponseEntityExceptionHandler {
         return responder(HttpStatus.INTERNAL_SERVER_ERROR, ERROR_INESPERADO, request);
     }
 
-    // Red de seguridad: la base rechazo la operacion por una restriccion que ninguna validacion previa contemplo
-    // (valor duplicado, registro referenciado). El detalle (nombre de restriccion, tabla) queda solo en el log.
+    // Red de seguridad: la base rechazó la operación por una restricción que no se validó antes (duplicado, registro
+    // referenciado). El detalle queda solo en el log.
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErrorResponse> manejarRestriccionDeDatos(DataIntegrityViolationException ex,
             HttpServletRequest request) {
@@ -86,7 +82,7 @@ public class ManejadorErrores extends ResponseEntityExceptionHandler {
                 "La operacion no se pudo completar: el valor ya existe o el registro esta en uso", request);
     }
 
-    // Dos operaciones se esperaron entre si por el mismo stock (o la base aborto una por deadlock): se puede reintentar.
+    // Dos operaciones esperaron por el mismo stock (o la base abortó una por deadlock): se puede reintentar
     @ExceptionHandler(PessimisticLockingFailureException.class)
     public ResponseEntity<ErrorResponse> manejarBloqueo(PessimisticLockingFailureException ex,
             HttpServletRequest request) {
@@ -95,7 +91,6 @@ public class ManejadorErrores extends ResponseEntityExceptionHandler {
                 "Otra operacion esta usando las mismas entradas en este momento, intente nuevamente", request);
     }
 
-    // Errores que detecta Spring MVC antes o durante el llamado al controller.
     @Override
     protected ResponseEntity<Object> handleExceptionInternal(Exception ex, Object body, HttpHeaders headers,
             HttpStatusCode statusCode, WebRequest request) {
@@ -110,7 +105,7 @@ public class ManejadorErrores extends ResponseEntityExceptionHandler {
             mensaje = mensajePara(ex);
         }
 
-        // Se fija el JSON para que el error se pueda escribir aunque el Accept del cliente no lo contemple.
+        // Se fija JSON para poder escribir el error aunque el Accept del cliente no lo admita
         HttpHeaders respuesta = new HttpHeaders();
         respuesta.putAll(headers);
         respuesta.setContentType(MediaType.APPLICATION_JSON);

@@ -18,7 +18,6 @@ export const tokenVencido = (token, ahora = Date.now()) => {
   return !datos || typeof datos.exp !== 'number' || datos.exp * 1000 <= ahora
 }
 
-// Devuelve la sesión guardada, o null si no hay o ya venció.
 export const leerSesion = () => {
   try {
     const sesion = JSON.parse(localStorage.getItem(CLAVE))

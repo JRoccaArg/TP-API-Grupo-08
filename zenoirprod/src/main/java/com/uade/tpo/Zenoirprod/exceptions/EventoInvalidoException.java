@@ -9,7 +9,6 @@ public class EventoInvalidoException extends Exception {
     public EventoInvalidoException() {
     }
 
-    // Con un motivo propio: el manejador de errores lo usa en lugar del generico.
     public EventoInvalidoException(String mensaje) {
         super(mensaje);
     }

@@ -4,7 +4,6 @@ import FormTipoEntrada from './FormTipoEntrada.jsx'
 import { actualizarTipoEntrada } from '../utils/apiAdmin.js'
 import { tipoAFormulario, validarTipo } from '../utils/formTipoEntrada.js'
 
-// Edición de un tipo de entrada en su misma fila. Guarda en el back y avisa con onGuardado(tipo) lo que respondió.
 export default function EdicionTipoEntrada({ tipo, token, onGuardado, onCancelar }) {
   const [datos, setDatos] = useState(tipoAFormulario(tipo))
   const [aviso, setAviso] = useState('')

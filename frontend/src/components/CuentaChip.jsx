@@ -3,7 +3,6 @@ import Boton from './Boton.jsx'
 import Icono from './Icono.jsx'
 import { iniciales } from '../utils/formatos.js'
 
-// Parte derecha del header: "Ingresar" si no hay sesión; avatar y nombre si la hay.
 export default function CuentaChip({ usuario, onSalir }) {
   const { pathname } = useLocation()
   if (!usuario) {

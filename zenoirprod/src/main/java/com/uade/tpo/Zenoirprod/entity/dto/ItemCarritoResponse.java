@@ -20,16 +20,14 @@ public class ItemCarritoResponse {
 
     private Integer id;
     private Integer eventoTipoEntradaId;
-    // Para que el front pueda mostrar el evento (flyer, fecha y lugar) sin consultar cada entrada por separado.
+    // Para que el front muestre el evento (flyer, fecha y lugar) sin consultar cada entrada por separado
     private Integer eventoId;
     private String eventoTitulo;
     private String tipoEntradaNombre;
     private Integer cantidad;
-    // Precio de lista y porcentaje de descuento vigentes, por si la pantalla quiere mostrar el precio tachado.
     private BigDecimal precioOriginal;
     private BigDecimal porcentajeDescuento;
-    // Precio de una entrada con el descuento vigente aplicado, y su subtotal. Se calculan con la misma formula que
-    // la compra (PrecioCalculator), por eso lo que se muestra en la pantalla de pago es lo que se cobra.
+    // Mismo cálculo que la compra (PrecioCalculator): lo que se ve al pagar es lo que se cobra
     private BigDecimal precioUnitario;
     private BigDecimal subtotal;
     private LocalDateTime fechaAgregado;

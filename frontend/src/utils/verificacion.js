@@ -1,6 +1,5 @@
 import { diaYFecha, fechaYHora, horario } from './fechas.js'
 
-// Verificación de entradas con el QR.
 // El QR de cada entrada guarda un link a "/verificar/<código>": el organizador lo escanea con la cámara del celular y llega a esa pantalla.
 // VITE_URL_PUBLICA es la dirección desde la que se abre el sitio. Para escanear con un celular hay que poner la IP de la PC (ver .env.example).
 const URL_PUBLICA = (import.meta.env?.VITE_URL_PUBLICA || 'http://localhost:5173').replace(/\/$/, '')
@@ -34,7 +33,6 @@ export const resultadoDeTicket = (ticket, registrado = false, eventoEsperado) =>
   return (RESULTADOS[ticket.estado] || DESCONOCIDO)(ticket)
 }
 
-// Los datos que se muestran debajo del resultado: a quién pertenece y a qué evento da acceso.
 export const datosDeTicket = (ticket) => [
   { etiqueta: 'A nombre de', valor: ticket.compradorNombre },
   { etiqueta: 'Evento', valor: ticket.eventoTitulo },

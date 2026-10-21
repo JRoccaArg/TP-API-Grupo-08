@@ -1,9 +1,8 @@
 import Boton from './Boton.jsx'
 import Icono from './Icono.jsx'
 
-// Una foto de la lista del administrador: miniatura, si es portada o galería, y sus acciones.
-// No llama al backend: avisa lo que se pidió con los callbacks y quien la usa se ocupa.
-// Con conPortada={false} (fotos de una locación) no hay portada ni galería: solo la posición.
+// Una foto de la lista del admin: miniatura, portada o galería, y sus acciones. No llama al back: avisa con callbacks lo que se pidió.
+// Con conPortada={false} (fotos de una locación) no hay portada ni galería, solo la posición.
 export default function FotoAdmin({ imagen, indice, total, conPortada = true, anteriorEsPortada, ocupado, quitando, onPortada, onMover, onQuitar }) {
   const esPortada = conPortada && imagen.tipoImagenEvento === 'PORTADA'
   const noPuedeSubir = ocupado || esPortada || indice === 0 || anteriorEsPortada

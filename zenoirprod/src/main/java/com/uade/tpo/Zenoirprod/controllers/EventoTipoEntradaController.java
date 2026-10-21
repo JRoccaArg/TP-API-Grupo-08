@@ -67,7 +67,6 @@ public class EventoTipoEntradaController {
 
         EventoTipoEntrada entrada =
                 eventoTipoEntradaService.getPorId(id);
-        // Las entradas de un evento en borrador solo las ve el administrador.
         if (!Permisos.puedeVer(entrada.getEvento(), authentication)) {
             throw new EventoTipoEntradaInexistenteException();
         }
@@ -83,7 +82,6 @@ public class EventoTipoEntradaController {
             Authentication authentication)
             throws EventoInexistenteException, PaginacionInvalidaException {
 
-        // Las entradas de un evento en borrador solo las ve el administrador.
         if (!Permisos.puedeVer(eventosService.getEventoPorId(eventoId).orElseThrow(EventoInexistenteException::new), authentication)) {
             throw new EventoInexistenteException();
         }
@@ -142,10 +140,7 @@ public class EventoTipoEntradaController {
         );
     }
 
-    /*
-     * Convierte la entidad interna en el DTO que se expone por la API.
-     * De esta manera no devolvemos Evento y TipoEntrada completos.
-     */
+    // Pasa la entidad al DTO para no exponer Evento y TipoEntrada completos
     private EventoTipoEntradaResponseDTO toResponseDTO(
             EventoTipoEntrada entrada) {
 

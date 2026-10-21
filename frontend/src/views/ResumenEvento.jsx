@@ -11,8 +11,7 @@ import { obtenerEvento } from '../utils/apiEventos.js'
 import { datosDelResumen, obtenerEstadisticas } from '../utils/estadisticas.js'
 import { diaYFecha, horario } from '../utils/fechas.js'
 
-// Pantalla "/admin/:id": lo primero que ve el admin al entrar a un evento. Un mini panel con cómo viene
-// (ventas, recaudado, compras e ingresos) y las acciones del evento. Solo ADMIN.
+// Pantalla "/admin/:id": resumen del evento (ventas, recaudado, compras e ingresos) y sus acciones. Solo ADMIN.
 export default function ResumenEvento({ usuario }) {
   const { id } = useParams()
   const token = usuario?.rol === 'ADMIN' ? usuario.token : null

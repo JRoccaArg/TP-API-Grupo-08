@@ -30,7 +30,7 @@ public class TicketsController {
                 .orElseThrow(TicketInexistenteException::new);
     }
 
-    // Consulta un ticket por su QR sin gastarlo: devuelve a quien pertenece y a que evento da acceso.
+    // Consulta el ticket por su QR sin gastarlo
     @GetMapping("/qr/{codigoQr}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<TicketVerificacionResponse> getPorCodigoQr(@PathVariable String codigoQr)
@@ -38,7 +38,7 @@ public class TicketsController {
         return ResponseEntity.ok(verificacion(codigoQr));
     }
 
-    // Registra el ingreso: pasa el ticket a UTILIZADO (404 si no existe, 409 si ya se uso) y devuelve su estado final.
+    // Registra el ingreso: pasa el ticket a UTILIZADO (404 si no existe, 409 si ya se usó)
     @PostMapping("/qr/{codigoQr}/utilizar")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<TicketVerificacionResponse> utilizar(@PathVariable String codigoQr)

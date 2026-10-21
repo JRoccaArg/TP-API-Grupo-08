@@ -1,4 +1,3 @@
-// Textura de grano de película encima de las fotos (adorno).
 export default function Grano() {
   return (
     <svg className="grano" aria-hidden="true">

@@ -1,7 +1,6 @@
 import { ajustarSeleccion } from './eventos.js'
 import { normalizarImporteFiltro } from './filtrosCatalogo.js'
 
-// Todas las consultas de este módulo son GET públicos; no usan la sesión ni el carrito.
 const API_BASE = (import.meta.env?.VITE_API_URL || '/api').replace(/\/$/, '')
 const TAMANO_PAGINA = 100
 
@@ -64,7 +63,6 @@ export const ordenarImagenes = (imagenes) => [...imagenes].sort((a, b) =>
 export const obtenerImagenes = (id, token) => consultarPaginas(`/eventos/${id}/imagenes`, token)
   .then((imagenes) => ordenarImagenes(imagenes.map((imagen) => urlImagen(id, imagen))))
 
-// Primero las ofertas y después las imágenes: si una de las dos falla, el evento se muestra igual.
 function completarEvento(evento, token) {
   return obtenerOfertas(evento.id, token).catch(recuperar).then((ofertas) =>
     obtenerImagenes(evento.id, token).catch(recuperar).then((imagenes) => ({
@@ -131,7 +129,6 @@ export const obtenerCategorias = () => consultarPaginas('/categories')
   .then((categorias) => categorias.map((categoria) => ({ ...categoria, id: String(categoria.id) }))
     .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es')))
 
-// La portada obtiene la próxima fecha global, aunque el catálogo esté filtrado o en otra página.
 // Devuelve los próximos eventos activos, del más cercano al más lejano. El primero es la "próxima fecha".
 export const obtenerProximos = (cantidad = 5) => consultar(`/eventos?page=0&size=${cantidad}&proximo=true`)
   .then((datos) => datos.content)
@@ -159,7 +156,6 @@ export function verificarSeleccion(evento, seleccion) {
     }))
 }
 
-// Un evento con sus imágenes, sin sus entradas: alcanza para mostrarlo en el carrito (flyer, fecha y lugar).
 export const obtenerEventoConImagenes = (id) => consultar(`/eventos/${id}`).then((evento) =>
   obtenerImagenes(id).catch(() => []).then((imagenes) => ({ ...evento, imagenes })))
 

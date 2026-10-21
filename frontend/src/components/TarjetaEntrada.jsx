@@ -3,7 +3,6 @@ import CodigoQR from './CodigoQR.jsx'
 import { eventoCancelado, eventoReprogramado } from '../utils/compras.js'
 import { diaMes, diaYFecha } from '../utils/fechas.js'
 
-// Entrada con QR lista para mostrar en la puerta. Solo muestra datos: no decide nada.
 export default function TarjetaEntrada({ entrada, evento, comprador, numero, total }) {
   const tipo = entrada.tipo.toUpperCase()
   const esVip = entrada.tipo === 'VIP'

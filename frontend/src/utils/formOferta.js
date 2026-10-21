@@ -7,7 +7,6 @@ export const ofertaVacia = {
   tipoEntradaId: '', precio: '', descuento: '0', cantidad: '', estado: 'ACTIVO',
 }
 
-// De una entrada que devolvió el back a los datos que maneja el formulario (todo texto, como los campos).
 export const ofertaAFormulario = (oferta) => ({
   tipoEntradaId: String(oferta.tipoEntradaId),
   precio: String(oferta.precio),
@@ -30,7 +29,6 @@ export const ventaDelEvento = (evento, ahora = Date.now()) => ({
   fechaFinVenta: `${paraInput(evento.fechaHoraFin)}:00`,
 })
 
-// Devuelve el primer problema que encuentra, o '' si está todo bien. El back vuelve a validar.
 export function validarOferta(datos, { edicion = false, vendidas: yaVendidas = 0 } = {}) {
   if (!edicion && (!datos.tipoEntradaId || datos.tipoEntradaId === TIPO_NUEVO)) return 'Elegí el tipo de entrada.'
   if (datos.precio.trim() === '' || !(Number(datos.precio) > 0)) return 'El precio tiene que ser mayor a 0.'

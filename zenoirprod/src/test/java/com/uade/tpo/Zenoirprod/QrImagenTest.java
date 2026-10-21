@@ -16,7 +16,7 @@ import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 import com.google.zxing.common.HybridBinarizer;
 import com.uade.tpo.Zenoirprod.util.QrImagen;
 
-// La imagen del QR que va en el mail guarda exactamente el link de verificacion de la entrada.
+// El QR del mail guarda exactamente el link de verificación de la entrada
 class QrImagenTest {
 
     @Test

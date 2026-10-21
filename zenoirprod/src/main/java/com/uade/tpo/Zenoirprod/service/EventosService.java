@@ -23,7 +23,6 @@ public interface EventosService {
                         BigDecimal precioMin, BigDecimal precioMax, boolean catalogo, boolean proximo,
                         boolean antiguosPrimero) throws EventoInvalidoException;
 
-        // Orden por defecto del catalogo: la fecha mas futura primero.
         default Page<Evento> getEventos(PageRequest pageRequest, String nombre, Integer categoriaId,
                         BigDecimal precioMin, BigDecimal precioMax, boolean catalogo, boolean proximo)
                         throws EventoInvalidoException {
@@ -35,7 +34,6 @@ public interface EventosService {
 
         public BigDecimal precioMaximoCatalogo();
 
-        // Pasa a FINALIZADO los eventos activos cuya fecha de fin ya llego. Devuelve cuantos cambio.
         public int finalizarVencidos();
 
         public void deleteEvento(Integer id) throws EventoInexistenteException, EventoEnUsoException;

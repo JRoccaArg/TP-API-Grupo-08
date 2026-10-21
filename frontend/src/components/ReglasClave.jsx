@@ -1,7 +1,6 @@
 import Icono from './Icono.jsx'
 import { evaluarClave } from '../utils/clave.js'
 
-// Lista de requisitos de la contraseña nueva. Cada uno se tilda en cuanto se cumple.
 export default function ReglasClave({ clave }) {
   return (
     <ul className="reglas-clave" aria-label="Requisitos de la contraseña">

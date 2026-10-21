@@ -1,6 +1,5 @@
 import Icono from './Icono.jsx'
 
-// Botones − y + con la cantidad en el medio. No guarda nada: avisa el nuevo valor con onCambiar.
 export default function SelectorCantidad({ cantidad, onCambiar, nombre, maximo = 10, deshabilitado = false }) {
   return (
     <div className="selector" role="group" aria-label={`Cantidad de entradas ${nombre}`}>

@@ -6,8 +6,7 @@ import { actualizarCategoria, crearCategoria } from '../utils/apiCategorias.js'
 
 const ESTADOS = [{ valor: 'true', texto: 'Activa' }, { valor: 'false', texto: 'Inactiva' }]
 
-// Formulario de una categoría: sin "categoria" crea una nueva; con "categoria" la edita (nombre y si está activa).
-// Guarda en el back y avisa con onGuardado(categoria) lo que respondió. Quien lo usa pone el contenedor.
+// Sin "categoria" crea una nueva; con "categoria" la edita (nombre y si está activa). Avisa con onGuardado(categoria)
 export default function EdicionCategoria({ categoria, token, onGuardado, onCancelar }) {
   const esNueva = !categoria
   const [datos, setDatos] = useState({ nombre: categoria?.nombre || '', activo: String(categoria?.activo !== false) })

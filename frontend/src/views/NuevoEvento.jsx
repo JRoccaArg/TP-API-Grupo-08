@@ -15,7 +15,7 @@ export default function NuevoEvento({ usuario }) {
   const navigate = useNavigate()
   const [datos, setDatos] = useState(formularioVacio)
   const [opciones, setOpciones] = useState(null)
-  const [errorCarga, setErrorCarga] = useState('') // por qué no se pudieron cargar los lugares y categorías
+  const [errorCarga, setErrorCarga] = useState('')
   const [reintento, setReintento] = useState(0)
   const [aviso, setAviso] = useState('')
   const [ocupado, setOcupado] = useState(false)

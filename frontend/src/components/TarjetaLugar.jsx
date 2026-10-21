@@ -1,7 +1,6 @@
 import Icono from './Icono.jsx'
 
-// Un lugar de la landing, con el mismo estilo que las tarjetas de eventos: su foto (la primera que tenga cargada) y, abajo,
-// nombre, dirección y botón. Todo sale de la locación que devuelve el back.
+// Un lugar del inicio, con el estilo de las tarjetas de eventos: su primera foto y, abajo, nombre, dirección y botón. Todo sale de la locación del back
 export default function TarjetaLugar({ lugar }) {
   const foto = lugar.imagenes[0]
   return (

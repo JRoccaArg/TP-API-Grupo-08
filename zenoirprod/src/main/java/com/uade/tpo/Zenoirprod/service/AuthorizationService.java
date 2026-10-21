@@ -15,8 +15,7 @@ public class AuthorizationService {
     private final CompraRepository compraRepository;
     private final TicketRepository ticketRepository;
 
-    // Verifica que la compra pertenece al usuario que la pide y que la compra exista.
-    // Falla cerrado: si la compra no existe no autoriza (se traduce en 403).
+    // La compra tiene que existir y ser del usuario que la pide. Si no existe no autoriza (se traduce en 403).
     public boolean puedeAccederCompra(Integer compraId, Authentication authentication) {
         if (compraId == null || authentication == null) {
             return false;
@@ -26,8 +25,6 @@ public class AuthorizationService {
                 .orElse(false);
     }
 
-    // Verifica si el ticket pertenece al usuario que lo pide, y que el ticket exista.
-    // Falla cerrado en todos los casos: id/auth nulos o ticket inexistente no autorizan.
     public boolean puedeAccederTicket(Integer ticketId, Authentication authentication) {
         if (ticketId == null || authentication == null) {
             return false;

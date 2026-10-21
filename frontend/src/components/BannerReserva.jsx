@@ -1,6 +1,5 @@
 import Reloj from './Reloj.jsx'
 
-// Franja con el tiempo que queda de la reserva de entradas.
 export default function BannerReserva({ vencimiento, mensaje }) {
   return (
     <div className="reserva" role="timer" aria-label="Tiempo restante de la reserva">

@@ -23,7 +23,6 @@ function enviarJson(ruta, cuerpo) {
     })
 }
 
-// De la respuesta del back a la forma que usa la app: { token, email, nombre, rol }.
 const aSesion = (respuesta) => ({
   token: respuesta.access_token,
   email: respuesta.email,

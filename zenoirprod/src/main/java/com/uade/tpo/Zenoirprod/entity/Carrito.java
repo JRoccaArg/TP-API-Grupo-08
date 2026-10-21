@@ -30,7 +30,7 @@ public class Carrito {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    // Se oculta el password al serializar el carrito en JSON.
+    // Se oculta el password al serializar el carrito en JSON
     @JsonIgnoreProperties({ "password", "hibernateLazyInitializer", "handler" })
     @ManyToOne(optional = false)
     @JoinColumn(name = "usuario_id", nullable = false)
@@ -46,9 +46,7 @@ public class Carrito {
     @Column(name = "fecha_actualizacion", nullable = false)
     private LocalDateTime fechaActualizacion;
 
-    // Hasta cuando estan apartadas las entradas del carrito. Las entradas se apartan al agregarlas, asi que tiene
-    // valor desde la primera: en ACTIVO es el reloj de armado (no se renueva) y en EN_PAGO el reloj de pago, que
-    // arranca de nuevo al entrar a la pantalla de pago. Es null mientras el carrito no tiene entradas.
+    // Hasta cuándo están apartadas las entradas (reloj de armado en ACTIVO, de pago en EN_PAGO). Null si no hay entradas
     @Column(name = "fecha_vencimiento")
     private LocalDateTime fechaVencimiento;
 
@@ -56,9 +54,8 @@ public class Carrito {
     @JoinColumn(name = "carrito_id", nullable = false)
     private List<ItemCarrito> items = new ArrayList<>();
 
-    // Un carrito abierto vence cuando pasa su fechaVencimiento (el job libera sus entradas; hasta entonces se trata
-    // como inexistente). Uno ACTIVO sin entradas no vence: no hay nada apartado. Uno ACTIVO con entradas y sin
-    // vencimiento es anterior a la reserva (nunca aparto stock): no se puede seguir usando.
+    // Vence al pasar su fechaVencimiento (hasta que el job lo libera se trata como inexistente). Un ACTIVO sin entradas no vence;
+    // uno con entradas y sin vencimiento es anterior a la reserva y no se puede usar.
     public boolean estaVigente(LocalDateTime ahora) {
         if (estado == EstadoCarrito.ACTIVO && items.isEmpty()) {
             return true;
@@ -70,12 +67,12 @@ public class Carrito {
     }
 
     public enum EstadoCarrito {
-        ACTIVO,       // el usuario lo esta armando: sus entradas ya estan apartadas hasta fechaVencimiento
-        EN_PAGO,      // esta en la pantalla de pago: reloj de pago nuevo hasta fechaVencimiento
-        CONVERTIDO,   // se pago: es una compra
-        ABANDONADO;   // el usuario lo abandono o se vencio el tiempo
+        ACTIVO,       // lo está armando: entradas apartadas hasta fechaVencimiento
+        EN_PAGO,      // en la pantalla de pago: reloj de pago nuevo hasta fechaVencimiento
+        CONVERTIDO,   // ya se pagó: es una compra
+        ABANDONADO;   // lo abandonó o se venció el tiempo
 
-        // Un usuario tiene como maximo un carrito en alguno de estos estados.
+        // Un usuario tiene como máximo un carrito en alguno de estos estados
         public static final List<EstadoCarrito> EN_CURSO = List.of(ACTIVO, EN_PAGO);
     }
 }

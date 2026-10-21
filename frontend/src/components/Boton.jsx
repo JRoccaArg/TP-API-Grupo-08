@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom'
 
-// Botón reutilizable. Con "to" navega (Link); sin "to" ejecuta onClick.
-// "variante" cambia el aspecto: oro (relleno dorado), contorno u oscuro.
+// Con "to" navega (Link); sin "to" ejecuta onClick. "variante": oro (relleno dorado), contorno u oscuro
 export default function Boton({
   to,
   state,

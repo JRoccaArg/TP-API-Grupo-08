@@ -5,10 +5,8 @@ import { pedir } from './pedir.js'
 // Lo calcula el back con las compras confirmadas, así que lo recaudado es lo que realmente se pagó.
 export const obtenerEstadisticas = (token, eventoId) => pedir('GET', `/eventos/${eventoId}/estadisticas`, token)
 
-// Qué porcentaje es "parte" de "total", redondeado (0 si no hay total).
 export const porcentaje = (parte, total) => (total > 0 ? Math.round((parte / total) * 100) : 0)
 
-// Las cuatro tarjetas del resumen, armadas a partir de las estadísticas del back.
 export const datosDelResumen = (estadisticas) => [
   {
     etiqueta: 'Entradas vendidas',
