@@ -15,22 +15,16 @@ Un visitante mira el catálogo y el detalle de cada evento. Con su cuenta arma u
 
 Necesitás Java 17 o más, Node 20.19 o más y un SQL Server local con una base vacía llamada `Zenoir_Prod`. Las tablas las crea el back solo.
 
-**Back** (desde `zenoirprod`):
+**Config de tu máquina.** Creá el archivo `zenoirprod/config/application.properties` (git lo ignora) con la clave de SQL Server y, si querés, el mail:
 
-```bash
-export DB_PASSWORD=tu_clave_de_sql_server
-./mvnw spring-boot:run
+```properties
+spring.datasource.password=la_clave_de_sa
+zenoir.mail.activo=false
 ```
 
-En PowerShell: `$env:DB_PASSWORD="tu_clave"` y `.\mvnw.cmd spring-boot:run`. Queda en `http://localhost:8080`.
+Por defecto se conecta a `localhost:1433`, base `Zenoir_Prod`, usuario `sa`. Para otros valores se agregan `spring.datasource.url` y `spring.datasource.username`, o las variables `DB_HOST`, `DB_PORT`, `DB_NAME` y `DB_USER`. Para una instancia con nombre (por ejemplo `SQLEXPRESS`) se pasa la URL completa en `spring.datasource.url`. Sin ese archivo (y sin `DB_PASSWORD`) el back arranca con una base en memoria, vacía de datos propios.
 
-Por defecto se conecta a `localhost:1433`, base `Zenoir_Prod`, usuario `sa`. Se puede cambiar con `DB_HOST`, `DB_PORT`, `DB_NAME` y `DB_USER`. Para una instancia con nombre (por ejemplo `SQLEXPRESS`) se pasa la URL completa en `SPRING_DATASOURCE_URL`.
-
-Desde VS Code: abrí la carpeta `zenoirprod`, copiá `.env.example` como `.env` con la clave de SQL Server y ejecutá "Zenoir back" en Run and Debug.
-
-Si no hay `DB_PASSWORD`, el back arranca solo con una base en memoria (los datos se pierden al apagar), así levanta con el botón de ejecutar de cualquier editor y sin SQL Server. Con `DB_PASSWORD` usa SQL Server.
-
-En modo base en memoria se cargan solos unos eventos de ejemplo (sin fotos) y dos usuarios: administrador `admin@zenoir.com` / `Admin#2026ok` y comprador `usuario@zenoir.com` / `Usuario#2026ok`.
+**Back.** Desde VS Code: abrí la carpeta `zenoirprod` y ejecutá `ZenoirprodApplication` (o "Zenoir back" en Run and Debug). Desde la terminal, en `zenoirprod`: `./mvnw spring-boot:run` (en Windows `.\mvnw.cmd spring-boot:run`). Queda en `http://localhost:8080`.
 
 **Front** (desde `frontend`):
 
