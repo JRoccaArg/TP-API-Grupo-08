@@ -211,3 +211,30 @@ test('envía precios con coma como decimales para Spring sin perder el filtro de
   assert.equal(llamadas[0].url.searchParams.get('precioMin'), '0')
   assert.equal(llamadas[0].url.searchParams.get('precioMax'), '8500.50')
 })
+
+describe('fotos de la locación en el detalle del evento', { concurrency: false }, () => {
+  const resolver = (fotosDelLugar) => (url) => {
+    if (url.pathname === '/api/eventos/7') return responder(evento(7, { locacionId: 3 }))
+    if (url.pathname === '/api/eventosTiposEntrada/evento/7') return responder(pagina([]))
+    if (url.pathname === '/api/eventos/7/imagenes') return responder(pagina([{ id: 1, tipoImagenEvento: 'PORTADA', orden: 1 }, { id: 2, tipoImagenEvento: 'GALERIA', orden: 2 }]))
+    if (url.pathname === '/api/locaciones/3/imagenes') return fotosDelLugar
+    return responder({}, 404)
+  }
+
+  test('suman al final de la galería las fotos de la locación, como una foto más, sin pisar los ids del evento', async () => {
+    simularFetch(resolver(responder(pagina([{ id: 2, orden: 2, textoAlternativo: 'Salón' }, { id: 1, orden: 1, textoAlternativo: 'Barra' }]))))
+    const detalle = await obtenerEvento(7, undefined, { fotosDelLugar: true })
+    assert.deepEqual(detalle.imagenes.map((imagen) => imagen.id), [1, 2, 'lugar-1', 'lugar-2'])
+    assert.equal(detalle.imagenes[2].tipoImagenEvento, 'GALERIA')
+    assert.equal(detalle.imagenes[2].descripcion, 'Barra')
+    assert.match(detalle.imagenes[2].url, /\/locaciones\/3\/imagenes\/1\/archivo$/)
+  })
+
+  test('sin pedirlo (administración) solo trae las fotos del evento, y si falla el pedido la galería queda como estaba', async () => {
+    const llamadas = simularFetch(resolver(responder(pagina([{ id: 1, orden: 1 }]))))
+    assert.deepEqual((await obtenerEvento(7)).imagenes.map((imagen) => imagen.id), [1, 2])
+    assert.equal(llamadas.some(({ url }) => url.pathname.startsWith('/api/locaciones')), false)
+    simularFetch(resolver(responder({ message: 'caído' }, 500)))
+    assert.deepEqual((await obtenerEvento(7, undefined, { fotosDelLugar: true })).imagenes.map((imagen) => imagen.id), [1, 2])
+  })
+})

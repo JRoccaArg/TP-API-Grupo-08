@@ -76,7 +76,25 @@ function completarEvento(evento, token) {
     })))
 }
 
-export const obtenerEvento = (id, token) => consultar(`/eventos/${id}`, token).then((evento) => completarEvento(evento, token))
+// Las fotos de la locación se suman al final de la galería como una foto más. Se guardan una sola vez, en la locación, y las
+// comparten todos sus eventos. Si no se pueden pedir (o la locación no tiene), la galería queda con las del evento.
+function conFotosDelLugar(evento) {
+  return consultarPaginas(`/locaciones/${evento.locacionId}/imagenes`).then((fotos) => {
+    const delLugar = [...fotos].sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0) || a.id - b.id).map((foto) => ({
+      ...foto,
+      id: `lugar-${foto.id}`, // no se pisa con el id de una foto del evento
+      tipoImagenEvento: 'GALERIA',
+      descripcion: foto.textoAlternativo,
+      url: urlApi(`/locaciones/${evento.locacionId}/imagenes/${foto.id}/archivo`),
+    }))
+    return { ...evento, imagenes: [...evento.imagenes, ...delLugar] }
+  }).catch(() => evento)
+}
+
+// "fotosDelLugar" solo lo pide el detalle público: las pantallas de administración muestran únicamente las fotos del evento.
+export const obtenerEvento = (id, token, { fotosDelLugar = false } = {}) => consultar(`/eventos/${id}`, token)
+  .then((evento) => completarEvento(evento, token))
+  .then((evento) => (fotosDelLugar ? conFotosDelLugar(evento) : evento))
 
 // De a un evento por vez: no se disparan cientos de solicitudes simultáneas.
 export function completarEventos(eventos, token) {
@@ -127,7 +145,7 @@ function consultarDisponibilidades(seleccion) {
 }
 
 export function verificarSeleccion(evento, seleccion) {
-  return obtenerEvento(evento.id).then((actualizado) =>
+  return obtenerEvento(evento.id, undefined, { fotosDelLugar: true }).then((actualizado) =>
     consultarDisponibilidades(seleccion).then((disponibilidades) => {
       const nueva = actualizado.errorOfertas ? [] : ajustarSeleccion(seleccion, actualizado.ofertas, actualizado)
       const cambiaronPrecios = nueva.some((item) =>

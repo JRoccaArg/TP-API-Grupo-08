@@ -38,7 +38,7 @@ function DetalleEvento({ id, usuario, onConfirmarSeleccion, cargaCarrito }) {
   useEffect(() => {
     if (!idValido) return undefined
     let activo = true
-    obtenerEvento(id).then((datos) => {
+    obtenerEvento(id, undefined, { fotosDelLugar: true }).then((datos) => {
       if (!activo) return
       setEvento(datos)
       setAhora(Date.now())
