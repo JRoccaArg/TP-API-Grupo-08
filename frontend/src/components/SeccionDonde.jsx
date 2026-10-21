@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import MarcaSeccion from './MarcaSeccion.jsx'
+import SeccionConAncla from './SeccionConAncla.jsx'
 import TarjetaLugar from './TarjetaLugar.jsx'
 import { obtenerLocacionesConFotos } from '../utils/apiAdmin.js'
 
@@ -23,8 +23,7 @@ export default function SeccionDonde({ listo }) {
   }
 
   return (
-    <section id="donde" className="donde">
-      <MarcaSeccion ancla="donde" listo={listo} />
+    <SeccionConAncla id="donde" className="donde" listo={listo}>
       <div className="donde__cabecera">
         <div>
           <p className="donde__etiqueta">Dónde</p>
@@ -58,6 +57,6 @@ export default function SeccionDonde({ listo }) {
           ))}
         </div>
       )}
-    </section>
+    </SeccionConAncla>
   )
 }

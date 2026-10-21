@@ -1,5 +1,5 @@
 /* Catálogo público: todos los estilos quedan limitados a su sección o al inicio. */
-.catalogo-eventos { scroll-margin-top: 104px; padding: 100px 0 112px; }
+.catalogo-eventos { scroll-margin-top: 0; padding: 100px 0 112px; }
 .catalogo-eventos .fechas__cabecera { max-width: 1600px; margin: 0 auto; padding: 0 56px; }
 .catalogo-eventos .fechas__cabecera p { max-width: 290px; line-height: 1.5; }
 .catalogo-eventos__contenido { max-width: 1600px; margin: 42px auto 0; padding: 0 56px; }
