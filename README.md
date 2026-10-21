@@ -28,7 +28,7 @@ Por defecto se conecta a `localhost:1433`, base `Zenoir_Prod`, usuario `sa`. Se 
 
 Desde VS Code: abrí la carpeta `zenoirprod`, copiá `.env.example` como `.env` con la clave de SQL Server y ejecutá "Zenoir back" en Run and Debug.
 
-Sin SQL Server también anda con una base en memoria (los datos se pierden al apagar): `./mvnw spring-boot:run -Dspring-boot.run.profiles=dev`.
+Si no hay `DB_PASSWORD`, el back arranca solo con una base en memoria (los datos se pierden al apagar), así levanta con el botón de ejecutar de cualquier editor y sin SQL Server. Con `DB_PASSWORD` usa SQL Server.
 
 **Front** (desde `frontend`):
 
