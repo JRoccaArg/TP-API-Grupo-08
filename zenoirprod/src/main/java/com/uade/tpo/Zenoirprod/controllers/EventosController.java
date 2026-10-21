@@ -64,8 +64,15 @@ public class EventosController {
             @RequestParam(defaultValue = "false") boolean catalogo,
             @RequestParam(defaultValue = "false") boolean proximo,
             @RequestParam(defaultValue = "lejanos") String orden,
+            @RequestParam(required = false) String estadoEvento,
             Authentication authentication
     ) throws PaginacionInvalidaException, EventoInvalidoException {
+        if (estadoEvento != null || orden.equals("menor-precio") || orden.equals("mayor-precio") || orden.equals("proximos")) {
+            Page<Evento> pagina = eventosService.getCatalogo(PageableFactory.crear(page, size), nombre, categoriaId,
+                    precioMin, precioMax, estadoEvento == null ? "todos" : estadoEvento,
+                    orden.equals("antiguos") ? "proximos" : orden);
+            return ResponseEntity.ok(pagina.map(EventoResponse::fromEntity));
+        }
         // Solo afecta al catalogo: "lejanos" = la fecha mas futura primero; "antiguos" = la mas antigua primero.
         if (!orden.equals("lejanos") && !orden.equals("antiguos")) {
             throw new PaginacionInvalidaException("El orden debe ser 'lejanos' o 'antiguos'.");
@@ -75,6 +82,11 @@ public class EventosController {
         Page<Evento> pagina = eventosService.getEventos(PageableFactory.crear(page, size),
                 nombre, categoriaId, precioMin, precioMax, soloPublicados, proximo, orden.equals("antiguos"));
         return ResponseEntity.ok(pagina.map(EventoResponse::fromEntity));
+    }
+
+    @GetMapping("/rango-precios")
+    public ResponseEntity<java.util.Map<String, BigDecimal>> getRangoPrecios() {
+        return ResponseEntity.ok(java.util.Map.of("maximo", eventosService.precioMaximoCatalogo()));
     }
 
     @GetMapping("/{id}")

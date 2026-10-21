@@ -77,4 +77,11 @@ class CatalogoControllerTest {
             .andExpect(status().isOk()).andExpect(jsonPath("$.content").isEmpty())
             .andExpect(jsonPath("$.totalElements").value(0));
     }
+    @Test void enviaEstadoYOrdenPorPrecioConLaPaginaSolicitada() throws Exception {
+        when(service.getCatalogo(PageRequest.of(1, 4), null, null, null, null, "cancelados", "menor-precio"))
+                .thenReturn(new PageImpl<Evento>(List.of(), PageRequest.of(1, 4), 0));
+        mvc.perform(get("/eventos").param("page", "1").param("size", "4")
+                .param("estadoEvento", "cancelados").param("orden", "menor-precio"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.content").isEmpty());
+    }
 }

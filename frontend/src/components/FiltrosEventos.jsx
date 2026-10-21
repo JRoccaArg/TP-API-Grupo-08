@@ -1,4 +1,6 @@
-export default function FiltrosEventos({ filtros, categorias, errorPrecio, hayFiltros, onCambiar, onLimpiar }) {
+import RangoPrecios from './RangoPrecios.jsx'
+
+export default function FiltrosEventos({ filtros, maximoPrecio, errorRango, categorias, errorPrecio, hayFiltros, onCambiar, onLimpiar }) {
   const categoriaConocida = !filtros.categoria || categorias.some((categoria) => categoria.id === filtros.categoria)
 
   return (
@@ -16,17 +18,20 @@ export default function FiltrosEventos({ filtros, categorias, errorPrecio, hayFi
             {categorias.map((categoria) => <option key={categoria.id} value={categoria.id}>{categoria.nombre}</option>)}
           </select>
         </label>
-        <label htmlFor="eventos-minimo">
-          <span>Precio mínimo ($)</span>
-          <input id="eventos-minimo" type="text" inputMode="decimal" placeholder="Sin mínimo" value={filtros.precioMin} aria-invalid={Boolean(errorPrecio) || undefined} aria-describedby={errorPrecio ? 'eventos-error-precio eventos-ayuda-precio' : 'eventos-ayuda-precio'} onChange={(evento) => onCambiar('precioMin', evento.target.value)} />
+        <label htmlFor="eventos-estado">
+          <span>Estado del evento</span>
+          <select id="eventos-estado" value={filtros.estadoEvento || 'proximos'} onChange={(evento) => onCambiar('estadoEvento', evento.target.value)}>
+            <option value="todos">Todos</option>
+            <option value="proximos">Próximos</option>
+            <option value="en-curso">En curso</option>
+            <option value="finalizados">Finalizados</option>
+            <option value="cancelados">Cancelados</option>
+          </select>
         </label>
-        <label htmlFor="eventos-maximo">
-          <span>Precio máximo ($)</span>
-          <input id="eventos-maximo" type="text" inputMode="decimal" placeholder="Sin máximo" value={filtros.precioMax} aria-invalid={Boolean(errorPrecio) || undefined} aria-describedby={errorPrecio ? 'eventos-error-precio eventos-ayuda-precio' : 'eventos-ayuda-precio'} onChange={(evento) => onCambiar('precioMax', evento.target.value)} />
-        </label>
+        <RangoPrecios filtros={filtros} maximoPrecio={maximoPrecio} errorRango={errorRango} errorPrecio={errorPrecio} onCambiar={onCambiar} />
       </div>
       <div className="catalogo-filtros__pie">
-        <p id="eventos-ayuda-precio">Buscamos entradas en venta dentro del rango. Ingresá importes sin separadores de miles; usá coma o punto para los centavos.</p>
+        <p id="eventos-ayuda-precio">El rango y el orden por precio usan entradas en venta, con descuentos incluidos. Los eventos sin precio disponible van al final.</p>
         <button type="button" onClick={onLimpiar} disabled={!hayFiltros}>Limpiar filtros</button>
       </div>
       {errorPrecio && <p id="eventos-error-precio" className="catalogo-filtros__error" role="alert">{errorPrecio}</p>}

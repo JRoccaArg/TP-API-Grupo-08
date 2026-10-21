@@ -57,4 +57,11 @@ class CatalogoServiceTest {
         when(repository.findById(7)).thenReturn(Optional.empty());
         assertThatThrownBy(() -> service.getEventoPorId(7)).isInstanceOf(EventoInexistenteException.class);
     }
+    @Test void rechazaEstadoYOrdenInvalidos() {
+        assertThatThrownBy(() -> service.getCatalogo(pagina, null, null, null, null, "borrador", "proximos"))
+                .isInstanceOf(EventoInvalidoException.class);
+        assertThatThrownBy(() -> service.getCatalogo(pagina, null, null, null, null, "todos", "inventado"))
+                .isInstanceOf(EventoInvalidoException.class);
+        verifyNoInteractions(repository);
+    }
 }

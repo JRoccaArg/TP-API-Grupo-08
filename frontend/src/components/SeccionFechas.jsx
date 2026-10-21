@@ -5,7 +5,7 @@ import ResultadosCatalogo from './ResultadosCatalogo.jsx'
 import { conParametros, hayFiltros, leerFiltrosCatalogo } from '../utils/filtrosCatalogo.js'
 import '../styles/catalogo.css'
 
-export default function SeccionFechas({ datos, categorias = [], cargando = false, error = '', errorCategorias = '', onReintentar }) {
+export default function SeccionFechas({ datos, maximoPrecio, errorRango, categorias = [], cargando = false, error = '', errorCategorias = '', onReintentar }) {
   const eventos = datos.content
   const { hash, search } = useLocation()
   const navigate = useNavigate()
@@ -31,12 +31,12 @@ export default function SeccionFechas({ datos, categorias = [], cargando = false
   const irA = (cambios) => navigate({ search: conParametros(search, cambios) }, { replace: true })
 
   function cambiarFiltro(nombre, valor) {
-    const claves = { busqueda: 'q', categoria: 'categoria', precioMin: 'min', precioMax: 'max', orden: 'orden' }
-    irA({ [claves[nombre]]: valor === 'lejanos' ? '' : valor, pagina: '' })
+    const claves = { busqueda: 'q', categoria: 'categoria', precioMin: 'min', precioMax: 'max', orden: 'orden', estadoEvento: 'estado' }
+    irA({ [claves[nombre]]: valor, pagina: '' })
   }
 
   function limpiarFiltros() {
-    irA({ q: '', categoria: '', min: '', max: '', pagina: '' })
+    irA({ q: '', categoria: '', min: '', max: '', estado: '', periodo: '', fecha: '', orden: '', pagina: '' })
   }
 
   function cambiarPagina(nuevaPagina) {
@@ -51,7 +51,7 @@ export default function SeccionFechas({ datos, categorias = [], cargando = false
         <p>Conseguí tus entradas para todas las fechas de Zenoir.</p>
       </div>
       <div className="catalogo-eventos__contenido">
-        <FiltrosEventos filtros={filtros} categorias={categorias} errorPrecio={errorPrecio} hayFiltros={hayFiltros(filtros)} onCambiar={cambiarFiltro} onLimpiar={limpiarFiltros} />
+        <FiltrosEventos maximoPrecio={maximoPrecio} errorRango={errorRango} filtros={filtros} categorias={categorias} errorPrecio={errorPrecio} hayFiltros={hayFiltros(filtros)} onCambiar={cambiarFiltro} onLimpiar={limpiarFiltros} />
         {errorCategorias && <div className="catalogo-eventos__aviso" role="status"><p>No pudimos cargar las categorías.</p><button type="button" onClick={onReintentar}>Reintentar</button></div>}
 
         <ResultadosCatalogo

@@ -46,7 +46,7 @@ describe('consultas públicas del catálogo', { concurrency: false }, () => {
     const llamadas = simularFetch((url) => {
       if (url.pathname === '/api/eventos') {
         assert.deepEqual(Object.fromEntries(url.searchParams), {
-          page: '2', size: '4', catalogo: 'true', nombre: 'Café & Jazz', categoriaId: '5', precioMin: '0', precioMax: '8500.50',
+          page: '2', size: '4', catalogo: 'true', estadoEvento: 'proximos', orden: 'proximos', nombre: 'Café & Jazz', categoriaId: '5', precioMin: '0', precioMax: '8500.50',
         })
         return responder({ content: eventos, totalElements: 205, totalPages: 52, number: 2, size: 4 })
       }

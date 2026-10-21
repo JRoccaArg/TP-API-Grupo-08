@@ -26,13 +26,10 @@
 .catalogo-eventos__barra { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px 24px; margin-top: 28px; }
 .catalogo-eventos__barra .catalogo-eventos__resultados { margin-top: 0; }
 
-/* Orden por fecha: dos opciones en una píldora; la activa va en dorado */
+/* Desplegable de orden, con el mismo tratamiento negro y dorado de los filtros. */
 .catalogo-orden { display: flex; align-items: center; gap: 14px; }
-.catalogo-orden__rotulo { color: #a7a299; font: 600 10px var(--fuente-marca); letter-spacing: 0.22em; text-transform: uppercase; }
-.catalogo-orden__opciones { display: inline-flex; padding: 4px; border: 1px solid rgba(216, 188, 120, 0.35); border-radius: 999px; background: #0d0d0c; }
-.catalogo-orden__opcion { min-height: 36px; padding: 0 18px; border: 0; border-radius: 999px; background: transparent; color: #c7c3ba; font: 500 13px var(--fuente-ui); transition: color 0.2s, background 0.2s; }
-.catalogo-orden__opcion:hover:not(.catalogo-orden__opcion--activa) { color: var(--oro); }
-.catalogo-orden__opcion--activa { background: var(--oro-relleno); color: var(--tinta-oro); font-weight: 700; box-shadow: 0 6px 18px rgba(199, 156, 72, 0.28); }
+.catalogo-orden__rotulo { color: #bdb5a6; font: 500 12px var(--fuente-ui); white-space: nowrap; }
+.catalogo-orden select { min-height: 44px; padding: 10px 36px 10px 14px; border: 1px solid var(--oro-borde); border-radius: 8px; background: #10100f; color: var(--oro); color-scheme: dark; font: 500 14px var(--fuente-ui); }
 
 .catalogo-eventos__resultados { min-height: 24px; margin-top: 28px; color: #c7c3ba; font: 400 14px / 1.6 var(--fuente-ui); scroll-margin-top: 110px; }
 .catalogo-eventos__resultados strong { color: #f6efdf; font-weight: 600; }
@@ -97,8 +94,6 @@
   .catalogo-eventos .catalogo-filtros select { font-size: 16px; padding: 10px; }
   .catalogo-eventos .catalogo-filtros__pie { align-items: flex-start; flex-direction: column; gap: 8px; }
   .catalogo-orden { width: 100%; flex-direction: column; align-items: flex-start; gap: 8px; }
-  .catalogo-orden__opciones { width: 100%; }
-  .catalogo-orden__opcion { flex: 1; padding: 0 10px; }
   .catalogo-eventos__aviso { flex-direction: column; align-items: flex-start; gap: 6px; padding: 15px; }
   .catalogo-eventos__estado { min-height: 225px; padding: 35px 20px; }
   .catalogo-eventos__estado p { font-size: 15px; }
@@ -145,3 +140,37 @@
 @media (max-width: 640px) {
   .catalogo-eventos .fechas__fila { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* Un único grupo de rango con sus dos extremos, también accesible por teclado. */
+.catalogo-eventos .catalogo-filtros__campos { grid-template-columns: repeat(4, minmax(0, 1fr)); align-items: start; }
+.catalogo-eventos .catalogo-filtros__busqueda { grid-column: span 2; }
+.catalogo-eventos .catalogo-filtros__rango { grid-column: span 2; min-width: 0; border: 0; margin: 0; padding: 0; }
+.catalogo-filtros__rango legend { margin-bottom: 10px; color: #e6e0d2; font: 500 13px var(--fuente-ui); }
+.catalogo-eventos .flyer__estado { position: absolute; z-index: 2; top: 16px; left: 14px; padding: 8px 13px; border: 1px solid #ba9b58; border-radius: 999px; background: #18140deF; color: #e4c989; font: 600 12px var(--fuente-ui); letter-spacing: .04em; }
+.catalogo-eventos .flyer__estado--cancelado { color: #f0b6a8; border-color: #986858; background: #251714ef; }
+@media (max-width: 1100px) {
+  .catalogo-eventos .catalogo-filtros__campos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .catalogo-eventos .catalogo-filtros__campos { grid-template-columns: minmax(0, 1fr); }
+  .catalogo-eventos .catalogo-filtros__busqueda, .catalogo-eventos .catalogo-filtros__rango { grid-column: 1 / -1; }
+  .catalogo-orden select { width: 100%; }
+}
+
+/* Barra doble de precios: pista dorada y dos tiradores blancos. */
+.catalogo-eventos .catalogo-filtros__rango { position: relative; padding-top: 6px; }
+.catalogo-filtros__rango legend { margin-bottom: 4px; }
+.catalogo-rango__valor { position: absolute; right: 0; top: -19px; max-width: 65%; text-align: right; font: 500 14px var(--fuente-ui); color: var(--oro); }
+.catalogo-rango { position: relative; height: 36px; margin: 0 10px; }
+.catalogo-rango__pista { position: absolute; inset: 16px 0 auto; height: 5px; border-radius: 10px; background: linear-gradient(to right, #514b3c var(--desde), #dfbd73 var(--desde), #dfbd73 var(--hasta), #514b3c var(--hasta)); }
+.catalogo-eventos .catalogo-filtros .catalogo-rango__control { position: absolute; inset: 0; width: 100%; height: 36px; min-height: 0; padding: 0; margin: 0; appearance: none; -webkit-appearance: none; pointer-events: none; border: 0; background: transparent; }
+.catalogo-rango__control--maximo { z-index: 4; }
+.catalogo-rango__control::-webkit-slider-thumb { appearance: none; -webkit-appearance: none; pointer-events: auto; width: 20px; height: 20px; border: 1px solid #ddd; border-radius: 50%; background: #fff; box-shadow: 0 2px 7px #0008; cursor: grab; }
+.catalogo-rango__control::-moz-range-thumb { pointer-events: auto; width: 20px; height: 20px; border: 1px solid #ddd; border-radius: 50%; background: #fff; cursor: grab; }
+.catalogo-rango__control:active::-webkit-slider-thumb { cursor: grabbing; box-shadow: 0 0 0 5px #d8bc7830; }
+.catalogo-eventos .catalogo-rango__control:focus-visible { outline: none; }
+.catalogo-rango__control:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--oro); outline-offset: 4px; }
+.catalogo-rango__control:focus-visible::-moz-range-thumb { outline: 2px solid var(--oro); outline-offset: 4px; }
+.catalogo-rango__extremos { display: flex; justify-content: space-between; color: #aaa399; font: 400 12px var(--fuente-ui); }
+.catalogo-filtros__rango:disabled { opacity: .6; }
+@media (max-width: 640px) { .catalogo-rango__valor { font-size: 12px; max-width: 60%; } }

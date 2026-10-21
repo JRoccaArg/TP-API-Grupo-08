@@ -87,13 +87,40 @@ test('la tarjeta identifica el precio dentro del rango sin cambiar el precio gen
   assert.match(mostrar({ precioMax: '0' }), /oro-texto">\$0</)
 })
 
-test('los campos conservan importes inválidos y muestran el motivo de validación', () => {
+test('el rango señala los importes inválidos de la URL y muestra el motivo de validación', () => {
   const html = renderToStaticMarkup(createElement(FiltrosEventos, {
     filtros: { busqueda: '', categoria: '', precioMin: '-1', precioMax: '' }, categorias: [],
     errorPrecio: 'Los precios no pueden ser negativos.', hayFiltros: true,
     onCambiar: () => {}, onLimpiar: () => {},
   }))
-  assert.match(html, /value="-1"/)
+  assert.match(html, /type="range"/)
   assert.match(html, /aria-invalid="true"/)
   assert.match(html, /role="alert">Los precios no pueden ser negativos/)
+})
+
+
+test('finalizados, cancelados y agotados muestran su etiqueta y sólo permiten ver el detalle', () => {
+  for (const [cambios, etiqueta] of [
+    [{ estado: 'FINALIZADO' }, 'Finalizado'], [{ estado: 'CANCELADO' }, 'Cancelado'],
+    [{ ofertas: [{ ...oferta, cantidadDisponible: 0 }] }, 'Agotado'],
+  ]) {
+    const html = renderToStaticMarkup(createElement(MemoryRouter, null, createElement(TarjetaFlyer, {
+      evento: { ...evento, ofertas: [oferta], ...cambios }, ahora,
+    })))
+    assert.match(html, new RegExp(`flyer__estado[^>]*>${etiqueta}`))
+    assert.doesNotMatch(html, /aria-label="Comprar entradas/)
+    assert.match(html, /Ver detalle/)
+  }
+})
+
+test('la barra de precios tiene dos tiradores y usa el máximo real del catálogo', () => {
+  const html = renderToStaticMarkup(createElement(FiltrosEventos, {
+    filtros: { busqueda: '', categoria: '', precioMin: '5000', precioMax: '25000' }, categorias: [],
+    maximoPrecio: 42499.99, errorPrecio: '', hayFiltros: true, onCambiar: () => {}, onLimpiar: () => {},
+  }))
+  assert.equal((html.match(/type="range"/g) || []).length, 2)
+  assert.match(html, /max="50000"/)
+  assert.match(html, /\$5\.000 – \$25\.000/)
+  assert.match(html, /aria-label="Precio mínimo"/)
+  assert.match(html, /aria-label="Precio máximo"/)
 })
