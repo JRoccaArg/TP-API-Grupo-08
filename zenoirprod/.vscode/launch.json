@@ -1,0 +1,14 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Zenoir back",
+            "request": "launch",
+            "mainClass": "com.uade.tpo.Zenoirprod.ZenoirprodApplication",
+            "projectName": "zenoirprod",
+            "cwd": "${workspaceFolder}",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}

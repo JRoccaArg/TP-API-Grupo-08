@@ -26,6 +26,8 @@ En PowerShell: `$env:DB_PASSWORD="tu_clave"` y `.\mvnw.cmd spring-boot:run`. Que
 
 Por defecto se conecta a `localhost:1433`, base `Zenoir_Prod`, usuario `sa`. Se puede cambiar con `DB_HOST`, `DB_PORT`, `DB_NAME` y `DB_USER`. Para una instancia con nombre (por ejemplo `SQLEXPRESS`) se pasa la URL completa en `SPRING_DATASOURCE_URL`.
 
+Desde VS Code: abrí la carpeta `zenoirprod`, copiá `.env.example` como `.env` con la clave de SQL Server y ejecutá "Zenoir back" en Run and Debug.
+
 Sin SQL Server también anda con una base en memoria (los datos se pierden al apagar): `./mvnw spring-boot:run -Dspring-boot.run.profiles=dev`.
 
 **Front** (desde `frontend`):
