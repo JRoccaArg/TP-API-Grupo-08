@@ -1,9 +1,7 @@
 import { precio } from './formatos.js'
-import { pedir } from './pedir.js'
 
-// Cómo viene un evento (solo ADMIN): { vendidas, cupoTotal, recaudado, compras, ingresados, porEntrada: [...] }.
+// Las ventas de un evento llegan del back (solo ADMIN): { eventoId, vendidas, cupoTotal, recaudado, compras, ingresados, porEntrada: [...] }.
 // Lo calcula el back con las compras confirmadas, así que lo recaudado es lo que realmente se pagó.
-export const obtenerEstadisticas = (token, eventoId) => pedir('GET', `/eventos/${eventoId}/estadisticas`, token)
 
 export const porcentaje = (parte, total) => (total > 0 ? Math.round((parte / total) * 100) : 0)
 

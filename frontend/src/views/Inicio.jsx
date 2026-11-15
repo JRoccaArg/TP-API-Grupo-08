@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import Hero from '../components/Hero.jsx'
 import Cinta from '../components/Cinta.jsx'
 import SeccionFechas from '../components/SeccionFechas.jsx'
@@ -7,85 +7,35 @@ import SeccionFotos from '../components/SeccionFotos.jsx'
 import SeccionDonde from '../components/SeccionDonde.jsx'
 import Sponsors from '../components/Sponsors.jsx'
 import Footer from '../components/Footer.jsx'
-import { obtenerProximos, obtenerCatalogo, obtenerCategorias, obtenerRangoPrecios } from '../utils/apiEventos.js'
-import { conParametros, leerFiltrosCatalogo } from '../utils/filtrosCatalogo.js'
+import { obtenerProximos } from '../redux/eventosSlice'
 import { esperaProximaFecha } from '../utils/fechas.js'
 
 export default function Inicio() {
-  const { search } = useLocation()
-  const navigate = useNavigate()
-  const { busqueda, categoria, precioMin, precioMax, orden, pagina, estadoEvento, errorPrecio } = leerFiltrosCatalogo(new URLSearchParams(search))
-  const [consulta, setConsulta] = useState({ clave: '', datos: { content: [], totalElements: 0, totalPages: 0 }, error: '' })
-  const [maximoPrecio, setMaximoPrecio] = useState(null)
-  const [errorRango, setErrorRango] = useState('')
-  const [categorias, setCategorias] = useState([])
-  const [errorCategorias, setErrorCategorias] = useState('')
-  const [reintento, setReintento] = useState(0)
-  const clave = JSON.stringify([busqueda, categoria, precioMin, precioMax, orden, pagina, estadoEvento, reintento])
-  const cargando = !errorPrecio && consulta.clave !== clave
-  const error = consulta.clave === clave ? consulta.error : ''
-  const reintentar = () => setReintento((actual) => actual + 1)
-  const [proximos, setProximos] = useState([])
-  const proximo = proximos[0] || null
-  const [intento, setIntento] = useState(0)
+  const dispatch = useDispatch()
+  const { proximos, paginas, loading, error } = useSelector((state) => state.eventos)
+  const proximo = proximos?.[0] || null
+  // Las secciones de abajo bajan solas a su ancla recién cuando el catálogo terminó de cargar
+  const listo = (paginas.length > 0 || Boolean(error)) && !loading
 
+  // null es que todavía no se pidieron
   useEffect(() => {
-    let activo = true
-    obtenerRangoPrecios().then((rango) => {
-      if (activo) { setMaximoPrecio(rango.maximo); setErrorRango('') }
-    }).catch(() => { if (activo) setErrorRango('No pudimos cargar el rango de precios.') })
-    return () => { activo = false }
-  }, [reintento])
+    if (proximos === null) dispatch(obtenerProximos())
+  }, [dispatch, proximos])
 
-  useEffect(() => {
-    let activo = true
-    obtenerProximos().then((lista) => {
-      if (activo) setProximos(lista)
-    }).catch(() => {
-      if (activo) setProximos([])
-    })
-    return () => { activo = false }
-  }, [intento, reintento])
-
+  // Cuando empieza la próxima fecha se piden de nuevo, para mostrar la siguiente
   useEffect(() => {
     if (!proximo) return undefined
-    const espera = esperaProximaFecha(proximo.fechaHoraInicio)
-    const reloj = setTimeout(() => setIntento((actual) => actual + 1), espera)
+    const reloj = setTimeout(() => dispatch(obtenerProximos()), esperaProximaFecha(proximo.fechaHoraInicio))
     return () => clearTimeout(reloj)
-  }, [proximo])
-
-  useEffect(() => {
-    let activo = true
-    obtenerCategorias().then((lista) => {
-      if (activo) { setCategorias(lista); setErrorCategorias('') }
-    }).catch((fallo) => {
-      if (activo) setErrorCategorias(fallo.message)
-    })
-    return () => { activo = false }
-  }, [reintento])
-
-  useEffect(() => {
-    if (errorPrecio) return undefined
-    let activo = true
-    const espera = setTimeout(() => obtenerCatalogo({ busqueda, categoria, precioMin, precioMax, orden, pagina, estadoEvento }).then((datos) => {
-      if (!activo) return
-      const ultima = Math.max(1, datos.totalPages)
-      // Si la página pedida ya no existe (por ejemplo, tras un filtro), se pasa a la última que haya.
-      if (pagina > ultima) navigate({ search: conParametros(search, { pagina: ultima > 1 ? String(ultima) : '' }) }, { replace: true })
-      else setConsulta({ clave, datos, error: '' })
-    }).catch((fallo) => {
-      if (activo) setConsulta({ clave, datos: { content: [], totalElements: 0, totalPages: 0 }, error: fallo.message })
-    }), 180)
-    return () => { activo = false; clearTimeout(espera) }
-  }, [busqueda, categoria, precioMin, precioMax, orden, pagina, estadoEvento, errorPrecio, clave, search, navigate])
+  }, [dispatch, proximo])
 
   return (
     <div className="inicio-catalogo">
-      <Hero proximo={proximo || null} />
-      <Cinta eventos={proximos} />
-      <SeccionFechas maximoPrecio={maximoPrecio} errorRango={errorRango} datos={consulta.datos} categorias={categorias} cargando={cargando} error={error} errorCategorias={errorCategorias} onReintentar={reintentar} />
-      <SeccionFotos listo={!cargando} />
-      <SeccionDonde listo={!cargando} />
+      <Hero proximo={proximo} />
+      <Cinta eventos={proximos || []} />
+      <SeccionFechas />
+      <SeccionFotos listo={listo} />
+      <SeccionDonde listo={listo} />
       <Sponsors />
       <Footer />
     </div>

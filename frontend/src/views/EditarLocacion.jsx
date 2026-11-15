@@ -1,35 +1,42 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import { useParams } from 'react-router-dom'
 import Aviso from '../components/Aviso.jsx'
 import AvisoAcceso from '../components/AvisoAcceso.jsx'
 import EdicionLocacion from '../components/EdicionLocacion.jsx'
-import { cargarLocacion } from '../utils/apiAdmin.js'
+import { obtenerFotosLocacion, obtenerLocaciones } from '../redux/locacionesSlice'
 
-// Pantalla "/admin/locaciones/:id": carga la locación con sus fotos y se la pasa a EdicionLocacion. Solo ADMIN.
+// Pantalla "/admin/locaciones/:id": busca la locación en el store (si hace falta pide la lista y sus fotos) y se la pasa a EdicionLocacion. Solo ADMIN.
 export default function EditarLocacion({ usuario }) {
   const { id } = useParams()
-  const [carga, setCarga] = useState({ estado: 'cargando' })
+  const dispatch = useDispatch()
+  const { items, error, cargado } = useSelector((state) => state.locaciones)
   const esAdmin = usuario?.rol === 'ADMIN'
+  // El id de la URL es texto y el del back es número: se convierte para comparar con triple igual
+  const locacion = items.find((item) => item.id === Number(id))
+  const locacionId = locacion?.id
+  const fotosPedidas = Boolean(locacion?.imagenes)
 
   useEffect(() => {
-    if (!esAdmin) return undefined
-    let activo = true
-    cargarLocacion(id)
-      .then((locacion) => { if (activo) setCarga({ estado: 'listo', locacion }) })
-      .catch((fallo) => {
-        if (activo) setCarga({ estado: 'error', mensaje: fallo.message, noExiste: [400, 404].includes(fallo.estado) })
-      })
-    return () => { activo = false }
-  }, [id, esAdmin])
+    if (esAdmin && !cargado) dispatch(obtenerLocaciones())
+  }, [dispatch, esAdmin, cargado])
+
+  // Las fotos se piden una sola vez: si ya vinieron desde la lista o el inicio, no se piden de nuevo
+  useEffect(() => {
+    if (locacionId && !fotosPedidas) dispatch(obtenerFotosLocacion(locacionId))
+  }, [dispatch, locacionId, fotosPedidas])
 
   if (!esAdmin) {
     return <AvisoAcceso usuario={usuario} para="ADMIN" sinSesion="Esta sección es solo para administradores." />
   }
-  if (carga.estado === 'cargando') {
+  if (!cargado && error) {
+    return <Aviso mensaje={error} boton="Volver" to="/admin/locaciones" />
+  }
+  if (!cargado || (locacion && !fotosPedidas)) {
     return <main className="pagina admin"><p className="admin__cargando" role="status">Cargando locación…</p></main>
   }
-  if (carga.estado === 'error') {
-    return <Aviso mensaje={carga.noExiste ? 'No encontramos esta locación.' : carga.mensaje} boton="Volver" to="/admin/locaciones" />
+  if (!locacion) {
+    return <Aviso mensaje="No encontramos esta locación." boton="Volver" to="/admin/locaciones" />
   }
-  return <EdicionLocacion locacion={carga.locacion} token={usuario.token} />
+  return <EdicionLocacion locacion={locacion} token={usuario.token} />
 }

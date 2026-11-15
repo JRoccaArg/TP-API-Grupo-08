@@ -1,5 +1,7 @@
 import { ajustarSeleccion } from './eventos.js'
-import { normalizarImporteFiltro } from './filtrosCatalogo.js'
+import { consultaCatalogo, EVENTOS_POR_PAGINA } from './filtrosCatalogo.js'
+
+export { EVENTOS_POR_PAGINA }
 
 const API_BASE = (import.meta.env?.VITE_API_URL || '/api').replace(/\/$/, '')
 const TAMANO_PAGINA = 100
@@ -102,18 +104,8 @@ export function completarEventos(eventos, token) {
 }
 
 // El catálogo pide una sola página; las ofertas e imágenes se completan sólo para esa página.
-// Cuántos eventos se muestran por página del catálogo (se pide al back y se usa para el contador "Mostrando 1–4").
-export const EVENTOS_POR_PAGINA = 4
-
-export function obtenerCatalogo({ busqueda = '', categoria = '', precioMin = '', precioMax = '', orden = 'proximos', pagina = 1, estadoEvento = 'proximos' } = {}) {
-  const parametros = new URLSearchParams({ page: String(pagina - 1), size: String(EVENTOS_POR_PAGINA), catalogo: 'true' })
-  if (busqueda.trim()) parametros.set('nombre', busqueda.trim())
-  if (categoria) parametros.set('categoriaId', categoria)
-  parametros.set('orden', orden === 'antiguos' ? 'proximos' : orden)
-  parametros.set('estadoEvento', estadoEvento)
-  if (precioMin !== '') parametros.set('precioMin', normalizarImporteFiltro(precioMin))
-  if (precioMax !== '') parametros.set('precioMax', normalizarImporteFiltro(precioMax))
-  return consultar(`/eventos?${parametros}`).then((datos) => {
+export function obtenerCatalogo(filtros) {
+  return consultar(`/eventos?${consultaCatalogo(filtros)}`).then((datos) => {
     if (!Array.isArray(datos?.content) || !Number.isInteger(datos.totalPages) || datos.totalPages < 0 ||
         !Number.isInteger(datos.totalElements) || datos.totalElements < 0 ||
         !Number.isInteger(datos.number) || datos.number < 0) {

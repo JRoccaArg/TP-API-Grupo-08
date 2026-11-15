@@ -1,45 +1,42 @@
 import { useState } from 'react'
+import { useDispatch } from 'react-redux'
 import FotoAdmin from './FotoAdmin.jsx'
 import SubirFotos from './SubirFotos.jsx'
-import { cambiarImagenLocacion, eliminarImagenLocacion, ordenarFotosLocacion, subirImagenLocacion, urlFotoLocacion } from '../utils/apiAdmin.js'
-import { cambiosDeOrden, moverFoto, reemplazarFoto, sinFoto } from '../utils/fotos.js'
+import { cambiarOrdenFotoLocacion, eliminarFotoLocacion, subirFotoLocacion } from '../redux/locacionesSlice'
+import { cambiosDeOrden, moverFoto, ordenarFotosLocacion, urlFotoLocacion } from '../utils/fotos.js'
 
-// Fotos de una locación (ya guardada): subir varias, reordenar y quitar. Sin portada, solo el orden. Cada respuesta del back acomoda la lista en pantalla
-export default function FotosLocacion({ locacionId, nombre, token, inicial }) {
-  const [imagenes, setImagenes] = useState(inicial)
-  const [ocupado, setOcupado] = useState(false)
-  const [error, setError] = useState('')
+// Fotos de una locación (ya guardada): subir varias, reordenar y quitar. Sin portada, solo el orden.
+// Cada pedido es su propia acción: si un clic necesita varios (por ejemplo, mover), se despacha una por pedido.
+export default function FotosLocacion({ locacion, token }) {
+  const dispatch = useDispatch()
+  const [aviso, setAviso] = useState('')
   const [aQuitar, setAQuitar] = useState(null)
-
-  const agregada = (creada) => setImagenes((actuales) => ordenarFotosLocacion([...actuales, urlFotoLocacion(locacionId, creada)]))
-  const guardada = (cambiada) =>
-    setImagenes((actuales) => ordenarFotosLocacion(reemplazarFoto(actuales, urlFotoLocacion(locacionId, cambiada))))
-
-  const enFila = (tareas) => {
-    setOcupado(true)
-    setError('')
-    setAQuitar(null)
-    tareas.reduce((previa, tarea) => previa.then(tarea), Promise.resolve())
-      .catch((fallo) => setError(fallo.message))
-      .then(() => setOcupado(false))
-  }
+  const imagenes = ordenarFotosLocacion(locacion.imagenes.map((foto) => urlFotoLocacion(locacion.id, foto)))
+  const ocupado = Boolean(locacion.guardandoFotos)
 
   const subir = (archivos) => {
+    setAviso('')
     const ultimo = Math.max(0, ...imagenes.map((imagen) => imagen.orden ?? 0))
-    enFila(archivos.map((archivo, indice) => () =>
-      subirImagenLocacion(token, locacionId, { archivo, orden: ultimo + indice + 1, descripcion: nombre }).then(agregada)))
+    archivos.forEach((archivo, indice) => {
+      dispatch(subirFotoLocacion({ token, locacionId: locacion.id, archivo, orden: ultimo + indice + 1, textoAlternativo: locacion.nombre }))
+    })
   }
 
-  const mover = (indice, salto) => enFila(cambiosDeOrden(moverFoto(imagenes, indice, salto))
-    .map(({ foto, orden }) => () => cambiarImagenLocacion(token, locacionId, foto.id, { orden }).then(guardada)))
+  // Las fotos se numeran de 1 en adelante en el nuevo orden: se manda solo cada una que cambió de número
+  const mover = (indice, salto) => {
+    setAQuitar(null)
+    cambiosDeOrden(moverFoto(imagenes, indice, salto)).forEach(({ foto, orden }) => {
+      dispatch(cambiarOrdenFotoLocacion({ token, locacionId: locacion.id, imagenId: foto.id, orden }))
+    })
+  }
 
   const quitar = (imagen) => {
     if (aQuitar !== imagen.id) {
       setAQuitar(imagen.id)
       return
     }
-    enFila([() => eliminarImagenLocacion(token, locacionId, imagen.id)
-      .then(() => setImagenes((actuales) => sinFoto(actuales, imagen.id)))])
+    dispatch(eliminarFotoLocacion({ token, locacionId: locacion.id, imagenId: imagen.id }))
+    setAQuitar(null)
   }
 
   return (
@@ -66,8 +63,8 @@ export default function FotosLocacion({ locacionId, nombre, token, inicial }) {
           ))}
         </ul>
       )}
-      <SubirFotos ocupado={ocupado} onElegir={subir} onError={setError} />
-      {error && <p className="admin__aviso admin__aviso--error" role="alert">{error}</p>}
+      <SubirFotos ocupado={ocupado} onElegir={subir} onError={setAviso} />
+      {aviso && <p className="admin__aviso admin__aviso--error" role="alert">{aviso}</p>}
     </section>
   )
 }

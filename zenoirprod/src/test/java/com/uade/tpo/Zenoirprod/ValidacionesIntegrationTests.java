@@ -3,6 +3,7 @@ package com.uade.tpo.Zenoirprod;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.not;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -237,6 +238,18 @@ class ValidacionesIntegrationTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(Map.of("fechaFinVenta", evento.getFechaHoraFin().toString()))))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void alCambiarElFinDelEventoLaVentaDeSusEntradasCierraEnElNuevoFin() throws Exception {
+        Evento evento = crearEvento("Evento reprogramado", "ACTIVO", 30);
+        EventoTipoEntrada oferta = crearOferta(evento, 10);
+        LocalDateTime nuevoFin = evento.getFechaHoraFin().plusDays(2).withNano(0);
+        mockMvc.perform(patch("/eventos/" + evento.getId()).header("Authorization", "Bearer " + tokenAdmin)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("fechaHoraFin", nuevoFin.toString()))))
+                .andExpect(status().isOk());
+        assertEquals(nuevoFin, eventoTipoEntradaRepository.findById(oferta.getId()).orElseThrow().getFechaFinVenta());
     }
 
     @Test

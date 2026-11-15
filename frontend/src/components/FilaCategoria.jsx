@@ -1,13 +1,13 @@
 import { useState } from 'react'
+import { useDispatch } from 'react-redux'
 import Boton from './Boton.jsx'
 import EdicionCategoria from './EdicionCategoria.jsx'
-import { eliminarCategoria } from '../utils/apiCategorias.js'
+import { eliminarCategoria } from '../redux/categoriasSlice'
 
-// Una categoría de la lista del admin. Eliminar pide segunda confirmación; si tiene eventos el back responde 409 y no se borra
-export default function FilaCategoria({ categoria, token, onActualizada, onEliminada }) {
+// Una categoría de la lista del admin. Eliminar pide segunda confirmación; si tiene eventos el back no la borra y la lista muestra el error
+export default function FilaCategoria({ categoria, token }) {
+  const dispatch = useDispatch()
   const [editando, setEditando] = useState(false)
-  const [aviso, setAviso] = useState('')
-  const [ocupado, setOcupado] = useState(false)
   const [confirmando, setConfirmando] = useState(false)
   const activa = categoria.activo !== false
 
@@ -16,30 +16,14 @@ export default function FilaCategoria({ categoria, token, onActualizada, onElimi
       setConfirmando(true)
       return
     }
-    setOcupado(true)
-    eliminarCategoria(token, categoria.id)
-      .then(() => onEliminada(categoria.id))
-      .catch((fallo) => {
-        setConfirmando(false)
-        setOcupado(false)
-        setAviso(fallo.estado === 409
-          ? 'Esta categoría tiene eventos y no se puede eliminar. Podés dejarla inactiva para que no se sugiera en eventos nuevos.'
-          : fallo.message)
-      })
+    dispatch(eliminarCategoria({ token, id: categoria.id }))
+    setConfirmando(false)
   }
 
   if (editando) {
     return (
       <li className="fila-tipo fila-tipo--edicion">
-        <EdicionCategoria
-          categoria={categoria}
-          token={token}
-          onCancelar={() => setEditando(false)}
-          onGuardado={(actualizada) => {
-            onActualizada(actualizada)
-            setEditando(false)
-          }}
-        />
+        <EdicionCategoria categoria={categoria} token={token} onClose={() => setEditando(false)} />
       </li>
     )
   }
@@ -51,14 +35,13 @@ export default function FilaCategoria({ categoria, token, onActualizada, onElimi
       </div>
       <p className={`fila-admin__estado ${activa ? 'oro-texto' : ''}`}>{activa ? 'ACTIVA' : 'INACTIVA'}</p>
       <div className="fila-admin__acciones">
-        <Boton variante="contorno" clase="boton--chico" deshabilitado={ocupado} onClick={() => { setAviso(''); setConfirmando(false); setEditando(true) }}>
+        <Boton variante="contorno" clase="boton--chico" onClick={() => { setConfirmando(false); setEditando(true) }}>
           Editar
         </Boton>
-        <Boton variante="peligro" clase="boton--chico" deshabilitado={ocupado} onClick={eliminar}>
+        <Boton variante="peligro" clase="boton--chico" onClick={eliminar}>
           {confirmando ? 'Confirmar' : 'Eliminar'}
         </Boton>
       </div>
-      {aviso && <p className="admin__aviso admin__aviso--error fila-tipo__aviso" role="alert">{aviso}</p>}
     </li>
   )
 }

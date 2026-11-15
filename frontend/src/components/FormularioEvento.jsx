@@ -1,13 +1,27 @@
+import { useDispatch, useSelector } from 'react-redux'
 import CampoElegirOCrear from './CampoElegirOCrear.jsx'
 import CampoLinea from './CampoLinea.jsx'
 import CampoSelect from './CampoSelect.jsx'
 import { estadosEvento } from '../data/catalogos.js'
+import { crearCategoria } from '../redux/categoriasSlice'
+import { crearLocacion } from '../redux/locacionesSlice'
 import { opcionesDeEstados } from '../utils/opciones.js'
 
-// Datos del evento, con los campos que pide el back. No guarda nada: muestra "datos" y avisa cada cambio con onCambiar(campo, valor).
-// El lugar y la categoría se eligen de una lista; con "crear nuevo" se escribe el nombre y se crea al guardar el evento.
-export default function FormularioEvento({ datos, onCambiar, locaciones, categorias }) {
+// Datos del evento, con los campos que pide el back. Muestra "datos" y avisa cada cambio con onCambiar(campo, valor).
+// El lugar y la categoría se eligen de una lista; si no están, cada uno tiene su botón «Crear», que despacha su alta (un pedido).
+export default function FormularioEvento({ datos, onCambiar, locaciones, categorias, token }) {
+  const dispatch = useDispatch()
+  const { error: errorCategorias } = useSelector((state) => state.categorias)
+  const { error: errorLocaciones } = useSelector((state) => state.locaciones)
   const cambiar = (campo) => (evento) => onCambiar(campo, evento.target.value)
+
+  const crearCategoriaNueva = () => {
+    dispatch(crearCategoria({ token, nombre: datos.categoria.trim(), activo: true }))
+  }
+
+  const crearLugarNuevo = () => {
+    dispatch(crearLocacion({ token, nombre: datos.lugar.trim(), direccion: datos.direccion.trim() }))
+  }
 
   return (
     <form className="form-evento" onSubmit={(e) => e.preventDefault()}>
@@ -32,10 +46,13 @@ export default function FormularioEvento({ datos, onCambiar, locaciones, categor
           textoVacio="Elegí una categoría"
           textoNuevo="+ Crear categoría nueva…"
           etiquetaNuevo="NOMBRE DE LA CATEGORÍA NUEVA"
+          textoCrear="Crear categoría"
+          puedeCrear={datos.categoria.trim() !== ''}
+          error={errorCategorias}
+          nota="Se crea en el momento con este botón y queda elegida. Después la podés editar en Administrar → Categorías."
           onCambiar={(valor) => onCambiar('categoria', valor)}
-        >
-          <p className="form-evento__nota">Se crea al guardar el evento. Después la podés editar en Administrar → Categorías.</p>
-        </CampoElegirOCrear>
+          onCrear={crearCategoriaNueva}
+        />
       </div>
       <CampoElegirOCrear
         etiqueta="LUGAR"
@@ -45,9 +62,13 @@ export default function FormularioEvento({ datos, onCambiar, locaciones, categor
         textoVacio="Elegí un lugar"
         textoNuevo="+ Crear lugar nuevo…"
         etiquetaNuevo="NOMBRE DEL LUGAR NUEVO"
+        textoCrear="Crear lugar"
+        puedeCrear={datos.lugar.trim() !== '' && datos.direccion.trim() !== ''}
+        error={errorLocaciones}
+        nota="Se crea en el momento con este botón y queda elegido. Después le podés sumar fotos en Administrar → Locaciones."
         onCambiar={(valor) => onCambiar('lugar', valor)}
+        onCrear={crearLugarNuevo}
       >
-        <p className="form-evento__nota">Se crea al guardar el evento. Después le podés sumar fotos en Administrar → Locaciones.</p>
         <CampoLinea etiqueta="DIRECCIÓN DEL LUGAR" nombre="direccion" valor={datos.direccion} onChange={cambiar('direccion')} placeholder="Calle y número" />
       </CampoElegirOCrear>
     </form>

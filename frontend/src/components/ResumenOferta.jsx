@@ -1,13 +1,14 @@
 import { useState } from 'react'
-import { eliminarOferta } from '../utils/apiAdmin.js'
+import { useDispatch } from 'react-redux'
+import { eliminarOferta } from '../redux/eventosSlice'
 import { vendidas } from '../utils/formOferta.js'
 import { precio } from '../utils/formatos.js'
 
-// Una entrada ya cargada en el evento, con sus datos y las acciones de editarla o quitarla (quitar pide segunda confirmación; avisa con onQuitada(id))
-export default function ResumenOferta({ oferta, token, onEditar, onQuitada }) {
+// Una entrada ya cargada en el evento, con sus datos y las acciones de editarla o quitarla (quitar pide segunda confirmación).
+// Si el back no la deja quitar (ya tiene ventas o reservas), el error queda en el evento y se ve abajo.
+export default function ResumenOferta({ oferta, eventoId, token, onEditar }) {
+  const dispatch = useDispatch()
   const [confirmando, setConfirmando] = useState(false)
-  const [ocupado, setOcupado] = useState(false)
-  const [aviso, setAviso] = useState('')
   const agotada = oferta.estado === 'AGOTADO' || oferta.cantidadDisponible === 0
   const descuento =
     oferta.porcentajeDescuento > 0 ? `${oferta.porcentajeDescuento}% de descuento` : 'sin descuento'
@@ -17,15 +18,8 @@ export default function ResumenOferta({ oferta, token, onEditar, onQuitada }) {
       setConfirmando(true)
       return
     }
-    setOcupado(true)
-    setAviso('')
-    eliminarOferta(token, oferta.id)
-      .then(() => onQuitada(oferta.id))
-      .catch((fallo) => {
-        setAviso(fallo.estado === 409 ? 'No se puede quitar: ya tiene ventas o reservas. Podés pausarla desde Editar.' : fallo.message)
-        setConfirmando(false)
-        setOcupado(false)
-      })
+    dispatch(eliminarOferta({ token, eventoId, id: oferta.id }))
+    setConfirmando(false)
   }
 
   return (
@@ -38,12 +32,11 @@ export default function ResumenOferta({ oferta, token, onEditar, onQuitada }) {
         {precio(oferta.precio)} · {descuento} · {vendidas(oferta)} de {oferta.cantidadTotal} vendidas
       </p>
       <div className="oferta-admin__acciones">
-        <button type="button" disabled={ocupado} onClick={onEditar}>Editar</button>
-        <button type="button" className="oferta-admin__quitar" disabled={ocupado} onClick={quitar}>
+        <button type="button" onClick={onEditar}>Editar</button>
+        <button type="button" className="oferta-admin__quitar" onClick={quitar}>
           {confirmando ? 'Confirmar: quitar' : 'Quitar'}
         </button>
       </div>
-      {aviso && <p className="oferta-admin__aviso" role="alert">{aviso}</p>}
     </li>
   )
 }

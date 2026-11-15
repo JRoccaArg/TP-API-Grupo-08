@@ -2,7 +2,7 @@ import EstadoCatalogo from './EstadoCatalogo.jsx'
 import OrdenEventos from './OrdenEventos.jsx'
 import PaginacionEventos from './PaginacionEventos.jsx'
 import TarjetaFlyer from './TarjetaFlyer.jsx'
-import { EVENTOS_POR_PAGINA } from '../utils/apiEventos.js'
+import { EVENTOS_POR_PAGINA } from '../utils/filtrosCatalogo.js'
 
 // Lo que va debajo de los filtros: la carga (cargando, error o sin eventos) o los resultados con su orden y paginación.
 // "referencia" es el div de resultados al que se baja al cambiar de página.

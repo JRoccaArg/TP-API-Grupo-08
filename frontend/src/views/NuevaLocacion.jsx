@@ -1,18 +1,19 @@
 import { useState } from 'react'
+import { useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import AvisoAcceso from '../components/AvisoAcceso.jsx'
 import BarraAcciones from '../components/BarraAcciones.jsx'
 import FormularioLocacion from '../components/FormularioLocacion.jsx'
 import TituloAdmin from '../components/TituloAdmin.jsx'
-import { crearLocacion } from '../utils/apiAdmin.js'
+import { crearLocacion } from '../redux/locacionesSlice'
 import { locacionVacia, validarLocacion } from '../utils/formLocacion.js'
 
-// Pantalla "/admin/locaciones/nueva": el mismo formulario que editar, pero vacío. Al crear, pasa a la edición para cargar fotos. Solo ADMIN.
+// Pantalla "/admin/locaciones/nueva": el mismo formulario que editar, pero vacío. Al crear vuelve a la lista. Solo ADMIN.
 export default function NuevaLocacion({ usuario }) {
   const navigate = useNavigate()
+  const dispatch = useDispatch()
   const [datos, setDatos] = useState(locacionVacia)
   const [aviso, setAviso] = useState('')
-  const [ocupado, setOcupado] = useState(false)
 
   if (usuario?.rol !== 'ADMIN') {
     return <AvisoAcceso usuario={usuario} para="ADMIN" sinSesion="Esta sección es solo para administradores." />
@@ -23,19 +24,15 @@ export default function NuevaLocacion({ usuario }) {
     setAviso('')
   }
 
+  // Se despacha y se vuelve a la lista: si el back la rechaza, la lista muestra el error
   const guardar = () => {
     const problema = validarLocacion(datos)
     if (problema) {
       setAviso(problema)
       return
     }
-    setOcupado(true)
-    crearLocacion(usuario.token, datos)
-      .then((creada) => navigate(`/admin/locaciones/${creada.id}`))
-      .catch((fallo) => {
-        setAviso(fallo.estado === 409 ? 'Ya existe una locación con ese nombre.' : fallo.message)
-        setOcupado(false)
-      })
+    dispatch(crearLocacion({ token: usuario.token, nombre: datos.nombre.trim(), direccion: datos.direccion.trim() }))
+    navigate('/admin/locaciones')
   }
 
   return (
@@ -47,10 +44,10 @@ export default function NuevaLocacion({ usuario }) {
       />
       <div className="admin__columna admin__columna--sola">
         <FormularioLocacion datos={datos} onCambiar={cambiar} />
-        <p className="fotos-admin__nota">Las fotos se suben después de crear la locación, en la pantalla de edición.</p>
+        <p className="fotos-admin__nota">Las fotos se suben después de crear la locación, entrando a editarla desde la lista.</p>
       </div>
       {aviso && <p className="admin__aviso admin__aviso--error" role="alert">{aviso}</p>}
-      <BarraAcciones textoGuardar={ocupado ? 'Creando…' : 'Crear locación'} volverA="/admin/locaciones" ocupado={ocupado} onGuardar={guardar} />
+      <BarraAcciones textoGuardar="Crear locación" volverA="/admin/locaciones" onGuardar={guardar} />
     </main>
   )
 }

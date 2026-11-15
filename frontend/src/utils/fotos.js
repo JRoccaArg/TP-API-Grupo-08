@@ -1,9 +1,15 @@
-// Operaciones sobre la lista de fotos de una pantalla de administración. Se hacen en el navegador con lo que
-// responde el back, así no hace falta volver a pedir la lista después de cada alta, cambio o baja.
-export const reemplazarFoto = (fotos, actualizada) =>
-  fotos.map((foto) => (foto.id === actualizada.id ? { ...foto, ...actualizada } : foto))
+import { urlApi } from './apiEventos.js'
 
-export const sinFoto = (fotos, id) => fotos.filter((foto) => foto.id !== id)
+// Ayudas para mostrar y ordenar fotos en pantalla. No hacen pedidos: el <img> pide el archivo solo con su ruta.
+
+// Las fotos de una locación no tienen tipo (no hay portada): solo un orden. "descripcion" es el texto alternativo.
+export const urlFotoLocacion = (locacionId, foto) => ({
+  ...foto,
+  descripcion: foto.textoAlternativo,
+  url: urlApi(`/locaciones/${locacionId}/imagenes/${foto.id}/archivo`),
+})
+
+export const ordenarFotosLocacion = (fotos) => [...fotos].sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0) || a.id - b.id)
 
 // La lista con la foto de la posición "indice" movida "salto" lugares (-1 sube, 1 baja).
 export function moverFoto(fotos, indice, salto) {

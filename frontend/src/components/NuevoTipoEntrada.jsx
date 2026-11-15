@@ -1,14 +1,15 @@
 import { useState } from 'react'
+import { useDispatch } from 'react-redux'
 import Boton from './Boton.jsx'
 import FormTipoEntrada from './FormTipoEntrada.jsx'
-import { crearTipoEntrada } from '../utils/apiAdmin.js'
+import { crearTipoEntrada } from '../redux/tiposEntradaSlice'
 import { tipoVacio, validarTipo } from '../utils/formTipoEntrada.js'
 
-// Alta de un tipo de entrada nuevo (se usa en la pantalla de tipos y dentro del evento). Queda guardado para cualquier otro evento. Avisa con onCreado(tipo)
+// Alta de un tipo de entrada (en la pantalla de tipos y dentro del evento). Despacha y avisa con onCreado(nombre)
 export default function NuevoTipoEntrada({ token, onCreado, onCancelar }) {
+  const dispatch = useDispatch()
   const [datos, setDatos] = useState(tipoVacio)
   const [aviso, setAviso] = useState('')
-  const [ocupado, setOcupado] = useState(false)
 
   const cambiar = (campo, valor) => {
     setDatos({ ...datos, [campo]: valor })
@@ -21,13 +22,8 @@ export default function NuevoTipoEntrada({ token, onCreado, onCancelar }) {
       setAviso(problema)
       return
     }
-    setOcupado(true)
-    crearTipoEntrada(token, datos)
-      .then(onCreado)
-      .catch((fallo) => {
-        setAviso(fallo.estado === 409 ? 'Ya existe un tipo de entrada con ese nombre.' : fallo.message)
-        setOcupado(false)
-      })
+    dispatch(crearTipoEntrada({ token, nombre: datos.nombre.trim(), descripcionBase: datos.descripcion.trim(), activo: true }))
+    onCreado(datos.nombre.trim())
   }
 
   return (
@@ -36,11 +32,11 @@ export default function NuevoTipoEntrada({ token, onCreado, onCancelar }) {
       <FormTipoEntrada datos={datos} onCambiar={cambiar} />
       {aviso && <p className="admin__aviso admin__aviso--error" role="alert">{aviso}</p>}
       <div className="nuevo-tipo__acciones">
-        <Boton variante="contorno" clase="boton--chico" deshabilitado={ocupado} onClick={onCancelar}>
+        <Boton variante="contorno" clase="boton--chico" onClick={onCancelar}>
           Cancelar
         </Boton>
-        <Boton clase="boton--chico" deshabilitado={ocupado} onClick={crear}>
-          {ocupado ? 'Creando…' : 'Crear tipo'}
+        <Boton clase="boton--chico" onClick={crear}>
+          Crear tipo
         </Boton>
       </div>
     </div>

@@ -4,6 +4,21 @@ import { estadoOferta } from './eventos.js'
 // Acá se leen y validan, y se calcula qué precio mostrar en una tarjeta cuando hay un rango de precios.
 export const normalizarImporteFiltro = (valor) => String(valor ?? '').trim().replace(',', '.')
 
+// Cuántos eventos se muestran por página del catálogo (se pide al back y se usa para el contador "Mostrando 1–4").
+export const EVENTOS_POR_PAGINA = 4
+
+// La consulta que se le manda al back para una página del catálogo, armada con los filtros de la URL.
+export function consultaCatalogo({ busqueda = '', categoria = '', precioMin = '', precioMax = '', orden = 'proximos', pagina = 1, estadoEvento = 'proximos' } = {}) {
+  const parametros = new URLSearchParams({ page: String(pagina - 1), size: String(EVENTOS_POR_PAGINA), catalogo: 'true' })
+  if (busqueda.trim()) parametros.set('nombre', busqueda.trim())
+  if (categoria) parametros.set('categoriaId', categoria)
+  parametros.set('orden', orden === 'antiguos' ? 'proximos' : orden)
+  parametros.set('estadoEvento', estadoEvento)
+  if (precioMin !== '') parametros.set('precioMin', normalizarImporteFiltro(precioMin))
+  if (precioMax !== '') parametros.set('precioMax', normalizarImporteFiltro(precioMax))
+  return parametros.toString()
+}
+
 export function validarRangoPrecios(precioMin = '', precioMax = '') {
   const importes = [precioMin, precioMax].map(normalizarImporteFiltro)
   if (importes.some((valor) => valor.startsWith('-'))) return 'Los precios no pueden ser negativos.'

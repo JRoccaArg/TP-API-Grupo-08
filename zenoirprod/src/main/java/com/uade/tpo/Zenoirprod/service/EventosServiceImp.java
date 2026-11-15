@@ -5,6 +5,7 @@ import com.uade.tpo.Zenoirprod.util.FechaCatalogo;
 import com.uade.tpo.Zenoirprod.util.Textos;
 import java.math.BigDecimal;
 import java.text.Normalizer;
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.uade.tpo.Zenoirprod.entity.Evento;
+import com.uade.tpo.Zenoirprod.entity.EventoTipoEntrada;
 import com.uade.tpo.Zenoirprod.exceptions.CategoryInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoInexistenteException;
 import com.uade.tpo.Zenoirprod.exceptions.EventoEnUsoException;
@@ -141,6 +143,7 @@ public class EventosServiceImp implements EventosService {
         return eventosRepository.save(evento);
     }
 
+    @Transactional
     public Evento updateEvento(Integer id, String titulo, String descripcion, String estado, Integer locacion_id, Integer categoria_id,
             LocalDateTime fechaHoraInicio, LocalDateTime fechaHoraFin)
             throws EventoInexistenteException, LocacionInexsistenteException,
@@ -200,6 +203,12 @@ public class EventosServiceImp implements EventosService {
             huboCambios = true;
         }
         if (fechaHoraFin != null) {
+            // La venta de las entradas cierra cuando termina el evento: si cambia el fin, se corre con él
+            if (!fechaHoraFin.equals(ev.getFechaHoraFin())) {
+                List<EventoTipoEntrada> entradas = eventoTipoEntradaRepository.findByEvento_IdOrderByIdAsc(id);
+                entradas.forEach(entrada -> entrada.setFechaFinVenta(fechaHoraFin));
+                eventoTipoEntradaRepository.saveAll(entradas);
+            }
             ev.setFechaHoraFin(fechaHoraFin);
             huboCambios = true;
         }

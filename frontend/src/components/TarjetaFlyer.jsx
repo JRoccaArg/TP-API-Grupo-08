@@ -1,7 +1,11 @@
+import { useEffect } from 'react'
+import { useDispatch } from 'react-redux'
 import { Link, useLocation } from 'react-router-dom'
 import Boton from './Boton.jsx'
 import Icono from './Icono.jsx'
 import ImagenEvento from './ImagenEvento.jsx'
+import { obtenerImagenes, obtenerOfertas } from '../redux/eventosSlice'
+import { ordenarImagenes, urlImagen } from '../utils/apiEventos.js'
 import { fechaLarga } from '../utils/fechas.js'
 import { precio } from '../utils/formatos.js'
 import { resumenEntradas } from '../utils/eventos.js'
@@ -9,6 +13,7 @@ import { precioDesdeEnRango } from '../utils/filtrosCatalogo.js'
 
 // Qué se muestra en lugar del precio cuando el evento no tiene entradas a la venta.
 const ETIQUETAS = {
+  CARGANDO: 'CARGANDO ENTRADAS…',
   AGOTADO: 'ENTRADAS AGOTADAS',
   PROXIMAMENTE: 'PRÓXIMAMENTE A LA VENTA',
   FINALIZADO: 'EDICIÓN FINALIZADA',
@@ -23,7 +28,20 @@ const ETIQUETAS = {
 // Tarjeta con el flyer de un evento. Estado y precio salen de las entradas que trae la API; si el evento terminó o se canceló se ve apagada y sin precio
 export default function TarjetaFlyer({ evento, ahora, indice = 0, filtroPrecio = {} }) {
   const location = useLocation()
-  const { estado, precioDesde: precioGeneral } = resumenEntradas(evento, ahora)
+  const dispatch = useDispatch()
+
+  // Cada tarjeta pide sus entradas y sus fotos una sola vez: después quedan guardadas en el evento.
+  // Van en dos efectos para que, cuando llega una, no se vuelva a pedir la otra.
+  useEffect(() => {
+    if (!evento.ofertas) dispatch(obtenerOfertas({ eventoId: evento.id }))
+  }, [dispatch, evento.id, evento.ofertas])
+
+  useEffect(() => {
+    if (!evento.imagenes) dispatch(obtenerImagenes({ eventoId: evento.id }))
+  }, [dispatch, evento.id, evento.imagenes])
+
+  const portada = ordenarImagenes((evento.imagenes || []).map((imagen) => urlImagen(evento.id, imagen)))[0]
+  const { estado, precioDesde: precioGeneral } = evento.ofertas ? resumenEntradas(evento, ahora) : { estado: 'CARGANDO', precioDesde: null }
   const hayRango = Boolean(filtroPrecio.precioMin || filtroPrecio.precioMax)
   const precioDesde = hayRango ? precioDesdeEnRango(evento, filtroPrecio, ahora) : precioGeneral
   const tienePrecio = estado === 'EN_VENTA' && typeof precioDesde === 'number' && Number.isFinite(precioDesde)
@@ -39,7 +57,7 @@ export default function TarjetaFlyer({ evento, ahora, indice = 0, filtroPrecio =
       style={{ animationDelay: `-${indice * 1.5}s` }}
     >
       <Link to={destino} state={origen} className="flyer__imagen" aria-label={`Ver detalle de ${evento.titulo}`}>
-        <ImagenEvento imagen={evento.imagenes?.[0]} titulo={evento.titulo} className="flyer__visual" />
+        <ImagenEvento imagen={portada} titulo={evento.titulo} className="flyer__visual" />
         {etiqueta && <span className={`flyer__estado flyer__estado--${estado.toLowerCase()}`}>{etiqueta}</span>}
         <span className="flyer__fecha">{evento.fechaHoraInicio ? fechaLarga(evento.fechaHoraInicio) : 'Fecha a confirmar'}</span>
       </Link>

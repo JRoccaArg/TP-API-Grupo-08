@@ -1,7 +1,8 @@
 import RangoPrecios from './RangoPrecios.jsx'
 
 export default function FiltrosEventos({ filtros, maximoPrecio, errorRango, categorias, errorPrecio, hayFiltros, onCambiar, onLimpiar }) {
-  const categoriaConocida = !filtros.categoria || categorias.some((categoria) => categoria.id === filtros.categoria)
+  // En la URL la categoría es texto y en el back es número: se compara con triple igual después de convertirla
+  const categoriaConocida = !filtros.categoria || categorias.some((categoria) => categoria.id === Number(filtros.categoria))
 
   return (
     <form className="catalogo-filtros" role="search" aria-label="Buscar eventos" onSubmit={(evento) => evento.preventDefault()}>

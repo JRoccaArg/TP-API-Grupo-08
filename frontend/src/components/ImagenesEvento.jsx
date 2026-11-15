@@ -1,62 +1,61 @@
 import { useState } from 'react'
+import { useDispatch } from 'react-redux'
 import FotoAdmin from './FotoAdmin.jsx'
 import SubirFotos from './SubirFotos.jsx'
-import { cambiarImagen, eliminarImagen, subirImagen } from '../utils/apiAdmin.js'
+import { cambiarImagen, eliminarImagen, subirImagen } from '../redux/eventosSlice'
 import { ordenarImagenes, urlImagen } from '../utils/apiEventos.js'
-import { cambiosDeOrden, moverFoto, reemplazarFoto, sinFoto } from '../utils/fotos.js'
+import { cambiosDeOrden, moverFoto } from '../utils/fotos.js'
 
-// Administrador de fotos de un evento (ya guardado): subir varias, elegir la portada, reordenar y quitar.
-// Cada respuesta del back acomoda la lista en pantalla: no se vuelve a pedir nada. El back no obliga a tener una sola
+// Fotos de un evento (ya guardado): subir varias, elegir la portada, reordenar y quitar. El back no obliga a tener una sola
 // portada ni órdenes distintos, por eso lo cuida esta pantalla (la portada anterior pasa a galería y se numera de 1).
-export default function ImagenesEvento({ eventoId, titulo, token, inicial }) {
-  const [imagenes, setImagenes] = useState(inicial)
-  const [ocupado, setOcupado] = useState(false)
-  const [error, setError] = useState('')
+// Cada pedido es su propia acción: si un clic necesita varios, se despacha una acción por pedido, sin esperar.
+export default function ImagenesEvento({ evento, token }) {
+  const dispatch = useDispatch()
+  const [aviso, setAviso] = useState('')
   const [aQuitar, setAQuitar] = useState(null)
-
-  const agregada = (creada) => setImagenes((actuales) => ordenarImagenes([...actuales, urlImagen(eventoId, creada)]))
-  const guardada = (cambiada) =>
-    setImagenes((actuales) => ordenarImagenes(reemplazarFoto(actuales, urlImagen(eventoId, cambiada))))
-
-  // Los pedidos se hacen de a uno, en fila. Si uno falla se avisa; los anteriores ya quedaron en la lista.
-  const enFila = (tareas) => {
-    setOcupado(true)
-    setError('')
-    setAQuitar(null)
-    tareas.reduce((previa, tarea) => previa.then(tarea), Promise.resolve())
-      .catch((fallo) => setError(fallo.message))
-      .then(() => setOcupado(false))
-  }
+  const imagenes = ordenarImagenes(evento.imagenes.map((imagen) => urlImagen(evento.id, imagen)))
+  const ocupado = Boolean(evento.guardandoFotos)
 
   const subir = (archivos) => {
+    setAviso('')
     const hayPortada = imagenes.some((imagen) => imagen.tipoImagenEvento === 'PORTADA')
-    enFila(archivos.map((archivo, indice) => () =>
-      subirImagen(token, eventoId, {
+    archivos.forEach((archivo, indice) => {
+      dispatch(subirImagen({
+        token,
+        eventoId: evento.id,
         archivo,
         tipo: !hayPortada && indice === 0 ? 'PORTADA' : 'GALERIA',
         orden: imagenes.length + indice + 1,
-        descripcion: titulo,
-      }).then(agregada)))
+        descripcion: evento.titulo,
+      }))
+    })
   }
 
-  // Una sola portada: la anterior pasa a galería. Las dos se cambian el orden, así la portada sigue siendo la primera.
+  // Una sola portada: la anterior pasa a galería. Las dos intercambian el orden, así la portada sigue siendo la primera.
   const hacerPortada = (imagen) => {
+    setAQuitar(null)
     const actual = imagenes.find((otra) => otra.tipoImagenEvento === 'PORTADA')
-    const tareas = [() => cambiarImagen(token, eventoId, imagen.id, { tipo: 'PORTADA', orden: actual ? actual.orden : imagen.orden }).then(guardada)]
-    if (actual) tareas.unshift(() => cambiarImagen(token, eventoId, actual.id, { tipo: 'GALERIA', orden: imagen.orden }).then(guardada))
-    enFila(tareas)
+    if (actual) {
+      dispatch(cambiarImagen({ token, eventoId: evento.id, imagenId: actual.id, tipo: 'GALERIA', orden: imagen.orden }))
+    }
+    dispatch(cambiarImagen({ token, eventoId: evento.id, imagenId: imagen.id, tipo: 'PORTADA', orden: actual ? actual.orden : imagen.orden }))
   }
 
-  const mover = (indice, salto) => enFila(cambiosDeOrden(moverFoto(imagenes, indice, salto))
-    .map(({ foto, orden }) => () => cambiarImagen(token, eventoId, foto.id, { orden }).then(guardada)))
+  // Las fotos se numeran de 1 en adelante en el nuevo orden: se manda solo cada una que cambió de número
+  const mover = (indice, salto) => {
+    setAQuitar(null)
+    cambiosDeOrden(moverFoto(imagenes, indice, salto)).forEach(({ foto, orden }) => {
+      dispatch(cambiarImagen({ token, eventoId: evento.id, imagenId: foto.id, tipo: foto.tipoImagenEvento, orden }))
+    })
+  }
 
   const quitar = (imagen) => {
     if (aQuitar !== imagen.id) {
       setAQuitar(imagen.id)
       return
     }
-    enFila([() => eliminarImagen(token, eventoId, imagen.id)
-      .then(() => setImagenes((actuales) => sinFoto(actuales, imagen.id)))])
+    dispatch(eliminarImagen({ token, eventoId: evento.id, imagenId: imagen.id }))
+    setAQuitar(null)
   }
 
   return (
@@ -85,8 +84,8 @@ export default function ImagenesEvento({ eventoId, titulo, token, inicial }) {
           ))}
         </ul>
       )}
-      <SubirFotos ocupado={ocupado} onElegir={subir} onError={setError} />
-      {error && <p className="admin__aviso admin__aviso--error" role="alert">{error}</p>}
+      <SubirFotos ocupado={ocupado} onElegir={subir} onError={setAviso} />
+      {aviso && <p className="admin__aviso admin__aviso--error" role="alert">{aviso}</p>}
     </section>
   )
 }

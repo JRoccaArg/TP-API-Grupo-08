@@ -1,29 +1,24 @@
 import { useEffect, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import AvisoAcceso from '../components/AvisoAcceso.jsx'
 import Boton from '../components/Boton.jsx'
 import FilaTipoEntrada from '../components/FilaTipoEntrada.jsx'
 import Icono from '../components/Icono.jsx'
 import NuevoTipoEntrada from '../components/NuevoTipoEntrada.jsx'
 import TituloAdmin from '../components/TituloAdmin.jsx'
-import { obtenerTiposEntrada } from '../utils/apiAdmin.js'
-
-const porNombre = (lista) => [...lista].sort((a, b) => a.nombre.localeCompare(b.nombre))
+import { obtenerTiposEntrada } from '../redux/tiposEntradaSlice'
 
 // Pantalla "/admin/tipos-entrada": los nombres de entrada que se pueden usar en cualquier evento. Solo ADMIN.
 export default function GestionarTiposEntrada({ usuario }) {
-  const [lista, setLista] = useState(null)
-  const [error, setError] = useState('')
+  const dispatch = useDispatch()
+  const { items, loading, error, cargado } = useSelector((state) => state.tiposEntrada)
   const [creando, setCreando] = useState(false)
   const esAdmin = usuario?.rol === 'ADMIN'
+  const lista = [...items].sort((a, b) => a.nombre.localeCompare(b.nombre))
 
   useEffect(() => {
-    if (!esAdmin) return undefined
-    let activo = true
-    obtenerTiposEntrada()
-      .then((tipos) => { if (activo) setLista(tipos) })
-      .catch((fallo) => { if (activo) setError(fallo.message) })
-    return () => { activo = false }
-  }, [esAdmin])
+    if (esAdmin && !cargado) dispatch(obtenerTiposEntrada())
+  }, [dispatch, esAdmin, cargado])
 
   if (!esAdmin) {
     return <AvisoAcceso usuario={usuario} para="ADMIN" sinSesion="Esta sección es solo para administradores." />
@@ -44,28 +39,15 @@ export default function GestionarTiposEntrada({ usuario }) {
         )}
       </div>
       {error && <p className="admin__aviso admin__aviso--error" role="alert">{error}</p>}
-      {!lista && !error && <p className="admin__cargando" role="status">Cargando tipos de entrada…</p>}
-      {lista && (
+      {loading && <p className="admin__cargando" role="status">Cargando tipos de entrada…</p>}
+      {cargado && (
         <>
           {creando && (
-            <NuevoTipoEntrada
-              token={usuario.token}
-              onCancelar={() => setCreando(false)}
-              onCreado={(tipo) => {
-                setLista(porNombre([...lista, tipo]))
-                setCreando(false)
-              }}
-            />
+            <NuevoTipoEntrada token={usuario.token} onCreado={() => setCreando(false)} onCancelar={() => setCreando(false)} />
           )}
           <ul className="admin__lista">
             {lista.map((tipo) => (
-              <FilaTipoEntrada
-                key={tipo.id}
-                tipo={tipo}
-                token={usuario.token}
-                onActualizado={(actualizado) => setLista(porNombre(lista.map((otro) => (otro.id === actualizado.id ? actualizado : otro))))}
-                onEliminado={(id) => setLista(lista.filter((otro) => otro.id !== id))}
-              />
+              <FilaTipoEntrada key={tipo.id} tipo={tipo} token={usuario.token} />
             ))}
           </ul>
           {lista.length === 0 && <p className="admin__vacio">Todavía no hay tipos de entrada. Creá el primero.</p>}
