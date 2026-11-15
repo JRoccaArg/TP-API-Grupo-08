@@ -5,9 +5,9 @@ import Boton from './Boton.jsx'
 import Icono from './Icono.jsx'
 import ImagenEvento from './ImagenEvento.jsx'
 import { obtenerImagenes, obtenerOfertas } from '../redux/eventosSlice'
-import { ordenarImagenes, urlImagen } from '../utils/apiEventos.js'
 import { fechaLarga } from '../utils/fechas.js'
 import { precio } from '../utils/formatos.js'
+import { fotosDelEvento } from '../utils/fotos.js'
 import { resumenEntradas } from '../utils/eventos.js'
 import { precioDesdeEnRango } from '../utils/filtrosCatalogo.js'
 
@@ -40,7 +40,7 @@ export default function TarjetaFlyer({ evento, ahora, indice = 0, filtroPrecio =
     if (!evento.imagenes) dispatch(obtenerImagenes({ eventoId: evento.id }))
   }, [dispatch, evento.id, evento.imagenes])
 
-  const portada = ordenarImagenes((evento.imagenes || []).map((imagen) => urlImagen(evento.id, imagen)))[0]
+  const portada = fotosDelEvento(evento)[0]
   const { estado, precioDesde: precioGeneral } = evento.ofertas ? resumenEntradas(evento, ahora) : { estado: 'CARGANDO', precioDesde: null }
   const hayRango = Boolean(filtroPrecio.precioMin || filtroPrecio.precioMax)
   const precioDesde = hayRango ? precioDesdeEnRango(evento, filtroPrecio, ahora) : precioGeneral

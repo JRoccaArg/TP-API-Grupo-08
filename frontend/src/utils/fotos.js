@@ -1,12 +1,18 @@
-import { ordenarImagenes, urlApi, urlImagen } from './apiEventos.js'
+// Ayudas para mostrar y ordenar fotos en pantalla. No hacen pedidos: el <img> pide el archivo solo con su ruta,
+// que pasa por el proxy de Vite igual que los pedidos de los slices ("/api" + la ruta del back).
 
-// Ayudas para mostrar y ordenar fotos en pantalla. No hacen pedidos: el <img> pide el archivo solo con su ruta.
+// Las fotos de un evento llegan sin la ruta del archivo: se la agrega acá. La portada va primero y después, por orden.
+const urlImagen = (eventoId, imagen) => ({ ...imagen, url: `/api/eventos/${eventoId}/imagenes/${imagen.id}/archivo` })
+
+const ordenarImagenes = (imagenes) => [...imagenes].sort((a, b) =>
+  Number(b.tipoImagenEvento === 'PORTADA') - Number(a.tipoImagenEvento === 'PORTADA') ||
+  (a.orden ?? 0) - (b.orden ?? 0) || a.id - b.id)
 
 // Las fotos de una locación no tienen tipo (no hay portada): solo un orden. "descripcion" es el texto alternativo.
 export const urlFotoLocacion = (locacionId, foto) => ({
   ...foto,
   descripcion: foto.textoAlternativo,
-  url: urlApi(`/locaciones/${locacionId}/imagenes/${foto.id}/archivo`),
+  url: `/api/locaciones/${locacionId}/imagenes/${foto.id}/archivo`,
 })
 
 export const ordenarFotosLocacion = (fotos) => [...fotos].sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0) || a.id - b.id)

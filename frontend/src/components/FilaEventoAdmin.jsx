@@ -2,9 +2,9 @@ import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import Boton from './Boton.jsx'
 import { obtenerImagenes, obtenerOfertas } from '../redux/eventosSlice'
-import { ordenarImagenes, urlImagen } from '../utils/apiEventos.js'
 import { diaYFecha, horario } from '../utils/fechas.js'
 import { miles } from '../utils/formatos.js'
+import { fotosDelEvento } from '../utils/fotos.js'
 
 export default function FilaEventoAdmin({ evento }) {
   const { sesion } = useSelector((state) => state.usuario)
@@ -20,7 +20,7 @@ export default function FilaEventoAdmin({ evento }) {
   }, [dispatch, evento.id, evento.imagenes, sesion.token])
 
   const activo = evento.estado === 'ACTIVO'
-  const portada = ordenarImagenes((evento.imagenes || []).map((imagen) => urlImagen(evento.id, imagen)))[0]
+  const portada = fotosDelEvento(evento)[0]
   const disponibles = (evento.ofertas || []).reduce((total, oferta) => total + oferta.cantidadDisponible, 0)
 
   return (

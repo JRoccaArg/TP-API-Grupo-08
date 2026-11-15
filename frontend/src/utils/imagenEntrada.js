@@ -7,16 +7,19 @@ export const nombreArchivo = (titulo, codigoQr) => `zenoir-${sinEspacios(titulo)
 
 const SIN_COMPARTIR = 'Tu navegador no permite compartir imágenes: descargá la entrada y mandala.'
 
+// La imagen sale del canvas como texto ("data:image/png;base64,..."): se pasa a bytes para armar el archivo, sin pedir nada.
+const archivoDesdePng = (png, nombre) => {
+  const bytes = Uint8Array.from(atob(png.split(',')[1]), (letra) => letra.charCodeAt(0))
+  return new File([bytes], nombre, { type: 'image/png' })
+}
+
 // Abre el menú de compartir del celular (WhatsApp, mail, etc.) con la imagen del QR (Web Share API: navigator.share).
 // Devuelve el mensaje que hay que mostrar, o '' si se compartió o la persona cerró el menú.
 export function compartirImagen(png, nombre, texto) {
   if (!navigator.share || !navigator.canShare) return Promise.resolve(SIN_COMPARTIR)
-  return fetch(png)
-    .then((respuesta) => respuesta.blob())
-    .then((imagen) => {
-      const archivo = new File([imagen], nombre, { type: 'image/png' })
-      if (!navigator.canShare({ files: [archivo] })) return SIN_COMPARTIR
-      return navigator.share({ files: [archivo], title: texto, text: texto }).then(() => '')
-    })
+  const archivo = archivoDesdePng(png, nombre)
+  if (!navigator.canShare({ files: [archivo] })) return Promise.resolve(SIN_COMPARTIR)
+  return navigator.share({ files: [archivo], title: texto, text: texto })
+    .then(() => '')
     .catch((fallo) => (fallo.name === 'AbortError' ? '' : 'No se pudo compartir la entrada. Probá descargarla.'))
 }

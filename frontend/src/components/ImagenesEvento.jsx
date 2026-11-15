@@ -3,8 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import FotoAdmin from './FotoAdmin.jsx'
 import SubirFotos from './SubirFotos.jsx'
 import { cambiarImagen, eliminarImagen, subirImagen } from '../redux/eventosSlice'
-import { ordenarImagenes, urlImagen } from '../utils/apiEventos.js'
-import { cambiosDeOrden, moverFoto } from '../utils/fotos.js'
+import { cambiosDeOrden, fotosDelEvento, moverFoto } from '../utils/fotos.js'
 
 // Fotos de un evento (ya guardado): subir varias, elegir la portada, reordenar y quitar. El back no obliga a tener una sola
 // portada ni órdenes distintos, por eso lo cuida esta pantalla (la portada anterior pasa a galería y se numera de 1).
@@ -14,7 +13,7 @@ export default function ImagenesEvento({ evento }) {
   const dispatch = useDispatch()
   const [aviso, setAviso] = useState('')
   const [aQuitar, setAQuitar] = useState(null)
-  const imagenes = ordenarImagenes(evento.imagenes.map((imagen) => urlImagen(evento.id, imagen)))
+  const imagenes = fotosDelEvento(evento)
   const ocupado = Boolean(evento.guardandoFotos)
 
   const subir = (archivos) => {
