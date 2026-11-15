@@ -1,5 +1,6 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { Navigate } from 'react-router-dom'
 import Aviso from '../components/Aviso.jsx'
 import AvisoAcceso from '../components/AvisoAcceso.jsx'
 import Boton from '../components/Boton.jsx'
@@ -10,29 +11,38 @@ import PagoTarjeta from '../components/PagoTarjeta.jsx'
 import PasosCompra from '../components/PasosCompra.jsx'
 import TiempoAgotado from '../components/TiempoAgotado.jsx'
 import TotalPago from '../components/TotalPago.jsx'
+import { iniciarPago } from '../redux/carritoSlice'
+import { pagarCarrito } from '../redux/comprasSlice'
 import { vencimientoMs } from '../utils/carrito.js'
 import { erroresTarjeta, limpiarCampo, tarjetaPrueba, tarjetaValida, tarjetaVacia } from '../utils/tarjeta.js'
 
-// Pantalla "/pago" (paso 3): se llega con "Ir a pagar", que ya pasó el carrito a EN_PAGO en el back (con su reloj de pago).
+// Pantalla "/pago" (paso 3). Al entrar se le pide al back que abra el pago (iniciar-pago): el carrito pasa a EN_PAGO con su reloj.
 // El cobro es de demostración: solo se revisa el formato de la tarjeta (nunca se envía) y "Pagar" le pide al back que compre el carrito.
-export default function Pago({ usuario, carrito, carga, vencido, onPagar }) {
-  const navigate = useNavigate()
+export default function Pago({ usuario }) {
+  const dispatch = useDispatch()
+  const { carrito, cargado, vencido, guardando, errorAccion } = useSelector((state) => state.carrito)
+  const { ultimaCompra, pagando, errorPago } = useSelector((state) => state.compras)
   const [tarjeta, setTarjeta] = useState(tarjetaVacia)
   const [intento, setIntento] = useState(false)
-  const [pagando, setPagando] = useState(false)
-  const [aviso, setAviso] = useState('')
   const errores = erroresTarjeta(tarjeta)
+  const token = usuario?.rol === 'USER' ? usuario.token : null
+  const hayEntradas = carrito.items.length > 0
 
-  if (usuario?.rol !== 'USER') {
-    return <AvisoAcceso usuario={usuario} para="USER" sinSesion="Ingresá para pagar tus entradas." />
-  }
+  useEffect(() => {
+    if (token && cargado && hayEntradas && carrito.estado === 'ACTIVO') dispatch(iniciarPago(token))
+  }, [dispatch, token, cargado, hayEntradas, carrito.estado])
+
+  if (!token) return <AvisoAcceso usuario={usuario} para="USER" sinSesion="Ingresá para pagar tus entradas." />
   if (vencido) return <TiempoAgotado />
-  if (carga.cargando && carrito.items.length === 0) {
-    return <main className="pagina compra"><p className="admin__cargando" role="status">Cargando tu pago…</p></main>
+  if (!cargado) return <main className="pagina compra"><p className="admin__cargando" role="status">Cargando tu pago…</p></main>
+  // Al pagar, el carrito queda vacío y llega la compra: la pantalla se redibuja y lleva a su confirmación
+  if (!hayEntradas) {
+    if (ultimaCompra) return <Navigate to={`/compra/${ultimaCompra.id}`} replace />
+    return <Aviso mensaje="No hay nada para pagar." boton="Ver fechas" to="/" />
   }
-  if (carrito.items.length === 0) return <Aviso mensaje="No hay nada para pagar." boton="Ver fechas" to="/" />
   if (carrito.estado !== 'EN_PAGO') {
-    return <Aviso mensaje="Revisá tu carrito antes de pagar." boton="Ir al carrito" to="/carrito" />
+    if (errorAccion && !guardando) return <Aviso mensaje={errorAccion} boton="Ir al carrito" to="/carrito" />
+    return <main className="pagina compra"><p className="admin__cargando" role="status">Abriendo el pago…</p></main>
   }
 
   const cambiar = (campo, texto) => setTarjeta({ ...tarjeta, [campo]: limpiarCampo(campo, texto, tarjeta.numero) })
@@ -43,14 +53,7 @@ export default function Pago({ usuario, carrito, carga, vencido, onPagar }) {
       setIntento(true)
       return
     }
-    setPagando(true)
-    setAviso('')
-    onPagar()
-      .then((compra) => navigate(`/compra/${compra.id}`, { state: { compra } }))
-      .catch((fallo) => {
-        setAviso(fallo.message)
-        setPagando(false)
-      })
+    dispatch(pagarCarrito(token))
   }
 
   return (
@@ -69,7 +72,7 @@ export default function Pago({ usuario, carrito, carga, vencido, onPagar }) {
             onProbar={() => setTarjeta(tarjetaPrueba)}
           />
           <DatosPago usuario={usuario} />
-          {aviso && <p className="admin__aviso admin__aviso--error" role="alert">{aviso}</p>}
+          {errorPago && <p className="admin__aviso admin__aviso--error" role="alert">{errorPago}</p>}
           <Boton to="/carrito" variante="contorno" clase="boton--chico pago__volver">
             <Icono nombre="flechaIzq" tamano={16} /> Volver al carrito
           </Boton>

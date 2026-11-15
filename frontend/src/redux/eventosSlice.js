@@ -34,6 +34,13 @@ export const obtenerImagenes = createAsyncThunk('eventos/obtenerImagenes', async
   return data.content
 })
 
+// Un evento suelto (el detalle, o uno que está en el carrito o en una compra). Con el token del admin se ve también un borrador
+export const obtenerEvento = createAsyncThunk('eventos/obtenerEvento', async (pedido) => {
+  const { id, token } = pedido
+  const { data } = await axios.get(`${URL}/${id}`, token ? { headers: { Authorization: `Bearer ${token}` } } : {})
+  return data
+})
+
 // Con el token del admin el back devuelve también los borradores
 export const obtenerEventosAdmin = createAsyncThunk('eventos/obtenerEventosAdmin', async (token) => {
   const { data } = await axios.get(`${URL}?page=0&size=100`, { headers: { Authorization: `Bearer ${token}` } })
@@ -160,6 +167,8 @@ const eventosSlice = createSlice({
     proximos: null,
     rangoPrecios: null,
     errorRango: null,
+    pedidos: [],
+    errorEvento: null,
     todos: null,
     errorAdmin: null,
     estadisticas: null,
@@ -223,6 +232,13 @@ const eventosSlice = createSlice({
           state.items[index].errorOfertas = action.error.message
         }
       })
+      // Mientras llegan, la lista vacía marca que ya se pidieron: así otra pantalla no las pide de nuevo
+      .addCase(obtenerImagenes.pending, (state, action) => {
+        const index = state.items.findIndex((evento) => evento.id === action.meta.arg.eventoId)
+        if (index !== -1 && !state.items[index].imagenes) {
+          state.items[index].imagenes = []
+        }
+      })
       .addCase(obtenerImagenes.fulfilled, (state, action) => {
         const index = state.items.findIndex((evento) => evento.id === action.meta.arg.eventoId)
         if (index !== -1) {
@@ -236,6 +252,26 @@ const eventosSlice = createSlice({
           state.items[index].imagenes = []
           state.items[index].errorImagenes = action.error.message
         }
+      })
+      // "pedidos" es como "cargado", pero por evento: así un evento suelto no se pide dos veces
+      .addCase(obtenerEvento.pending, (state, action) => {
+        if (!state.pedidos.includes(action.meta.arg.id)) {
+          state.pedidos = [...state.pedidos, action.meta.arg.id]
+        }
+        if (state.errorEvento?.id === action.meta.arg.id) {
+          state.errorEvento = null
+        }
+      })
+      .addCase(obtenerEvento.fulfilled, (state, action) => {
+        const index = state.items.findIndex((evento) => evento.id === action.payload.id)
+        if (index === -1) {
+          state.items = [...state.items, action.payload]
+        } else {
+          state.items[index] = { ...state.items[index], ...action.payload }
+        }
+      })
+      .addCase(obtenerEvento.rejected, (state, action) => {
+        state.errorEvento = { id: action.meta.arg.id, mensaje: action.error.message }
       })
       .addCase(obtenerEventosAdmin.pending, (state) => {
         state.errorAdmin = null

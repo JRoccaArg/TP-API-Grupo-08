@@ -1,7 +1,7 @@
 import { afterEach, describe, test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
-  consultar, consultarPaginas, ErrorApi, obtenerCatalogo, obtenerEvento, verificarSeleccion,
+  consultar, consultarPaginas, ErrorApi, obtenerCatalogo, obtenerEvento,
 } from '../src/utils/apiEventos.js'
 
 const fetchOriginal = globalThis.fetch
@@ -151,41 +151,6 @@ describe('consultas públicas del catálogo', { concurrency: false }, () => {
         error instanceof ErrorApi && /formato inesperado/.test(error.message))
     }
   })
-})
-
-test('antes de integrar detecta cambios de precio aunque el total de dos ofertas sea el mismo', async () => {
-  const ofertas = [
-    { id: 1, estado: 'ACTIVO', cantidadDisponible: 10, precioFinal: 10 },
-    { id: 2, estado: 'ACTIVO', cantidadDisponible: 10, precioFinal: 20 },
-  ]
-  const actualizadas = [{ ...ofertas[0], precioFinal: 11 }, { ...ofertas[1], precioFinal: 19 }]
-  simularFetch((url) => {
-    if (url.pathname === '/api/eventos/1') return responder(evento(1))
-    if (url.pathname.endsWith('/imagenes')) return responder(pagina([]))
-    if (url.pathname.endsWith('/disponibilidad')) {
-      assert.equal(url.searchParams.get('cantidad'), '1')
-      return responder(true)
-    }
-    if (url.pathname === '/api/eventosTiposEntrada/evento/1') return responder(pagina(actualizadas))
-    throw new Error('Consulta inesperada')
-  })
-  const resultado = await verificarSeleccion({ ...evento(1), ofertas }, [
-    { ofertaId: 1, cantidad: 1 }, { ofertaId: 2, cantidad: 1 },
-  ])
-  assert.equal(resultado.cambio, true)
-})
-
-test('antes de integrar vuelve a consultar stock y detecta una cantidad ya no disponible', async () => {
-  const entrada = { id: 7, estado: 'ACTIVO', cantidadDisponible: 10, precioFinal: 9 }
-  simularFetch((url) => {
-    if (url.pathname === '/api/eventos/1') return responder(evento(1))
-    if (url.pathname.endsWith('/imagenes')) return responder(pagina([]))
-    if (url.pathname.endsWith('/disponibilidad')) return responder(false)
-    return responder(pagina([{ ...entrada, cantidadDisponible: 2 }]))
-  })
-  const resultado = await verificarSeleccion({ ...evento(1), ofertas: [entrada] }, [{ ofertaId: 7, cantidad: 4 }])
-  assert.equal(resultado.cambio, true)
-  assert.deepEqual(resultado.seleccion, [{ ofertaId: 7, cantidad: 2 }])
 })
 
 test('conserva el orden que entrega el servidor y los totales aun cuando la página está vacía', async () => {

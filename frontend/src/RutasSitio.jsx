@@ -11,29 +11,14 @@ import Pago from './views/Pago.jsx'
 import Registro from './views/Registro.jsx'
 import VerificarEntrada from './views/VerificarEntrada.jsx'
 
-// Todas las rutas del sitio. No tiene estado: recibe de Sitio la sesión, el carrito y lo que se puede hacer con él.
-export default function RutasSitio({ usuario, onIngresar, carrito, carga, vencido, eventos, acciones }) {
+// Todas las rutas del sitio. No tiene estado: el carrito y las compras los leen las pantallas del store; la sesión llega por props.
+export default function RutasSitio({ usuario, onIngresar }) {
   return (
     <Routes>
       <Route path="/" element={<Inicio />} />
-      <Route path="/eventos/:id" element={<EventoDetalle cargaCarrito={carga} usuario={usuario} onConfirmarSeleccion={acciones.agregar} />} />
-      <Route
-        path="/carrito"
-        element={
-          <Carrito
-            usuario={usuario}
-            carrito={carrito}
-            carga={carga}
-            vencido={vencido}
-            eventos={eventos}
-            onCambiar={acciones.cambiar}
-            onVaciar={acciones.vaciar}
-            onIrAPagar={acciones.irAPagar}
-            onReintentar={acciones.reintentar}
-          />
-        }
-      />
-      <Route path="/pago" element={<Pago usuario={usuario} carrito={carrito} carga={carga} vencido={vencido} onPagar={acciones.pagar} />} />
+      <Route path="/eventos/:id" element={<EventoDetalle usuario={usuario} />} />
+      <Route path="/carrito" element={<Carrito usuario={usuario} />} />
+      <Route path="/pago" element={<Pago usuario={usuario} />} />
       <Route path="/compra/:id" element={<CompraConfirmada usuario={usuario} />} />
       <Route path="/mis-entradas" element={<MisEntradas usuario={usuario} />} />
       <Route path="/mis-entradas/:eventoId" element={<MisEntradas usuario={usuario} />} />

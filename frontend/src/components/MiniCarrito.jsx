@@ -1,10 +1,10 @@
 import Boton from './Boton.jsx'
-import IrAPagar from './IrAPagar.jsx'
 import Reloj from './Reloj.jsx'
 import { cantidadItems, vencimientoMs } from '../utils/carrito.js'
 import { precio } from '../utils/formatos.js'
 
-export default function MiniCarrito({ carrito, eventos, onCerrar, onIrAPagar }) {
+// "Ir a pagar" solo lleva a /pago: esa pantalla le pide al back que abra el pago
+export default function MiniCarrito({ carrito, eventos, onCerrar }) {
   return (
     <div className="mini-carrito aparece-rapido" role="dialog" aria-label="Tu carrito">
       <div className="mini-carrito__cabecera">
@@ -46,9 +46,9 @@ export default function MiniCarrito({ carrito, eventos, onCerrar, onIrAPagar }) 
             <Boton to="/carrito" variante="contorno" onClick={onCerrar}>
               Ver carrito
             </Boton>
-            <IrAPagar onIrAPagar={onIrAPagar} onTerminar={onCerrar}>
+            <Boton to="/pago" onClick={onCerrar}>
               Ir a pagar
-            </IrAPagar>
+            </Boton>
           </div>
         </>
       )}

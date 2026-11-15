@@ -1,129 +1,105 @@
-import { borrarSeleccionPendiente, guardarSeleccionPendiente, leerSeleccionPendiente } from '../utils/seleccionPendiente.js'
 import { useEffect, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import ContenidoEvento from '../components/ContenidoEvento.jsx'
 import EstadoDetalle from '../components/EstadoDetalle.jsx'
-import { obtenerEvento } from '../utils/apiEventos.js'
-import { confirmarSeleccion } from '../utils/confirmarSeleccion.js'
+import { agregarItem } from '../redux/carritoSlice'
+import { obtenerEvento, obtenerImagenes, obtenerOfertas } from '../redux/eventosSlice'
+import { obtenerFotosLocacion, obtenerLocaciones } from '../redux/locacionesSlice'
 import { rutaDeVuelta } from '../utils/enlaces.js'
-import { ajustarSeleccion, detalleDisponible } from '../utils/eventos.js'
+import { detalleDisponible } from '../utils/eventos.js'
+import { galeriaDelDetalle } from '../utils/fotos.js'
+import { borrarSeleccionPendiente, guardarSeleccionPendiente, leerSeleccionPendiente } from '../utils/seleccionPendiente.js'
 import '../styles/detalle-catalogo.css'
 
-// onConfirmarSeleccion agrega la selección al carrito del back (lo define Sitio) y devuelve una promesa.
-export default function EventoDetalle({ usuario, onConfirmarSeleccion, cargaCarrito }) {
+// Pantalla "/eventos/:id". La "key" hace que al cambiar de evento la pantalla empiece de cero.
+export default function EventoDetalle({ usuario }) {
   const { id } = useParams()
-  return <DetalleEvento key={id} id={id} cargaCarrito={cargaCarrito} usuario={usuario} onConfirmarSeleccion={onConfirmarSeleccion} />
+  return <DetalleEvento key={id} id={id} usuario={usuario} />
 }
 
-function DetalleEvento({ id, usuario, onConfirmarSeleccion, cargaCarrito }) {
+// El evento se busca en el store por su id: si vino del catálogo ya trae sus entradas y fotos, y no se pide de nuevo.
+// Cada dato que falta se pide con su propia acción.
+function DetalleEvento({ id, usuario }) {
   const location = useLocation()
   const navigate = useNavigate()
-  const [evento, setEvento] = useState(null)
-  const [error, setError] = useState(null)
-  const [cargando, setCargando] = useState(true)
-  const [intento, setIntento] = useState(0)
-  const [pendiente] = useState(() => {
-    const guardada = leerSeleccionPendiente()
-    return String(guardada?.evento.id) === id ? guardada : null
-  })
-  const [seleccion, setSeleccion] = useState(() => pendiente?.seleccion || [])
+  const dispatch = useDispatch()
+  const { items, pedidos, errorEvento } = useSelector((state) => state.eventos)
+  const { items: locaciones, cargado: locacionesCargadas } = useSelector((state) => state.locaciones)
+  const { carrito, cargado: carritoCargado, agregando, errorAgregar } = useSelector((state) => state.carrito)
   const [ahora, setAhora] = useState(Date.now)
-  const [enviando, setEnviando] = useState(false)
-  const [confirmacion, setConfirmacion] = useState(null)
   const [aviso, setAviso] = useState('')
-  const origen = location.state?.volverA || pendiente?.volverA
-  const volverA = rutaDeVuelta(origen)
+  const [origenPendiente] = useState(() => leerSeleccionPendiente()?.volverA)
+  const volverA = rutaDeVuelta(location.state?.volverA || origenPendiente)
   const idValido = /^\d+$/.test(id) && Number(id) >= 1
-  const token = usuario?.rol === 'ADMIN' ? usuario.token : undefined // con su sesión el administrador ve también los borradores (vista previa)
+  const eventoId = Number(id)
+  const token = usuario?.rol === 'ADMIN' ? usuario.token : undefined // el administrador ve también los borradores (vista previa)
+  const evento = items.find((item) => item.id === eventoId)
+  const lugar = locaciones.find((locacion) => locacion.id === evento?.locacionId)
+  const fallo = errorEvento?.id === eventoId
+  const hayEvento = Boolean(evento)
+  const yaPedido = pedidos.includes(eventoId)
+  const conOfertas = Boolean(evento?.ofertas)
+  const conImagenes = Boolean(evento?.imagenes)
+  const lugarId = lugar?.id
+  const conFotosDelLugar = Boolean(lugar?.imagenes)
 
   useEffect(() => {
-    if (!idValido) return undefined
-    let activo = true
-    obtenerEvento(id, token, { fotosDelLugar: true }).then((datos) => {
-      if (!activo) return
-      setEvento(datos)
-      setAhora(Date.now())
-      setSeleccion((actual) => ajustarSeleccion(actual, datos.ofertas, datos))
-      setCargando(false)
-    }).catch((fallo) => {
-      if (!activo) return
-      setError(fallo)
-      setCargando(false)
-    })
-    return () => { activo = false }
-  }, [id, idValido, intento, token])
+    if (idValido && !hayEvento && !yaPedido) dispatch(obtenerEvento({ id: eventoId, token }))
+  }, [dispatch, idValido, hayEvento, yaPedido, eventoId, token])
+
+  useEffect(() => {
+    if (hayEvento && !conOfertas) dispatch(obtenerOfertas({ eventoId, token }))
+  }, [dispatch, hayEvento, conOfertas, eventoId, token])
+
+  useEffect(() => {
+    if (hayEvento && !conImagenes) dispatch(obtenerImagenes({ eventoId, token }))
+  }, [dispatch, hayEvento, conImagenes, eventoId, token])
+
+  // La galería suma al final las fotos del lugar: se piden los lugares y las fotos de este solo si todavía no están
+  useEffect(() => {
+    if (hayEvento && !locacionesCargadas) dispatch(obtenerLocaciones())
+  }, [dispatch, hayEvento, locacionesCargadas])
+
+  useEffect(() => {
+    if (lugarId && !conFotosDelLugar) dispatch(obtenerFotosLocacion(lugarId))
+  }, [dispatch, lugarId, conFotosDelLugar])
+
+  // Si eligió una entrada antes de ingresar, al volver del login se agrega sola: es un despacho al montar, como el del botón.
+  // Se espera a que el carrito haya cargado, así la respuesta de ese GET no pisa la del agregado.
+  useEffect(() => {
+    const pendiente = leerSeleccionPendiente()
+    if (!pendiente || pendiente.eventoId !== eventoId || usuario?.rol !== 'USER' || !carritoCargado) return
+    borrarSeleccionPendiente()
+    dispatch(agregarItem({ token: usuario.token, eventoTipoEntradaId: pendiente.ofertaId, cantidad: pendiente.cantidad }))
+  }, [dispatch, eventoId, usuario, carritoCargado])
 
   useEffect(() => {
     const reloj = setInterval(() => setAhora(Date.now()), 1000)
     return () => clearInterval(reloj)
   }, [])
 
-  // La carga inicial del carrito debe terminar antes de agregar entradas.
-  useEffect(() => {
-    if (!pendiente || !evento || usuario?.rol !== 'USER' || cargaCarrito?.cargando) return
-    let activo = true
-    queueMicrotask(() => {
-      if (!activo || !leerSeleccionPendiente()) return
-      borrarSeleccionPendiente()
-      setEnviando(true)
-      setConfirmacion({ evento: pendiente.evento, seleccion: pendiente.seleccion, retomada: true })
-    })
-    return () => { activo = false }
-  }, [pendiente, evento, usuario, cargaCarrito?.cargando, cargaCarrito?.error])
-
-  useEffect(() => {
-    if (!confirmacion || typeof onConfirmarSeleccion !== 'function') return undefined
-    let activo = true
-    const mostrar = (actual) => {
-      setEvento(actual.evento)
-      setSeleccion(actual.seleccion)
-      setAhora(Date.now())
-    }
-    confirmarSeleccion(confirmacion.evento, confirmacion.seleccion, onConfirmarSeleccion)
-      .then((resultado) => {
-        if (!activo) return
-        mostrar(resultado)
-        if (resultado.cambio) {
-          setAviso('La disponibilidad o los precios cambiaron. Revisá la selección actualizada.')
-          return
-        }
-        setAviso('Agregamos las entradas a tu carrito. Quedan reservadas hasta que termine el tiempo del carrito (mirá el reloj).')
-        if (confirmacion.retomada) navigate('/carrito', { replace: true })
-      })
-      .catch((fallo) => {
-        if (!activo) return
-        if (fallo.actual) mostrar(fallo.actual)
-        setAviso(fallo.message || 'No pudimos continuar. Intentá nuevamente.')
-        // Si alguna entrada ya entró al carrito, la selección se limpia para no agregarla dos veces.
-        if (fallo.agregados > 0) { setSeleccion([]); setCargando(true); setIntento((actual) => actual + 1) }
-      })
-      .then(() => {
-        if (activo) { setEnviando(false); setConfirmacion(null) }
-      })
-    return () => { activo = false }
-  }, [confirmacion, onConfirmarSeleccion, navigate])
-
-  const reintentar = () => { setCargando(true); setError(null); setIntento(intento + 1) }
-
-  if (!detalleDisponible({ idValido, cargando, error, evento, esAdmin: usuario?.rol === 'ADMIN' })) {
-    return <EstadoDetalle idValido={idValido} cargando={cargando} error={error} evento={evento} volverA={volverA} onReintentar={reintentar} />
+  const cargando = !fallo && !conOfertas
+  if (!detalleDisponible({ idValido, cargando, error: fallo, evento, esAdmin: usuario?.rol === 'ADMIN' })) {
+    return (
+      <EstadoDetalle
+        idValido={idValido}
+        cargando={cargando}
+        error={fallo ? { message: 'Revisá el enlace o probá de nuevo en un momento.' } : null}
+        evento={evento}
+        volverA={volverA}
+        onReintentar={() => dispatch(obtenerEvento({ id: eventoId, token }))}
+      />
+    )
   }
 
-  const vigente = evento.errorOfertas ? [] : ajustarSeleccion(seleccion, evento.ofertas, evento, ahora)
-  const cambiar = (ofertaId, cantidad) => {
-    if (enviando) return
-    const nueva = [...vigente.filter((item) => item.ofertaId !== ofertaId), { ofertaId, cantidad }]
-    setSeleccion(ajustarSeleccion(nueva, evento.ofertas, evento))
-    setAviso('')
-  }
-  const actualizar = () => {
-    setAviso('Actualizamos la disponibilidad. Revisá tu selección antes de continuar.')
-    reintentar()
-  }
-  const confirmar = () => {
-    if (typeof onConfirmarSeleccion !== 'function' || !vigente.length || enviando) return
+  // Cuántas de cada entrada ya están en el carrito: cada fila lo muestra
+  const enCarrito = Object.fromEntries(carrito.items.map((item) => [item.eventoTipoEntradaId, item.cantidad]))
+
+  // Cada tipo de entrada se agrega con su propio botón: una acción, un pedido. Sin sesión se guarda la elección y se va a ingresar
+  const agregar = (oferta, cantidad) => {
     if (!usuario) {
-      guardarSeleccionPendiente(evento, vigente, volverA)
+      guardarSeleccionPendiente(eventoId, oferta.id, cantidad, volverA)
       navigate('/login')
       return
     }
@@ -131,23 +107,24 @@ function DetalleEvento({ id, usuario, onConfirmarSeleccion, cargaCarrito }) {
       setAviso('Solo los usuarios pueden comprar entradas: el administrador no tiene carrito.')
       return
     }
-    setEnviando(true)
     setAviso('')
-    setConfirmacion({ evento, seleccion: vigente })
+    dispatch(agregarItem({ token: usuario.token, eventoTipoEntradaId: oferta.id, cantidad }))
   }
+
+  // Si las entradas no se pudieron cargar, se vuelven a pedir con el botón "Reintentar"
+  const reintentar = () => dispatch(obtenerOfertas({ eventoId, token }))
 
   return (
     <ContenidoEvento
-      evento={evento}
-      seleccion={vigente}
+      evento={{ ...evento, imagenes: galeriaDelDetalle(evento, lugar) }}
       ahora={ahora}
       volverA={volverA}
       aviso={aviso}
-      enviando={enviando}
-      conectado={typeof onConfirmarSeleccion === 'function'}
-      onCambiar={cambiar}
-      onActualizar={actualizar}
-      onConfirmar={confirmar}
+      enCarrito={enCarrito}
+      agregando={agregando}
+      errorAgregar={errorAgregar}
+      onAgregar={agregar}
+      onReintentar={reintentar}
     />
   )
 }

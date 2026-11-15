@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import { useParams } from 'react-router-dom'
 import Aviso from '../components/Aviso.jsx'
 import AvisoAcceso from '../components/AvisoAcceso.jsx'
@@ -7,50 +8,51 @@ import AvisoEventoAfectado from '../components/AvisoEventoAfectado.jsx'
 import CabeceraMisEntradas from '../components/CabeceraMisEntradas.jsx'
 import EventoComprado from '../components/EventoComprado.jsx'
 import TarjetaEntrada from '../components/TarjetaEntrada.jsx'
-import { obtenerMisCompras } from '../utils/apiCompras.js'
-import { obtenerEventosPorId } from '../utils/apiEventos.js'
-import { agruparPorEvento, entradasDeCompras, eventoAfectado, idsDeEventosDeCompras, reemplazarCompra } from '../utils/compras.js'
+import { obtenerMisCompras } from '../redux/comprasSlice'
+import { obtenerEvento, obtenerImagenes } from '../redux/eventosSlice'
+import { agruparPorEvento, entradasDeCompras, eventoAfectado, idsDeEventosDeCompras } from '../utils/compras.js'
+import { eventosConFotos } from '../utils/fotos.js'
 
 // Pantallas "/mis-entradas" y "/mis-entradas/:eventoId": las entradas del usuario agrupadas por evento.
 // Con más de un evento primero se elige el evento (sus QR van en /mis-entradas/:eventoId); con uno solo se ven directo.
 export default function MisEntradas({ usuario }) {
   const { eventoId } = useParams()
+  const dispatch = useDispatch()
+  const { items: compras, error, cargado } = useSelector((state) => state.compras)
+  const { items, pedidos } = useSelector((state) => state.eventos)
   const token = usuario?.rol === 'USER' ? usuario.token : null
-  const [compras, setCompras] = useState(null) // null mientras se piden
-  const [eventos, setEventos] = useState(null) // { id: evento } de cada entrada
-  const [error, setError] = useState('')
-  const [reintento, setReintento] = useState(0)
+  const ids = idsDeEventosDeCompras(compras)
+  // De cada evento comprado se pide solo lo que todavía no está en el store
+  const faltan = ids.filter((id) => !items.some((evento) => evento.id === id) && !pedidos.includes(id))
+  const sinFotos = items.filter((evento) => ids.includes(evento.id) && !evento.imagenes).map((evento) => evento.id)
+
+  // La lista se pide una sola vez: lo que se compre después se suma con la respuesta del pago
+  useEffect(() => {
+    if (token && !cargado) dispatch(obtenerMisCompras(token))
+  }, [dispatch, token, cargado])
 
   useEffect(() => {
-    if (!token) return undefined
-    let activo = true
-    obtenerMisCompras(token)
-      .then((lista) => { if (activo) setCompras(lista) })
-      .catch((fallo) => { if (activo) setError(fallo.message) })
-    return () => { activo = false }
-  }, [token, reintento])
+    faltan.forEach((id) => dispatch(obtenerEvento({ id })))
+  }, [dispatch, faltan])
 
   useEffect(() => {
-    if (!compras) return undefined
-    let activo = true
-    obtenerEventosPorId(idsDeEventosDeCompras(compras)).then((pedidos) => { if (activo) setEventos(pedidos) })
-    return () => { activo = false }
-  }, [compras])
+    sinFotos.forEach((id) => dispatch(obtenerImagenes({ eventoId: id })))
+  }, [dispatch, sinFotos])
 
   if (!token) return <AvisoAcceso usuario={usuario} para="USER" sinSesion="Ingresá para ver tus entradas." />
-  if (error) {
+  if (!cargado && error) {
     return (
       <main className="pagina aviso">
         <h1 className="aviso__mensaje">No pudimos cargar tus entradas.</h1>
         <p role="alert">{error}</p>
-        <Boton onClick={() => { setError(''); setReintento(reintento + 1) }}>Reintentar</Boton>
+        <Boton onClick={() => dispatch(obtenerMisCompras(token))}>Reintentar</Boton>
       </main>
     )
   }
-  if (!compras || !eventos) {
+  if (!cargado) {
     return <main className="pagina compra"><p className="admin__cargando" role="status">Cargando tus entradas…</p></main>
   }
-  const grupos = agruparPorEvento(entradasDeCompras(compras), eventos)
+  const grupos = agruparPorEvento(entradasDeCompras(compras), eventosConFotos(items, ids))
   if (grupos.length === 0) return <Aviso mensaje="Todavía no compraste entradas." boton="Ver fechas" to="/#fechas" />
   const elegido = eventoId ? grupos.find((grupo) => String(grupo.id) === eventoId) : grupos.length === 1 ? grupos[0] : null
   if (eventoId && !elegido) return <Aviso mensaje="No tenés entradas para este evento." boton="Ver mis entradas" to="/mis-entradas" />
@@ -59,14 +61,7 @@ export default function MisEntradas({ usuario }) {
     <div className="fondo-dorado">
       <main className="pagina mis-entradas">
         <CabeceraMisEntradas grupo={elegido} varios={grupos.length > 1} />
-        {elegido && eventoAfectado(elegido.evento) && (
-          <AvisoEventoAfectado
-            evento={elegido.evento}
-            compras={compras}
-            token={token}
-            onReembolsada={(nueva) => setCompras((actuales) => reemplazarCompra(actuales, nueva))}
-          />
-        )}
+        {elegido && eventoAfectado(elegido.evento) && <AvisoEventoAfectado evento={elegido.evento} compras={compras} token={token} />}
         {elegido ? (
           <div className="mis-entradas__grilla">
             {elegido.entradas.map((entrada, indice) => (

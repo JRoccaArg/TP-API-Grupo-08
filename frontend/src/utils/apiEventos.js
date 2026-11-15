@@ -1,4 +1,3 @@
-import { ajustarSeleccion } from './eventos.js'
 import { consultaCatalogo, EVENTOS_POR_PAGINA } from './filtrosCatalogo.js'
 
 export { EVENTOS_POR_PAGINA }
@@ -124,29 +123,6 @@ export const obtenerCategorias = () => consultarPaginas('/categories')
 // Devuelve los próximos eventos activos, del más cercano al más lejano. El primero es la "próxima fecha".
 export const obtenerProximos = (cantidad = 5) => consultar(`/eventos?page=0&size=${cantidad}&proximo=true`)
   .then((datos) => datos.content)
-
-// Pregunta, de a una, si la cantidad elegida de cada entrada sigue disponible.
-function consultarDisponibilidades(seleccion) {
-  if (!seleccion.length) return Promise.resolve([])
-  const [item, ...resto] = seleccion
-  return consultar(`/eventosTiposEntrada/${item.ofertaId}/disponibilidad?cantidad=${item.cantidad}`)
-    .then((disponible) => consultarDisponibilidades(resto).then((otras) => [disponible, ...otras]))
-}
-
-export function verificarSeleccion(evento, seleccion) {
-  return obtenerEvento(evento.id, undefined, { fotosDelLugar: true }).then((actualizado) =>
-    consultarDisponibilidades(seleccion).then((disponibilidades) => {
-      const nueva = actualizado.errorOfertas ? [] : ajustarSeleccion(seleccion, actualizado.ofertas, actualizado)
-      const cambiaronPrecios = nueva.some((item) =>
-        actualizado.ofertas.find((oferta) => oferta.id === item.ofertaId)?.precioFinal !==
-        evento.ofertas.find((oferta) => oferta.id === item.ofertaId)?.precioFinal)
-      return {
-        evento: actualizado, seleccion: nueva,
-        cambio: disponibilidades.some((disponible) => disponible !== true) ||
-          JSON.stringify(nueva) !== JSON.stringify(seleccion) || cambiaronPrecios,
-      }
-    }))
-}
 
 export const obtenerEventoConImagenes = (id) => consultar(`/eventos/${id}`).then((evento) =>
   obtenerImagenes(id).catch(() => []).then((imagenes) => ({ ...evento, imagenes })))

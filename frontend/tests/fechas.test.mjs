@@ -18,7 +18,7 @@ for (const TZ of ['UTC', 'America/Argentina/Buenos_Aires', 'America/Los_Angeles'
   test(`venta, filtro, selección y presentación respetan Buenos Aires con navegador en ${TZ}`, () => {
     const programa = `
       import assert from 'node:assert/strict';
-      import { estadoOferta, ajustarSeleccion } from './src/utils/eventos.js';
+      import { estadoOferta } from './src/utils/eventos.js';
       import { precioDesdeEnRango } from './src/utils/filtrosCatalogo.js';
       import { fechaApi, horario, diaYFecha, cuentaRegresiva } from './src/utils/fechas.js';
       const evento = {estado:'ACTIVO'};
@@ -31,7 +31,6 @@ for (const TZ of ['UTC', 'America/Argentina/Buenos_Aires', 'America/Los_Angeles'
         assert.equal(estadoOferta(oferta,evento,Date.parse('2026-10-18T16:00:00Z')),'EN_VENTA');
         assert.equal(estadoOferta(oferta,evento,Date.parse('2026-10-18T16:00:00.001Z')),'FINALIZADO');
         assert.equal(precioDesdeEnRango({...evento, ofertas:[oferta]}, {precioMin:'100',precioMax:'100'}, ahora),100);
-        assert.deepEqual(ajustarSeleccion([{ofertaId:1,cantidad:3}],[oferta],evento,ahora),[{ofertaId:1,cantidad:2}]);
       }
       assert.equal(fechaApi('2026-10-18T12:00:00').getTime(),Date.parse('2026-10-18T15:00:00Z'));
       assert.equal(horario('2026-10-18T15:00:00Z','2026-10-18T16:00:00Z'),'12 a 13 h');

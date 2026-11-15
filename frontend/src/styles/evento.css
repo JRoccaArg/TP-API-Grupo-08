@@ -60,6 +60,9 @@
 .fila-entrada__precio strong { font: 700 46px / 1 var(--fuente-titulo); font-variant-numeric: tabular-nums; }
 .fila-entrada__aviso { width: 152px; text-align: right; font: 400 14px / 1.35 var(--fuente-ui); color: var(--gris-claro); }
 .fila-entrada__aviso strong { color: var(--blanco); font-weight: 600; }
+.fila-entrada__comprar { display: flex; align-items: center; gap: 14px; }
+.fila-entrada__datos .fila-entrada__en-carrito, .fila-entrada__datos .fila-entrada__ultimas { font-weight: 500; }
+.fila-entrada__datos .fila-entrada__error { color: #ff8a80; }
 
 /* Barra de compra */
 .barra-compra {
