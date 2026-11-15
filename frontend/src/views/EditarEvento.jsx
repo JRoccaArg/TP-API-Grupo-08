@@ -10,14 +10,15 @@ import { obtenerLocaciones } from '../redux/locacionesSlice'
 
 // Pantalla "/admin/:id/editar": junta lo que necesita la edición y se lo pasa a EdicionEvento. Solo ADMIN.
 // Cada dato se pide con su propia acción y solo si todavía no está en el store.
-export default function EditarEvento({ usuario }) {
+export default function EditarEvento() {
+  const { sesion } = useSelector((state) => state.usuario)
   const { id } = useParams()
   const dispatch = useDispatch()
   const { items, todos, errorAdmin } = useSelector((state) => state.eventos)
   const { items: locaciones, error: errorLocaciones, cargado: locacionesCargadas } = useSelector((state) => state.locaciones)
   const { items: categorias, error: errorCategorias, cargado: categoriasCargadas } = useSelector((state) => state.categorias)
-  const esAdmin = usuario?.rol === 'ADMIN'
-  const token = esAdmin ? usuario.token : null
+  const esAdmin = sesion?.rol === 'ADMIN'
+  const token = esAdmin ? sesion.token : null
   // El id de la URL es texto y el del back es número: se convierte para comparar con triple igual
   const evento = items.find((item) => item.id === Number(id))
   const eventoId = evento?.id
@@ -46,7 +47,7 @@ export default function EditarEvento({ usuario }) {
   }, [dispatch, token, categoriasCargadas])
 
   if (!esAdmin) {
-    return <AvisoAcceso usuario={usuario} para="ADMIN" sinSesion="Esta sección es solo para administradores." />
+    return <AvisoAcceso usuario={sesion} para="ADMIN" sinSesion="Esta sección es solo para administradores." />
   }
   const falloCarga = (!evento && todos === null && errorAdmin) || (!locacionesCargadas && errorLocaciones) || (!categoriasCargadas && errorCategorias)
   if (falloCarga) {
@@ -58,5 +59,5 @@ export default function EditarEvento({ usuario }) {
   if (!evento || !conOfertas || !conImagenes || !locacionesCargadas || !categoriasCargadas) {
     return <main className="pagina admin"><p className="admin__cargando" role="status">Cargando evento…</p></main>
   }
-  return <EdicionEvento evento={evento} locaciones={locaciones} categorias={categorias} token={token} />
+  return <EdicionEvento evento={evento} locaciones={locaciones} categorias={categorias} />
 }

@@ -4,21 +4,20 @@ import { useLocation } from 'react-router-dom'
 import AvisoSesion from './components/AvisoSesion.jsx'
 import Navbar from './components/Navbar.jsx'
 import RutasSitio from './RutasSitio.jsx'
-import { limpiarCarrito, obtenerCarrito } from './redux/carritoSlice'
-import { limpiarCompras } from './redux/comprasSlice'
+import { obtenerCarrito } from './redux/carritoSlice'
 import { obtenerEvento, obtenerImagenes } from './redux/eventosSlice'
 import { idsDeEventos, vencimientoMs } from './utils/carrito.js'
-import { borrarSeleccionPendiente } from './utils/seleccionPendiente.js'
 
 const SIN_NAVBAR = ['/login', '/registro']
 
 // Sitio pide el carrito (solo el rol USER tiene), lleva su reloj y pide los eventos que aparecen en él. El carrito vive en el store.
-export default function Sitio({ usuario, sesionVencida, onIngresar, onSalir }) {
+export default function Sitio() {
   const { pathname } = useLocation()
   const dispatch = useDispatch()
+  const { sesion, vencida } = useSelector((state) => state.usuario)
   const { carrito, cargado } = useSelector((state) => state.carrito)
   const { items, pedidos } = useSelector((state) => state.eventos)
-  const token = usuario?.rol === 'USER' ? usuario.token : null
+  const token = sesion?.rol === 'USER' ? sesion.token : null
   const venceEn = vencimientoMs(carrito)
   const ids = idsDeEventos(carrito)
   // De cada evento del carrito hacen falta su flyer, su fecha y su lugar: se pide solo lo que todavía no está en el store
@@ -45,19 +44,11 @@ export default function Sitio({ usuario, sesionVencida, onIngresar, onSalir }) {
     return () => clearTimeout(reloj)
   }, [dispatch, token, venceEn, carrito])
 
-  // Al salir se borra lo de esa persona: su carrito y sus compras no pueden quedar a la vista de la siguiente
-  const salir = () => {
-    borrarSeleccionPendiente()
-    dispatch(limpiarCarrito())
-    dispatch(limpiarCompras())
-    onSalir()
-  }
-
   return (
     <>
-      {!SIN_NAVBAR.includes(pathname) && <Navbar usuario={usuario} onSalir={salir} />}
-      {sesionVencida && !SIN_NAVBAR.includes(pathname) && <AvisoSesion />}
-      <RutasSitio usuario={usuario} onIngresar={onIngresar} />
+      {!SIN_NAVBAR.includes(pathname) && <Navbar />}
+      {vencida && !SIN_NAVBAR.includes(pathname) && <AvisoSesion />}
+      <RutasSitio />
     </>
   )
 }

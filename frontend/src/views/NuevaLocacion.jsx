@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import AvisoAcceso from '../components/AvisoAcceso.jsx'
 import BarraAcciones from '../components/BarraAcciones.jsx'
@@ -9,14 +9,15 @@ import { crearLocacion } from '../redux/locacionesSlice'
 import { locacionVacia, validarLocacion } from '../utils/formLocacion.js'
 
 // Pantalla "/admin/locaciones/nueva": el mismo formulario que editar, pero vacío. Al crear vuelve a la lista. Solo ADMIN.
-export default function NuevaLocacion({ usuario }) {
+export default function NuevaLocacion() {
+  const { sesion } = useSelector((state) => state.usuario)
   const navigate = useNavigate()
   const dispatch = useDispatch()
   const [datos, setDatos] = useState(locacionVacia)
   const [aviso, setAviso] = useState('')
 
-  if (usuario?.rol !== 'ADMIN') {
-    return <AvisoAcceso usuario={usuario} para="ADMIN" sinSesion="Esta sección es solo para administradores." />
+  if (sesion?.rol !== 'ADMIN') {
+    return <AvisoAcceso usuario={sesion} para="ADMIN" sinSesion="Esta sección es solo para administradores." />
   }
 
   const cambiar = (campo, valor) => {
@@ -31,7 +32,7 @@ export default function NuevaLocacion({ usuario }) {
       setAviso(problema)
       return
     }
-    dispatch(crearLocacion({ token: usuario.token, nombre: datos.nombre.trim(), direccion: datos.direccion.trim() }))
+    dispatch(crearLocacion({ token: sesion.token, nombre: datos.nombre.trim(), direccion: datos.direccion.trim() }))
     navigate('/admin/locaciones')
   }
 

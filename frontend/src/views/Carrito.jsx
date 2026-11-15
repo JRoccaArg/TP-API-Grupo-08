@@ -12,14 +12,15 @@ import { idsDeEventos, vencimientoMs } from '../utils/carrito.js'
 import { eventosConFotos } from '../utils/fotos.js'
 
 // Pantalla "/carrito": paso 2 de la compra. Muestra el carrito del store; cada cambio es una acción y su respuesta lo actualiza.
-export default function Carrito({ usuario }) {
+export default function Carrito() {
+  const { sesion } = useSelector((state) => state.usuario)
   const dispatch = useDispatch()
   const { carrito, error, cargado, vencido, guardando, errorAccion } = useSelector((state) => state.carrito)
   const { items } = useSelector((state) => state.eventos)
   const [confirmandoVaciar, setConfirmandoVaciar] = useState(false)
 
-  if (usuario?.rol !== 'USER') {
-    return <AvisoAcceso usuario={usuario} para="USER" sinSesion="Ingresá para ver tu carrito." />
+  if (sesion?.rol !== 'USER') {
+    return <AvisoAcceso usuario={sesion} para="USER" sinSesion="Ingresá para ver tu carrito." />
   }
   if (vencido) return <Aviso mensaje="Se terminó el tiempo y liberamos tus entradas." boton="Ver fechas" to="/" />
   if (!cargado && error) {
@@ -27,7 +28,7 @@ export default function Carrito({ usuario }) {
       <main className="pagina aviso">
         <h1 className="aviso__mensaje">No pudimos cargar tu carrito.</h1>
         <p role="alert">{error}</p>
-        <Boton onClick={() => dispatch(obtenerCarrito(usuario.token))}>Reintentar</Boton>
+        <Boton onClick={() => dispatch(obtenerCarrito(sesion.token))}>Reintentar</Boton>
       </main>
     )
   }
@@ -39,8 +40,8 @@ export default function Carrito({ usuario }) {
   const eventos = eventosConFotos(items, idsDeEventos(carrito))
   // Con 0 la línea se quita; si no, se cambia la cantidad. Cada cosa es su propio pedido
   const cambiar = (item, cantidad) => {
-    if (cantidad > 0) dispatch(cambiarCantidad({ token: usuario.token, itemId: item.id, cantidad }))
-    else dispatch(quitarItem({ token: usuario.token, itemId: item.id }))
+    if (cantidad > 0) dispatch(cambiarCantidad({ token: sesion.token, itemId: item.id, cantidad }))
+    else dispatch(quitarItem({ token: sesion.token, itemId: item.id }))
   }
   // Vaciar saca todas las entradas y no se deshace: el primer clic pide confirmación y el segundo vacía.
   const vaciar = () => {
@@ -49,7 +50,7 @@ export default function Carrito({ usuario }) {
       return
     }
     setConfirmandoVaciar(false)
-    dispatch(vaciarCarrito(usuario.token))
+    dispatch(vaciarCarrito(sesion.token))
   }
 
   return (

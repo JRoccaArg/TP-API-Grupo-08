@@ -1,6 +1,6 @@
 import Boton from './Boton.jsx'
 
-// Aviso de que la sesión se cerró porque el back ya no la acepta (venció o el token dejó de servir). Queda hasta que se vuelve a ingresar
+// Aviso de que la sesión se cerró sola porque venció el token (lo hace el reloj de App). Queda hasta que se vuelve a ingresar
 export default function AvisoSesion() {
   return (
     <div className="aviso-sesion" role="status">

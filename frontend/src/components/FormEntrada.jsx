@@ -10,7 +10,7 @@ import { opcionesDeCatalogo, opcionesDeEstados } from '../utils/opciones.js'
 // No guarda nada: muestra "datos" y avisa los cambios con onCambiar({ campo: valor }).
 // Al editar el tipo no se cambia y "vendidas" evita bajar el cupo por debajo de lo vendido.
 export default function FormEntrada({
-  datos, edicion, tipoNombre, tipos, vendidas, token, aviso,
+  datos, edicion, tipoNombre, tipos, vendidas, aviso,
   onCambiar, onTipoCreado, onGuardar, onCancelar,
 }) {
   const cambiar = (campo) => (e) => onCambiar({ [campo]: e.target.value })
@@ -34,7 +34,7 @@ export default function FormEntrada({
         </div>
         {datos.tipoEntradaId === TIPO_NUEVO && (
           <div className="form-entrada__completo">
-            <NuevoTipoEntrada token={token} onCreado={onTipoCreado} onCancelar={() => onCambiar({ tipoEntradaId: '' })} />
+            <NuevoTipoEntrada onCreado={onTipoCreado} onCancelar={() => onCambiar({ tipoEntradaId: '' })} />
           </div>
         )}
         <CampoLinea etiqueta="PRECIO" nombre="precio" tipo="number" inputMode="decimal" valor={datos.precio} onChange={cambiar('precio')} placeholder="22000" />

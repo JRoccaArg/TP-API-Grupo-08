@@ -13,14 +13,15 @@ import { borrarSeleccionPendiente, guardarSeleccionPendiente, leerSeleccionPendi
 import '../styles/detalle-catalogo.css'
 
 // Pantalla "/eventos/:id". La "key" hace que al cambiar de evento la pantalla empiece de cero.
-export default function EventoDetalle({ usuario }) {
+export default function EventoDetalle() {
   const { id } = useParams()
-  return <DetalleEvento key={id} id={id} usuario={usuario} />
+  return <DetalleEvento key={id} id={id} />
 }
 
 // El evento se busca en el store por su id: si vino del catálogo ya trae sus entradas y fotos, y no se pide de nuevo.
 // Cada dato que falta se pide con su propia acción.
-function DetalleEvento({ id, usuario }) {
+function DetalleEvento({ id }) {
+  const { sesion } = useSelector((state) => state.usuario)
   const location = useLocation()
   const navigate = useNavigate()
   const dispatch = useDispatch()
@@ -33,7 +34,7 @@ function DetalleEvento({ id, usuario }) {
   const volverA = rutaDeVuelta(location.state?.volverA || origenPendiente)
   const idValido = /^\d+$/.test(id) && Number(id) >= 1
   const eventoId = Number(id)
-  const token = usuario?.rol === 'ADMIN' ? usuario.token : undefined // el administrador ve también los borradores (vista previa)
+  const token = sesion?.rol === 'ADMIN' ? sesion.token : undefined // el administrador ve también los borradores (vista previa)
   const evento = items.find((item) => item.id === eventoId)
   const lugar = locaciones.find((locacion) => locacion.id === evento?.locacionId)
   const fallo = errorEvento?.id === eventoId
@@ -69,10 +70,10 @@ function DetalleEvento({ id, usuario }) {
   // Se espera a que el carrito haya cargado, así la respuesta de ese GET no pisa la del agregado.
   useEffect(() => {
     const pendiente = leerSeleccionPendiente()
-    if (!pendiente || pendiente.eventoId !== eventoId || usuario?.rol !== 'USER' || !carritoCargado) return
+    if (!pendiente || pendiente.eventoId !== eventoId || sesion?.rol !== 'USER' || !carritoCargado) return
     borrarSeleccionPendiente()
-    dispatch(agregarItem({ token: usuario.token, eventoTipoEntradaId: pendiente.ofertaId, cantidad: pendiente.cantidad }))
-  }, [dispatch, eventoId, usuario, carritoCargado])
+    dispatch(agregarItem({ token: sesion.token, eventoTipoEntradaId: pendiente.ofertaId, cantidad: pendiente.cantidad }))
+  }, [dispatch, eventoId, sesion, carritoCargado])
 
   useEffect(() => {
     const reloj = setInterval(() => setAhora(Date.now()), 1000)
@@ -80,7 +81,7 @@ function DetalleEvento({ id, usuario }) {
   }, [])
 
   const cargando = !fallo && !conOfertas
-  if (!detalleDisponible({ idValido, cargando, error: fallo, evento, esAdmin: usuario?.rol === 'ADMIN' })) {
+  if (!detalleDisponible({ idValido, cargando, error: fallo, evento, esAdmin: sesion?.rol === 'ADMIN' })) {
     return (
       <EstadoDetalle
         idValido={idValido}
@@ -98,17 +99,17 @@ function DetalleEvento({ id, usuario }) {
 
   // Cada tipo de entrada se agrega con su propio botón: una acción, un pedido. Sin sesión se guarda la elección y se va a ingresar
   const agregar = (oferta, cantidad) => {
-    if (!usuario) {
+    if (!sesion) {
       guardarSeleccionPendiente(eventoId, oferta.id, cantidad, volverA)
       navigate('/login')
       return
     }
-    if (usuario.rol !== 'USER') {
+    if (sesion.rol !== 'USER') {
       setAviso('Solo los usuarios pueden comprar entradas: el administrador no tiene carrito.')
       return
     }
     setAviso('')
-    dispatch(agregarItem({ token: usuario.token, eventoTipoEntradaId: oferta.id, cantidad }))
+    dispatch(agregarItem({ token: sesion.token, eventoTipoEntradaId: oferta.id, cantidad }))
   }
 
   // Si las entradas no se pudieron cargar, se vuelven a pedir con el botón "Reintentar"

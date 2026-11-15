@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import Boton from './Boton.jsx'
 import EdicionTipoEntrada from './EdicionTipoEntrada.jsx'
 import { eliminarTipoEntrada } from '../redux/tiposEntradaSlice'
 
 // Un tipo de entrada de la lista del admin. Eliminar pide segunda confirmación; si ya está en algún evento el back no lo borra
-export default function FilaTipoEntrada({ tipo, token }) {
+export default function FilaTipoEntrada({ tipo }) {
+  const { sesion } = useSelector((state) => state.usuario)
   const dispatch = useDispatch()
   const [editando, setEditando] = useState(false)
   const [confirmando, setConfirmando] = useState(false)
@@ -16,12 +17,12 @@ export default function FilaTipoEntrada({ tipo, token }) {
       setConfirmando(true)
       return
     }
-    dispatch(eliminarTipoEntrada({ token, id: tipo.id }))
+    dispatch(eliminarTipoEntrada({ token: sesion.token, id: tipo.id }))
     setConfirmando(false)
   }
 
   if (editando) {
-    return <EdicionTipoEntrada tipo={tipo} token={token} onClose={() => setEditando(false)} />
+    return <EdicionTipoEntrada tipo={tipo} onClose={() => setEditando(false)} />
   }
 
   return (

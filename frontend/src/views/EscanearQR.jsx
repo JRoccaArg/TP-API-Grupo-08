@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useSelector } from 'react-redux'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Scanner } from '@yudiel/react-qr-scanner'
 import AvisoAcceso from '../components/AvisoAcceso.jsx'
@@ -8,13 +9,14 @@ import { codigoDesdeQr, mensajeDeCamara } from '../utils/escaner.js'
 
 // Pantalla "/admin/:id/escanear": abre la cámara para leer el QR de las entradas del evento. Solo ADMIN.
 // Al leer un QR pasa a /verificar/<código> avisando de qué evento viene, para marcar si la entrada es de otro y ofrecer escanear la siguiente.
-export default function EscanearQR({ usuario }) {
+export default function EscanearQR() {
+  const { sesion } = useSelector((state) => state.usuario)
   const { id } = useParams()
   const navigate = useNavigate()
   const [error, setError] = useState('')
 
-  if (usuario?.rol !== 'ADMIN') {
-    return <AvisoAcceso usuario={usuario} para="ADMIN" sinSesion="Esta sección es solo para administradores." />
+  if (sesion?.rol !== 'ADMIN') {
+    return <AvisoAcceso usuario={sesion} para="ADMIN" sinSesion="Esta sección es solo para administradores." />
   }
 
   const leer = (codigos) => {

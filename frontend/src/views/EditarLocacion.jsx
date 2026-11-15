@@ -7,11 +7,12 @@ import EdicionLocacion from '../components/EdicionLocacion.jsx'
 import { obtenerFotosLocacion, obtenerLocaciones } from '../redux/locacionesSlice'
 
 // Pantalla "/admin/locaciones/:id": busca la locación en el store (si hace falta pide la lista y sus fotos) y se la pasa a EdicionLocacion. Solo ADMIN.
-export default function EditarLocacion({ usuario }) {
+export default function EditarLocacion() {
+  const { sesion } = useSelector((state) => state.usuario)
   const { id } = useParams()
   const dispatch = useDispatch()
   const { items, error, cargado } = useSelector((state) => state.locaciones)
-  const esAdmin = usuario?.rol === 'ADMIN'
+  const esAdmin = sesion?.rol === 'ADMIN'
   // El id de la URL es texto y el del back es número: se convierte para comparar con triple igual
   const locacion = items.find((item) => item.id === Number(id))
   const locacionId = locacion?.id
@@ -27,7 +28,7 @@ export default function EditarLocacion({ usuario }) {
   }, [dispatch, locacionId, fotosPedidas])
 
   if (!esAdmin) {
-    return <AvisoAcceso usuario={usuario} para="ADMIN" sinSesion="Esta sección es solo para administradores." />
+    return <AvisoAcceso usuario={sesion} para="ADMIN" sinSesion="Esta sección es solo para administradores." />
   }
   if (!cargado && error) {
     return <Aviso mensaje={error} boton="Volver" to="/admin/locaciones" />
@@ -38,5 +39,5 @@ export default function EditarLocacion({ usuario }) {
   if (!locacion) {
     return <Aviso mensaje="No encontramos esta locación." boton="Volver" to="/admin/locaciones" />
   }
-  return <EdicionLocacion locacion={locacion} token={usuario.token} />
+  return <EdicionLocacion locacion={locacion} />
 }

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import BarraAcciones from './BarraAcciones.jsx'
 import FormularioEvento from './FormularioEvento.jsx'
@@ -9,7 +9,8 @@ import TituloAdmin from './TituloAdmin.jsx'
 import { actualizarEvento, eliminarEvento } from '../redux/eventosSlice'
 import { eventoAFormulario, formularioAEvento, validarEvento } from '../utils/formEvento.js'
 
-export default function EdicionEvento({ evento, locaciones, categorias, token }) {
+export default function EdicionEvento({ evento, locaciones, categorias }) {
+  const { sesion } = useSelector((state) => state.usuario)
   const navigate = useNavigate()
   const dispatch = useDispatch()
   const [datos, setDatos] = useState(eventoAFormulario(evento))
@@ -29,7 +30,7 @@ export default function EdicionEvento({ evento, locaciones, categorias, token })
       setAviso(problema)
       return
     }
-    dispatch(actualizarEvento({ token, id: evento.id, ...formularioAEvento(datos, { locaciones, categorias }) }))
+    dispatch(actualizarEvento({ token: sesion.token, id: evento.id, ...formularioAEvento(datos, { locaciones, categorias }) }))
     navigate(`/admin/${evento.id}`)
   }
 
@@ -40,7 +41,7 @@ export default function EdicionEvento({ evento, locaciones, categorias, token })
       setConfirmando(true)
       return
     }
-    dispatch(eliminarEvento({ token, id: evento.id }))
+    dispatch(eliminarEvento({ token: sesion.token, id: evento.id }))
     navigate('/admin')
   }
 
@@ -53,10 +54,10 @@ export default function EdicionEvento({ evento, locaciones, categorias, token })
       />
       <div className="admin__dos-columnas">
         <div className="admin__columna">
-          <FormularioEvento datos={datos} onCambiar={cambiar} locaciones={locaciones} categorias={categorias} token={token} />
-          <ImagenesEvento evento={evento} token={token} />
+          <FormularioEvento datos={datos} onCambiar={cambiar} locaciones={locaciones} categorias={categorias} />
+          <ImagenesEvento evento={evento} />
         </div>
-        <PanelEntradas evento={evento} token={token} />
+        <PanelEntradas evento={evento} />
       </div>
       {(aviso || evento.errorEdicion) && (
         <p className="admin__aviso admin__aviso--error" role="alert">{aviso || evento.errorEdicion}</p>

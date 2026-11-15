@@ -9,11 +9,12 @@ import TituloAdmin from '../components/TituloAdmin.jsx'
 import { obtenerCategorias } from '../redux/categoriasSlice'
 
 // Pantalla "/admin/categorias": las categorías de los eventos (crear, renombrar, activar o desactivar y eliminar). Solo ADMIN.
-export default function GestionarCategorias({ usuario }) {
+export default function GestionarCategorias() {
+  const { sesion } = useSelector((state) => state.usuario)
   const dispatch = useDispatch()
   const { items, loading, error, cargado } = useSelector((state) => state.categorias)
   const [creando, setCreando] = useState(false)
-  const esAdmin = usuario?.rol === 'ADMIN'
+  const esAdmin = sesion?.rol === 'ADMIN'
   const lista = [...items].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'))
 
   // Si ya están en el store no se vuelven a pedir
@@ -22,7 +23,7 @@ export default function GestionarCategorias({ usuario }) {
   }, [dispatch, esAdmin, cargado])
 
   if (!esAdmin) {
-    return <AvisoAcceso usuario={usuario} para="ADMIN" sinSesion="Esta sección es solo para administradores." />
+    return <AvisoAcceso usuario={sesion} para="ADMIN" sinSesion="Esta sección es solo para administradores." />
   }
 
   return (
@@ -41,12 +42,12 @@ export default function GestionarCategorias({ usuario }) {
         <>
           {creando && (
             <div className="nuevo-tipo">
-              <EdicionCategoria token={usuario.token} onClose={() => setCreando(false)} />
+              <EdicionCategoria onClose={() => setCreando(false)} />
             </div>
           )}
           <ul className="admin__lista">
             {lista.map((categoria) => (
-              <FilaCategoria key={categoria.id} categoria={categoria} token={usuario.token} />
+              <FilaCategoria key={categoria.id} categoria={categoria} />
             ))}
           </ul>
           {lista.length === 0 && <p className="admin__vacio">Todavía no hay categorías. Creá la primera.</p>}

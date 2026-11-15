@@ -9,11 +9,12 @@ import TituloAdmin from '../components/TituloAdmin.jsx'
 import { obtenerTiposEntrada } from '../redux/tiposEntradaSlice'
 
 // Pantalla "/admin/tipos-entrada": los nombres de entrada que se pueden usar en cualquier evento. Solo ADMIN.
-export default function GestionarTiposEntrada({ usuario }) {
+export default function GestionarTiposEntrada() {
+  const { sesion } = useSelector((state) => state.usuario)
   const dispatch = useDispatch()
   const { items, loading, error, cargado } = useSelector((state) => state.tiposEntrada)
   const [creando, setCreando] = useState(false)
-  const esAdmin = usuario?.rol === 'ADMIN'
+  const esAdmin = sesion?.rol === 'ADMIN'
   const lista = [...items].sort((a, b) => a.nombre.localeCompare(b.nombre))
 
   useEffect(() => {
@@ -21,7 +22,7 @@ export default function GestionarTiposEntrada({ usuario }) {
   }, [dispatch, esAdmin, cargado])
 
   if (!esAdmin) {
-    return <AvisoAcceso usuario={usuario} para="ADMIN" sinSesion="Esta sección es solo para administradores." />
+    return <AvisoAcceso usuario={sesion} para="ADMIN" sinSesion="Esta sección es solo para administradores." />
   }
 
   return (
@@ -43,11 +44,11 @@ export default function GestionarTiposEntrada({ usuario }) {
       {cargado && (
         <>
           {creando && (
-            <NuevoTipoEntrada token={usuario.token} onCreado={() => setCreando(false)} onCancelar={() => setCreando(false)} />
+            <NuevoTipoEntrada onCreado={() => setCreando(false)} onCancelar={() => setCreando(false)} />
           )}
           <ul className="admin__lista">
             {lista.map((tipo) => (
-              <FilaTipoEntrada key={tipo.id} tipo={tipo} token={usuario.token} />
+              <FilaTipoEntrada key={tipo.id} tipo={tipo} />
             ))}
           </ul>
           {lista.length === 0 && <p className="admin__vacio">Todavía no hay tipos de entrada. Creá el primero.</p>}

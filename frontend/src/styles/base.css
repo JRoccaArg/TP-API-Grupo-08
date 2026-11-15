@@ -146,6 +146,6 @@ ul, ol {
   letter-spacing: -0.05em;
 }
 
-/* Aviso de sesión vencida: franja debajo del header */
-.aviso-sesion { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 18px; padding: 14px 24px; border-bottom: 1px solid rgba(201, 132, 126, 0.55); background: rgba(201, 132, 126, 0.1); color: var(--peligro); font: 500 15px var(--fuente-ui); }
+/* Aviso de sesión vencida: franja debajo del header. El header es absoluto, así que la franja también (si no, queda tapada) */
+.aviso-sesion { position: absolute; top: 124px; left: 0; right: 0; z-index: 29; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 18px; padding: 14px 24px; border-bottom: 1px solid rgba(201, 132, 126, 0.55); background: linear-gradient(rgba(201, 132, 126, 0.1), rgba(201, 132, 126, 0.1)), var(--negro); color: var(--peligro); font: 500 15px var(--fuente-ui); }
 

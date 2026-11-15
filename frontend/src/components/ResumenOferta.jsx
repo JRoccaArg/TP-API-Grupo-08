@@ -1,12 +1,13 @@
 import { useState } from 'react'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { eliminarOferta } from '../redux/eventosSlice'
 import { vendidas } from '../utils/formOferta.js'
 import { precio } from '../utils/formatos.js'
 
 // Una entrada ya cargada en el evento, con sus datos y las acciones de editarla o quitarla (quitar pide segunda confirmación).
 // Si el back no la deja quitar (ya tiene ventas o reservas), el error queda en el evento y se ve abajo.
-export default function ResumenOferta({ oferta, eventoId, token, onEditar }) {
+export default function ResumenOferta({ oferta, eventoId, onEditar }) {
+  const { sesion } = useSelector((state) => state.usuario)
   const dispatch = useDispatch()
   const [confirmando, setConfirmando] = useState(false)
   const agotada = oferta.estado === 'AGOTADO' || oferta.cantidadDisponible === 0
@@ -18,7 +19,7 @@ export default function ResumenOferta({ oferta, eventoId, token, onEditar }) {
       setConfirmando(true)
       return
     }
-    dispatch(eliminarOferta({ token, eventoId, id: oferta.id }))
+    dispatch(eliminarOferta({ token: sesion.token, eventoId, id: oferta.id }))
     setConfirmando(false)
   }
 

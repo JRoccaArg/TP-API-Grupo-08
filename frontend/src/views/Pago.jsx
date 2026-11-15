@@ -18,21 +18,22 @@ import { erroresTarjeta, limpiarCampo, tarjetaPrueba, tarjetaValida, tarjetaVaci
 
 // Pantalla "/pago" (paso 3). Al entrar se le pide al back que abra el pago (iniciar-pago): el carrito pasa a EN_PAGO con su reloj.
 // El cobro es de demostración: solo se revisa el formato de la tarjeta (nunca se envía) y "Pagar" le pide al back que compre el carrito.
-export default function Pago({ usuario }) {
+export default function Pago() {
+  const { sesion } = useSelector((state) => state.usuario)
   const dispatch = useDispatch()
   const { carrito, cargado, vencido, guardando, errorAccion } = useSelector((state) => state.carrito)
   const { ultimaCompra, pagando, errorPago } = useSelector((state) => state.compras)
   const [tarjeta, setTarjeta] = useState(tarjetaVacia)
   const [intento, setIntento] = useState(false)
   const errores = erroresTarjeta(tarjeta)
-  const token = usuario?.rol === 'USER' ? usuario.token : null
+  const token = sesion?.rol === 'USER' ? sesion.token : null
   const hayEntradas = carrito.items.length > 0
 
   useEffect(() => {
     if (token && cargado && hayEntradas && carrito.estado === 'ACTIVO') dispatch(iniciarPago(token))
   }, [dispatch, token, cargado, hayEntradas, carrito.estado])
 
-  if (!token) return <AvisoAcceso usuario={usuario} para="USER" sinSesion="Ingresá para pagar tus entradas." />
+  if (!token) return <AvisoAcceso usuario={sesion} para="USER" sinSesion="Ingresá para pagar tus entradas." />
   if (vencido) return <TiempoAgotado />
   if (!cargado) return <main className="pagina compra"><p className="admin__cargando" role="status">Cargando tu pago…</p></main>
   // Al pagar, el carrito queda vacío y llega la compra: la pantalla se redibuja y lleva a su confirmación
@@ -71,7 +72,7 @@ export default function Pago({ usuario }) {
             onCambiar={cambiar}
             onProbar={() => setTarjeta(tarjetaPrueba)}
           />
-          <DatosPago usuario={usuario} />
+          <DatosPago usuario={sesion} />
           {errorPago && <p className="admin__aviso admin__aviso--error" role="alert">{errorPago}</p>}
           <Boton to="/carrito" variante="contorno" clase="boton--chico pago__volver">
             <Icono nombre="flechaIzq" tamano={16} /> Volver al carrito

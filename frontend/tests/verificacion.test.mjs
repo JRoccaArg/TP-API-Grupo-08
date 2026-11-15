@@ -7,6 +7,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { QRCodeSVG } from 'qrcode.react'
 import { createServer } from 'vite'
 import ticketsReducer, { consultarTicket, utilizarTicket } from '../src/redux/ticketsSlice.js'
+import { login, logout } from '../src/redux/usuarioSlice.js'
 import { datosDeTicket, resultadoDeTicket, urlVerificacion } from '../src/utils/verificacion.js'
 
 const CODIGO = '11111111-aaaa-bbbb-cccc-222222222222'
@@ -92,12 +93,14 @@ describe('pantallas', () => {
   after(async () => { await servidor?.close() })
 
   const mostrar = (elemento) => renderToStaticMarkup(createElement(MemoryRouter, null, elemento))
-  // La verificación lee el store; al dibujarla en el test no corren sus efectos, así que no sale ningún pedido
-  const verificar = (usuario) => renderToStaticMarkup(createElement(Provider, { store },
-    createElement(MemoryRouter, { initialEntries: [`/verificar/${CODIGO}`] },
-      createElement(Routes, null,
-        createElement(Route, { path: '/verificar/:codigo', element: createElement(VerificarEntrada, { usuario }) })))),
-  )
+  // La verificación lee la sesión y la entrada del store; al dibujarla en el test no corren sus efectos, así que no sale ningún pedido
+  const verificar = (sesion) => {
+    store.dispatch(sesion ? login.fulfilled(sesion, 'pedido', {}) : logout())
+    return renderToStaticMarkup(createElement(Provider, { store },
+      createElement(MemoryRouter, { initialEntries: [`/verificar/${CODIGO}`] },
+        createElement(Routes, null,
+          createElement(Route, { path: '/verificar/:codigo', element: createElement(VerificarEntrada) })))))
+  }
 
   test('el QR es un SVG real que guarda el link de verificación', () => {
     const esperado = renderToStaticMarkup(createElement(QRCodeSVG, {

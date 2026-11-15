@@ -1,12 +1,13 @@
 import { useState } from 'react'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import Boton from './Boton.jsx'
 import FormTipoEntrada from './FormTipoEntrada.jsx'
 import { crearTipoEntrada } from '../redux/tiposEntradaSlice'
 import { tipoVacio, validarTipo } from '../utils/formTipoEntrada.js'
 
 // Alta de un tipo de entrada (en la pantalla de tipos y dentro del evento). Despacha y avisa con onCreado(nombre)
-export default function NuevoTipoEntrada({ token, onCreado, onCancelar }) {
+export default function NuevoTipoEntrada({ onCreado, onCancelar }) {
+  const { sesion } = useSelector((state) => state.usuario)
   const dispatch = useDispatch()
   const [datos, setDatos] = useState(tipoVacio)
   const [aviso, setAviso] = useState('')
@@ -22,7 +23,7 @@ export default function NuevoTipoEntrada({ token, onCreado, onCancelar }) {
       setAviso(problema)
       return
     }
-    dispatch(crearTipoEntrada({ token, nombre: datos.nombre.trim(), descripcionBase: datos.descripcion.trim(), activo: true }))
+    dispatch(crearTipoEntrada({ token: sesion.token, nombre: datos.nombre.trim(), descripcionBase: datos.descripcion.trim(), activo: true }))
     onCreado(datos.nombre.trim())
   }
 

@@ -193,7 +193,7 @@ test('el aviso de un evento cancelado ofrece reembolsar solo sus entradas, con e
   const detalle = (eventoId, estados) => ({ eventoId, precioUnitario: 4000, tickets: estados.map((estado, id) => ({ id, estado })) })
   const compras = [{ id: 7, estado: 'CONFIRMADA', total: 20000, detalles: [detalle(1, ['EMITIDO', 'EMITIDO', 'UTILIZADO']), detalle(2, ['EMITIDO'])] }]
   const mostrar = (lista) => renderToStaticMarkup(conStore(createElement(AvisoEventoAfectado,
-    { evento: { id: 1, estado: 'CANCELADO' }, compras: lista, token: 't' })))
+    { evento: { id: 1, estado: 'CANCELADO' }, compras: lista })))
   const html = mostrar(compras)
   assert.match(html, /Este evento fue cancelado/)
   assert.match(html, /3 entradas de este evento/)

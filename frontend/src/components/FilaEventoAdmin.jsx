@@ -1,22 +1,23 @@
 import { useEffect } from 'react'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import Boton from './Boton.jsx'
 import { obtenerImagenes, obtenerOfertas } from '../redux/eventosSlice'
 import { ordenarImagenes, urlImagen } from '../utils/apiEventos.js'
 import { diaYFecha, horario } from '../utils/fechas.js'
 import { miles } from '../utils/formatos.js'
 
-export default function FilaEventoAdmin({ evento, token }) {
+export default function FilaEventoAdmin({ evento }) {
+  const { sesion } = useSelector((state) => state.usuario)
   const dispatch = useDispatch()
 
   // Como las tarjetas del catálogo: cada fila pide sus entradas y sus fotos una sola vez (con el token, por los borradores)
   useEffect(() => {
-    if (!evento.ofertas) dispatch(obtenerOfertas({ eventoId: evento.id, token }))
-  }, [dispatch, evento.id, evento.ofertas, token])
+    if (!evento.ofertas) dispatch(obtenerOfertas({ eventoId: evento.id, token: sesion.token }))
+  }, [dispatch, evento.id, evento.ofertas, sesion.token])
 
   useEffect(() => {
-    if (!evento.imagenes) dispatch(obtenerImagenes({ eventoId: evento.id, token }))
-  }, [dispatch, evento.id, evento.imagenes, token])
+    if (!evento.imagenes) dispatch(obtenerImagenes({ eventoId: evento.id, token: sesion.token }))
+  }, [dispatch, evento.id, evento.imagenes, sesion.token])
 
   const activo = evento.estado === 'ACTIVO'
   const portada = ordenarImagenes((evento.imagenes || []).map((imagen) => urlImagen(evento.id, imagen)))[0]

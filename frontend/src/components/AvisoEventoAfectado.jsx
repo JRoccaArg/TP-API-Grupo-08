@@ -9,7 +9,8 @@ import { precio } from '../utils/formatos.js'
 // Lo que se ve en "Mis entradas" de un evento cancelado o reprogramado: qué pasó y, por cada compra con entradas de ese evento, el reembolso.
 // Se reembolsan solo las de ESTE evento: quedan anuladas y vuelve el stock; las usadas no. El dinero es de demostración.
 // No se puede deshacer: el primer clic pide confirmación y el segundo despacha. La compra que responde el back reemplaza a la anterior en el store.
-export default function AvisoEventoAfectado({ evento, compras, token }) {
+export default function AvisoEventoAfectado({ evento, compras }) {
+  const { sesion } = useSelector((state) => state.usuario)
   const dispatch = useDispatch()
   const { reembolsando, errorReembolso } = useSelector((state) => state.compras)
   const [confirmando, setConfirmando] = useState(null)
@@ -23,7 +24,7 @@ export default function AvisoEventoAfectado({ evento, compras, token }) {
       return
     }
     setConfirmando(null)
-    dispatch(reembolsarEvento({ token, compraId: id, eventoId: evento.id }))
+    dispatch(reembolsarEvento({ token: sesion.token, compraId: id, eventoId: evento.id }))
   }
 
   return (

@@ -1,12 +1,13 @@
 import { useState } from 'react'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import FormEntrada from './FormEntrada.jsx'
 import { actualizarOferta, crearOferta } from '../redux/eventosSlice'
 import { buscarPorNombre } from '../utils/formEvento.js'
 import { formularioAOferta, ofertaAFormulario, ofertaVacia, validarOferta, ventaDelEvento, vendidas } from '../utils/formOferta.js'
 
 // Alta o edición de una entrada del evento ("oferta" es la que se edita; sin ella es un alta). Despacha y cierra enseguida.
-export default function EditorEntrada({ evento, oferta, tipos, token, onClose }) {
+export default function EditorEntrada({ evento, oferta, tipos, onClose }) {
+  const { sesion } = useSelector((state) => state.usuario)
   const dispatch = useDispatch()
   const [datos, setDatos] = useState(oferta ? ofertaAFormulario(oferta) : ofertaVacia)
   const [tipoCreado, setTipoCreado] = useState('')
@@ -36,7 +37,7 @@ export default function EditorEntrada({ evento, oferta, tipos, token, onClose })
       // El estado va solo si lo cambió el admin (AGOTADO y FINALIZADO los calcula el back).
       // El cierre de la venta se vuelve a alinear con el fin del evento; el inicio queda como estaba.
       dispatch(actualizarOferta({
-        token,
+        token: sesion.token,
         eventoId: evento.id,
         id: oferta.id,
         ...formularioAOferta(datos),
@@ -45,7 +46,7 @@ export default function EditorEntrada({ evento, oferta, tipos, token, onClose })
       }))
     } else {
       dispatch(crearOferta({
-        token,
+        token: sesion.token,
         eventoId: evento.id,
         tipoEntradaId: Number(tipoEntradaId),
         ...formularioAOferta(datos),
@@ -63,7 +64,6 @@ export default function EditorEntrada({ evento, oferta, tipos, token, onClose })
       tipoNombre={oferta?.tipoEntradaNombre}
       tipos={tipos}
       vendidas={oferta ? vendidas(oferta) : 0}
-      token={token}
       aviso={aviso}
       onCambiar={cambiar}
       onTipoCreado={creado}

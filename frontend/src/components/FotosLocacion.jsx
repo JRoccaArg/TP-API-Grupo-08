@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import FotoAdmin from './FotoAdmin.jsx'
 import SubirFotos from './SubirFotos.jsx'
 import { cambiarOrdenFotoLocacion, eliminarFotoLocacion, subirFotoLocacion } from '../redux/locacionesSlice'
@@ -7,7 +7,8 @@ import { cambiosDeOrden, moverFoto, ordenarFotosLocacion, urlFotoLocacion } from
 
 // Fotos de una locación (ya guardada): subir varias, reordenar y quitar. Sin portada, solo el orden.
 // Cada pedido es su propia acción: si un clic necesita varios (por ejemplo, mover), se despacha una por pedido.
-export default function FotosLocacion({ locacion, token }) {
+export default function FotosLocacion({ locacion }) {
+  const { sesion } = useSelector((state) => state.usuario)
   const dispatch = useDispatch()
   const [aviso, setAviso] = useState('')
   const [aQuitar, setAQuitar] = useState(null)
@@ -18,7 +19,7 @@ export default function FotosLocacion({ locacion, token }) {
     setAviso('')
     const ultimo = Math.max(0, ...imagenes.map((imagen) => imagen.orden ?? 0))
     archivos.forEach((archivo, indice) => {
-      dispatch(subirFotoLocacion({ token, locacionId: locacion.id, archivo, orden: ultimo + indice + 1, textoAlternativo: locacion.nombre }))
+      dispatch(subirFotoLocacion({ token: sesion.token, locacionId: locacion.id, archivo, orden: ultimo + indice + 1, textoAlternativo: locacion.nombre }))
     })
   }
 
@@ -26,7 +27,7 @@ export default function FotosLocacion({ locacion, token }) {
   const mover = (indice, salto) => {
     setAQuitar(null)
     cambiosDeOrden(moverFoto(imagenes, indice, salto)).forEach(({ foto, orden }) => {
-      dispatch(cambiarOrdenFotoLocacion({ token, locacionId: locacion.id, imagenId: foto.id, orden }))
+      dispatch(cambiarOrdenFotoLocacion({ token: sesion.token, locacionId: locacion.id, imagenId: foto.id, orden }))
     })
   }
 
@@ -35,7 +36,7 @@ export default function FotosLocacion({ locacion, token }) {
       setAQuitar(imagen.id)
       return
     }
-    dispatch(eliminarFotoLocacion({ token, locacionId: locacion.id, imagenId: imagen.id }))
+    dispatch(eliminarFotoLocacion({ token: sesion.token, locacionId: locacion.id, imagenId: imagen.id }))
     setAQuitar(null)
   }
 

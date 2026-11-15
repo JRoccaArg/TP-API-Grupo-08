@@ -9,18 +9,19 @@ import { opcionesDeEstados } from '../utils/opciones.js'
 
 // Datos del evento, con los campos que pide el back. Muestra "datos" y avisa cada cambio con onCambiar(campo, valor).
 // El lugar y la categoría se eligen de una lista; si no están, cada uno tiene su botón «Crear», que despacha su alta (un pedido).
-export default function FormularioEvento({ datos, onCambiar, locaciones, categorias, token }) {
+export default function FormularioEvento({ datos, onCambiar, locaciones, categorias }) {
+  const { sesion } = useSelector((state) => state.usuario)
   const dispatch = useDispatch()
   const { error: errorCategorias } = useSelector((state) => state.categorias)
   const { error: errorLocaciones } = useSelector((state) => state.locaciones)
   const cambiar = (campo) => (evento) => onCambiar(campo, evento.target.value)
 
   const crearCategoriaNueva = () => {
-    dispatch(crearCategoria({ token, nombre: datos.categoria.trim(), activo: true }))
+    dispatch(crearCategoria({ token: sesion.token, nombre: datos.categoria.trim(), activo: true }))
   }
 
   const crearLugarNuevo = () => {
-    dispatch(crearLocacion({ token, nombre: datos.lugar.trim(), direccion: datos.direccion.trim() }))
+    dispatch(crearLocacion({ token: sesion.token, nombre: datos.lugar.trim(), direccion: datos.direccion.trim() }))
   }
 
   return (

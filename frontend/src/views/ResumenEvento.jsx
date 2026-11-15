@@ -12,11 +12,12 @@ import { datosDelResumen } from '../utils/estadisticas.js'
 import { diaYFecha, horario } from '../utils/fechas.js'
 
 // Pantalla "/admin/:id": resumen del evento (ventas, recaudado, compras e ingresos) y sus acciones. Solo ADMIN.
-export default function ResumenEvento({ usuario }) {
+export default function ResumenEvento() {
+  const { sesion } = useSelector((state) => state.usuario)
   const { id } = useParams()
   const dispatch = useDispatch()
   const { items, todos, errorAdmin, estadisticas, errorEstadisticas } = useSelector((state) => state.eventos)
-  const token = usuario?.rol === 'ADMIN' ? usuario.token : null
+  const token = sesion?.rol === 'ADMIN' ? sesion.token : null
   const evento = items.find((item) => item.id === Number(id))
   const eventoId = evento?.id
   // Si las ventas guardadas son de otro evento, se piden las de este (la idea de meta.arg que dio la profe)
@@ -30,7 +31,7 @@ export default function ResumenEvento({ usuario }) {
     if (token && !ventas) dispatch(obtenerEstadisticas({ eventoId: Number(id), token }))
   }, [dispatch, token, id, ventas])
 
-  if (!token) return <AvisoAcceso usuario={usuario} para="ADMIN" sinSesion="Esta sección es solo para administradores." />
+  if (!token) return <AvisoAcceso usuario={sesion} para="ADMIN" sinSesion="Esta sección es solo para administradores." />
   if (!evento && todos === null && errorAdmin) return <Aviso mensaje={errorAdmin} boton="Volver" to="/admin" />
   if (!evento && todos !== null) return <Aviso mensaje="No encontramos este evento." boton="Volver" to="/admin" />
   if (!evento) {

@@ -9,20 +9,21 @@ import { datosDeTicket, resultadoDeTicket } from '../utils/verificacion.js'
 
 // Pantalla "/verificar/:codigo": a donde lleva el QR de una entrada. Solo la puede ver el organizador (ADMIN).
 // La "key" hace que cada código empiece de cero (por ejemplo, al escanear la siguiente entrada).
-export default function VerificarEntrada({ usuario }) {
+export default function VerificarEntrada() {
   const { codigo } = useParams()
-  return <Verificacion key={codigo} codigo={codigo} usuario={usuario} />
+  return <Verificacion key={codigo} codigo={codigo} />
 }
 
 // Al abrirla se consulta la entrada sin gastarla: el ingreso se registra recién al apretar el botón.
 // Si se llega desde el escáner, "state" trae el evento que se controla y a dónde volver para escanear la siguiente.
-function Verificacion({ codigo, usuario }) {
+function Verificacion({ codigo }) {
   const { pathname, state } = useLocation()
   const dispatch = useDispatch()
+  const { sesion } = useSelector((estado) => estado.usuario)
   const { ticket, loading, error, registrando, errorRegistro, ultimoRegistrado } = useSelector((estado) => estado.tickets)
   const [pidioRegistrar, setPidioRegistrar] = useState(false)
   const volverA = state?.volverA
-  const token = usuario?.rol === 'ADMIN' ? usuario.token : null
+  const token = sesion?.rol === 'ADMIN' ? sesion.token : null
   // Lo guardado vale solo si es de este código: es la idea de meta.arg de la profe (no se vuelve a pedir la misma)
   const actual = ticket?.codigoQr === codigo ? ticket : null
   const fallo = error?.codigo === codigo ? error : null
@@ -37,7 +38,7 @@ function Verificacion({ codigo, usuario }) {
     dispatch(utilizarTicket({ token, codigo }))
   }
 
-  if (!usuario) {
+  if (!sesion) {
     return <Aviso mensaje="Ingresá como organizador para verificar esta entrada." boton="Ingresar" to="/login" state={{ volverA: pathname }} />
   }
   if (!token) return <Aviso mensaje="Solo el organizador puede verificar entradas." boton="Ir al inicio" to="/" />

@@ -17,12 +17,13 @@ const FILTROS = [
 ]
 
 // Pantalla "/admin": los eventos reales (cualquier estado) para editar o crear uno nuevo. Solo para el rol ADMIN.
-export default function GestionarEventos({ usuario }) {
+export default function GestionarEventos() {
+  const { sesion } = useSelector((state) => state.usuario)
   const dispatch = useDispatch()
   const { items, todos, errorAdmin } = useSelector((state) => state.eventos)
   const [filtro, setFiltro] = useState('todos')
-  const esAdmin = usuario?.rol === 'ADMIN'
-  const token = esAdmin ? usuario.token : null
+  const esAdmin = sesion?.rol === 'ADMIN'
+  const token = esAdmin ? sesion.token : null
   // "todos" guarda los ids y los eventos están en items. Primero los más lejanos, como antes
   const lista = todos
     ? todos.map((id) => items.find((evento) => evento.id === id))
@@ -35,7 +36,7 @@ export default function GestionarEventos({ usuario }) {
   }, [dispatch, token, todos])
 
   if (!esAdmin) {
-    return <AvisoAcceso usuario={usuario} para="ADMIN" sinSesion="Esta sección es solo para administradores." />
+    return <AvisoAcceso usuario={sesion} para="ADMIN" sinSesion="Esta sección es solo para administradores." />
   }
   const visibles = lista.filter(FILTROS.find((f) => f.id === filtro).coincide)
 
@@ -59,7 +60,7 @@ export default function GestionarEventos({ usuario }) {
           <TabsFiltro filtros={FILTROS} eventos={lista} activo={filtro} onElegir={setFiltro} />
           <ul className="admin__lista">
             {visibles.map((evento) => (
-              <FilaEventoAdmin key={evento.id} evento={evento} token={token} />
+              <FilaEventoAdmin key={evento.id} evento={evento} />
             ))}
           </ul>
           {visibles.length === 0 && <p className="admin__vacio">No hay eventos en esta lista.</p>}

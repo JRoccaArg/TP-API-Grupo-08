@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import Boton from './Boton.jsx'
 import CampoLinea from './CampoLinea.jsx'
 import CampoSelect from './CampoSelect.jsx'
@@ -8,7 +8,8 @@ import { actualizarCategoria, crearCategoria } from '../redux/categoriasSlice'
 const ESTADOS = [{ valor: 'true', texto: 'Activa' }, { valor: 'false', texto: 'Inactiva' }]
 
 // Sin "categoria" crea una nueva; con "categoria" la edita. Despacha y cierra enseguida, como el EditPostForm de la profe
-export default function EdicionCategoria({ categoria, token, onClose }) {
+export default function EdicionCategoria({ categoria, onClose }) {
+  const { sesion } = useSelector((state) => state.usuario)
   const dispatch = useDispatch()
   const esNueva = !categoria
   const [datos, setDatos] = useState({ nombre: categoria?.nombre || '', activo: String(categoria?.activo !== false) })
@@ -25,9 +26,9 @@ export default function EdicionCategoria({ categoria, token, onClose }) {
       return
     }
     if (esNueva) {
-      dispatch(crearCategoria({ token, nombre: datos.nombre.trim(), activo: true }))
+      dispatch(crearCategoria({ token: sesion.token, nombre: datos.nombre.trim(), activo: true }))
     } else {
-      dispatch(actualizarCategoria({ token, id: categoria.id, nombre: datos.nombre.trim(), activo: datos.activo === 'true' }))
+      dispatch(actualizarCategoria({ token: sesion.token, id: categoria.id, nombre: datos.nombre.trim(), activo: datos.activo === 'true' }))
     }
     onClose()
   }

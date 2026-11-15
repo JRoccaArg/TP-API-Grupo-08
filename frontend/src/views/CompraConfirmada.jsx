@@ -11,12 +11,13 @@ import { eventosConFotos } from '../utils/fotos.js'
 
 // Pantalla "/compra/:id": lo que se compró, con sus entradas. Al pagar, la compra ya está en el store (no se pide de nuevo);
 // si se recarga la página o se entra por un link, se pide por su id.
-export default function CompraConfirmada({ usuario }) {
+export default function CompraConfirmada() {
+  const { sesion } = useSelector((state) => state.usuario)
   const { id } = useParams()
   const dispatch = useDispatch()
   const { items: compras, errorCompra } = useSelector((state) => state.compras)
   const { items, pedidos } = useSelector((state) => state.eventos)
-  const token = usuario?.rol === 'USER' ? usuario.token : null
+  const token = sesion?.rol === 'USER' ? sesion.token : null
   const compra = compras.find((otra) => otra.id === Number(id))
   const fallo = errorCompra?.id === Number(id)
   const hayCompra = Boolean(compra)
@@ -37,7 +38,7 @@ export default function CompraConfirmada({ usuario }) {
     sinFotos.forEach((eventoId) => dispatch(obtenerImagenes({ eventoId })))
   }, [dispatch, sinFotos])
 
-  if (!token) return <AvisoAcceso usuario={usuario} para="USER" sinSesion="Ingresá para ver tu compra." />
+  if (!token) return <AvisoAcceso usuario={sesion} para="USER" sinSesion="Ingresá para ver tu compra." />
   // Una compra ajena o inexistente se ve igual: el back responde 403 o 404
   if (fallo) return <Aviso mensaje="No encontramos esta compra." boton="Ver mis entradas" to="/mis-entradas" />
   if (!compra) {

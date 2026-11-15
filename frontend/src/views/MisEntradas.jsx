@@ -15,12 +15,13 @@ import { eventosConFotos } from '../utils/fotos.js'
 
 // Pantallas "/mis-entradas" y "/mis-entradas/:eventoId": las entradas del usuario agrupadas por evento.
 // Con más de un evento primero se elige el evento (sus QR van en /mis-entradas/:eventoId); con uno solo se ven directo.
-export default function MisEntradas({ usuario }) {
+export default function MisEntradas() {
+  const { sesion } = useSelector((state) => state.usuario)
   const { eventoId } = useParams()
   const dispatch = useDispatch()
   const { items: compras, error, cargado } = useSelector((state) => state.compras)
   const { items, pedidos } = useSelector((state) => state.eventos)
-  const token = usuario?.rol === 'USER' ? usuario.token : null
+  const token = sesion?.rol === 'USER' ? sesion.token : null
   const ids = idsDeEventosDeCompras(compras)
   // De cada evento comprado se pide solo lo que todavía no está en el store
   const faltan = ids.filter((id) => !items.some((evento) => evento.id === id) && !pedidos.includes(id))
@@ -39,7 +40,7 @@ export default function MisEntradas({ usuario }) {
     sinFotos.forEach((id) => dispatch(obtenerImagenes({ eventoId: id })))
   }, [dispatch, sinFotos])
 
-  if (!token) return <AvisoAcceso usuario={usuario} para="USER" sinSesion="Ingresá para ver tus entradas." />
+  if (!token) return <AvisoAcceso usuario={sesion} para="USER" sinSesion="Ingresá para ver tus entradas." />
   if (!cargado && error) {
     return (
       <main className="pagina aviso">
@@ -61,11 +62,11 @@ export default function MisEntradas({ usuario }) {
     <div className="fondo-dorado">
       <main className="pagina mis-entradas">
         <CabeceraMisEntradas grupo={elegido} varios={grupos.length > 1} />
-        {elegido && eventoAfectado(elegido.evento) && <AvisoEventoAfectado evento={elegido.evento} compras={compras} token={token} />}
+        {elegido && eventoAfectado(elegido.evento) && <AvisoEventoAfectado evento={elegido.evento} compras={compras} />}
         {elegido ? (
           <div className="mis-entradas__grilla">
             {elegido.entradas.map((entrada, indice) => (
-              <TarjetaEntrada key={entrada.id} entrada={entrada} evento={elegido.evento} comprador={usuario.nombre}
+              <TarjetaEntrada key={entrada.id} entrada={entrada} evento={elegido.evento} comprador={sesion.nombre}
                 numero={indice + 1} total={elegido.entradas.length} />
             ))}
           </div>

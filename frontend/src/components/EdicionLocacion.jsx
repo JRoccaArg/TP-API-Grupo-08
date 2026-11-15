@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import BarraAcciones from './BarraAcciones.jsx'
 import FormularioLocacion from './FormularioLocacion.jsx'
@@ -9,7 +9,8 @@ import { actualizarLocacion, eliminarLocacion } from '../redux/locacionesSlice'
 import { locacionAFormulario, validarLocacion } from '../utils/formLocacion.js'
 
 // Guardar y eliminar despachan y vuelven a la lista; si el back los rechaza, el error queda en la locación y se ve en su fila
-export default function EdicionLocacion({ locacion, token }) {
+export default function EdicionLocacion({ locacion }) {
+  const { sesion } = useSelector((state) => state.usuario)
   const navigate = useNavigate()
   const dispatch = useDispatch()
   const [datos, setDatos] = useState(locacionAFormulario(locacion))
@@ -27,7 +28,7 @@ export default function EdicionLocacion({ locacion, token }) {
       setAviso(problema)
       return
     }
-    dispatch(actualizarLocacion({ token, id: locacion.id, nombre: datos.nombre.trim(), direccion: datos.direccion.trim() }))
+    dispatch(actualizarLocacion({ token: sesion.token, id: locacion.id, nombre: datos.nombre.trim(), direccion: datos.direccion.trim() }))
     navigate('/admin/locaciones')
   }
 
@@ -37,7 +38,7 @@ export default function EdicionLocacion({ locacion, token }) {
       setConfirmando(true)
       return
     }
-    dispatch(eliminarLocacion({ token, id: locacion.id }))
+    dispatch(eliminarLocacion({ token: sesion.token, id: locacion.id }))
     navigate('/admin/locaciones')
   }
 
@@ -50,7 +51,7 @@ export default function EdicionLocacion({ locacion, token }) {
       />
       <div className="admin__columna admin__columna--sola">
         <FormularioLocacion datos={datos} onCambiar={cambiar} />
-        <FotosLocacion locacion={locacion} token={token} />
+        <FotosLocacion locacion={locacion} />
       </div>
       {(aviso || locacion.errorEdicion) && (
         <p className="admin__aviso admin__aviso--error" role="alert">{aviso || locacion.errorEdicion}</p>

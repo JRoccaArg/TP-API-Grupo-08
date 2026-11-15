@@ -13,14 +13,15 @@ import { obtenerLocaciones } from '../redux/locacionesSlice'
 import { formularioAEvento, formularioVacio, validarEvento } from '../utils/formEvento.js'
 
 // Pantalla "/admin/nuevo": el mismo formulario que editar, pero vacío. Al crear vuelve a la lista. Solo ADMIN.
-export default function NuevoEvento({ usuario }) {
+export default function NuevoEvento() {
+  const { sesion } = useSelector((state) => state.usuario)
   const navigate = useNavigate()
   const dispatch = useDispatch()
   const { items: locaciones, error: errorLocaciones, cargado: locacionesCargadas } = useSelector((state) => state.locaciones)
   const { items: categorias, error: errorCategorias, cargado: categoriasCargadas } = useSelector((state) => state.categorias)
   const [datos, setDatos] = useState(formularioVacio)
   const [aviso, setAviso] = useState('')
-  const esAdmin = usuario?.rol === 'ADMIN'
+  const esAdmin = sesion?.rol === 'ADMIN'
   const listo = locacionesCargadas && categoriasCargadas
   const falloCarga = (!locacionesCargadas && errorLocaciones) || (!categoriasCargadas && errorCategorias)
 
@@ -34,7 +35,7 @@ export default function NuevoEvento({ usuario }) {
   }, [dispatch, esAdmin, categoriasCargadas])
 
   if (!esAdmin) {
-    return <AvisoAcceso usuario={usuario} para="ADMIN" sinSesion="Esta sección es solo para administradores." />
+    return <AvisoAcceso usuario={sesion} para="ADMIN" sinSesion="Esta sección es solo para administradores." />
   }
 
   const cambiar = (campo, valor) => {
@@ -54,7 +55,7 @@ export default function NuevoEvento({ usuario }) {
       setAviso(problema)
       return
     }
-    dispatch(crearEvento({ token: usuario.token, ...formularioAEvento(datos, { locaciones, categorias }) }))
+    dispatch(crearEvento({ token: sesion.token, ...formularioAEvento(datos, { locaciones, categorias }) }))
     navigate('/admin')
   }
 
@@ -68,7 +69,7 @@ export default function NuevoEvento({ usuario }) {
       <div className="admin__dos-columnas">
         <div className="admin__columna">
           {listo ? (
-            <FormularioEvento datos={datos} onCambiar={cambiar} locaciones={locaciones} categorias={categorias} token={usuario.token} />
+            <FormularioEvento datos={datos} onCambiar={cambiar} locaciones={locaciones} categorias={categorias} />
           ) : falloCarga ? (
             <div role="alert">
               <p className="admin__aviso admin__aviso--error">{falloCarga}</p>

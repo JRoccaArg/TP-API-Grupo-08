@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import FotoAdmin from './FotoAdmin.jsx'
 import SubirFotos from './SubirFotos.jsx'
 import { cambiarImagen, eliminarImagen, subirImagen } from '../redux/eventosSlice'
@@ -9,7 +9,8 @@ import { cambiosDeOrden, moverFoto } from '../utils/fotos.js'
 // Fotos de un evento (ya guardado): subir varias, elegir la portada, reordenar y quitar. El back no obliga a tener una sola
 // portada ni órdenes distintos, por eso lo cuida esta pantalla (la portada anterior pasa a galería y se numera de 1).
 // Cada pedido es su propia acción: si un clic necesita varios, se despacha una acción por pedido, sin esperar.
-export default function ImagenesEvento({ evento, token }) {
+export default function ImagenesEvento({ evento }) {
+  const { sesion } = useSelector((state) => state.usuario)
   const dispatch = useDispatch()
   const [aviso, setAviso] = useState('')
   const [aQuitar, setAQuitar] = useState(null)
@@ -21,7 +22,7 @@ export default function ImagenesEvento({ evento, token }) {
     const hayPortada = imagenes.some((imagen) => imagen.tipoImagenEvento === 'PORTADA')
     archivos.forEach((archivo, indice) => {
       dispatch(subirImagen({
-        token,
+        token: sesion.token,
         eventoId: evento.id,
         archivo,
         tipo: !hayPortada && indice === 0 ? 'PORTADA' : 'GALERIA',
@@ -36,16 +37,16 @@ export default function ImagenesEvento({ evento, token }) {
     setAQuitar(null)
     const actual = imagenes.find((otra) => otra.tipoImagenEvento === 'PORTADA')
     if (actual) {
-      dispatch(cambiarImagen({ token, eventoId: evento.id, imagenId: actual.id, tipo: 'GALERIA', orden: imagen.orden }))
+      dispatch(cambiarImagen({ token: sesion.token, eventoId: evento.id, imagenId: actual.id, tipo: 'GALERIA', orden: imagen.orden }))
     }
-    dispatch(cambiarImagen({ token, eventoId: evento.id, imagenId: imagen.id, tipo: 'PORTADA', orden: actual ? actual.orden : imagen.orden }))
+    dispatch(cambiarImagen({ token: sesion.token, eventoId: evento.id, imagenId: imagen.id, tipo: 'PORTADA', orden: actual ? actual.orden : imagen.orden }))
   }
 
   // Las fotos se numeran de 1 en adelante en el nuevo orden: se manda solo cada una que cambió de número
   const mover = (indice, salto) => {
     setAQuitar(null)
     cambiosDeOrden(moverFoto(imagenes, indice, salto)).forEach(({ foto, orden }) => {
-      dispatch(cambiarImagen({ token, eventoId: evento.id, imagenId: foto.id, tipo: foto.tipoImagenEvento, orden }))
+      dispatch(cambiarImagen({ token: sesion.token, eventoId: evento.id, imagenId: foto.id, tipo: foto.tipoImagenEvento, orden }))
     })
   }
 
@@ -54,7 +55,7 @@ export default function ImagenesEvento({ evento, token }) {
       setAQuitar(imagen.id)
       return
     }
-    dispatch(eliminarImagen({ token, eventoId: evento.id, imagenId: imagen.id }))
+    dispatch(eliminarImagen({ token: sesion.token, eventoId: evento.id, imagenId: imagen.id }))
     setAQuitar(null)
   }
 

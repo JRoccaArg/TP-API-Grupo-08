@@ -8,10 +8,11 @@ import TituloAdmin from '../components/TituloAdmin.jsx'
 import { obtenerLocaciones } from '../redux/locacionesSlice'
 
 // Pantalla "/admin/locaciones": los lugares donde se hacen los eventos, para editarlos o crear uno nuevo. Solo ADMIN.
-export default function GestionarLocaciones({ usuario }) {
+export default function GestionarLocaciones() {
+  const { sesion } = useSelector((state) => state.usuario)
   const dispatch = useDispatch()
   const { items, loading, error, cargado } = useSelector((state) => state.locaciones)
-  const esAdmin = usuario?.rol === 'ADMIN'
+  const esAdmin = sesion?.rol === 'ADMIN'
   const lista = [...items].sort((a, b) => a.nombre.localeCompare(b.nombre))
 
   // Si ya están en el store (por ejemplo, desde el inicio) no se vuelven a pedir
@@ -20,7 +21,7 @@ export default function GestionarLocaciones({ usuario }) {
   }, [dispatch, esAdmin, cargado])
 
   if (!esAdmin) {
-    return <AvisoAcceso usuario={usuario} para="ADMIN" sinSesion="Esta sección es solo para administradores." />
+    return <AvisoAcceso usuario={sesion} para="ADMIN" sinSesion="Esta sección es solo para administradores." />
   }
 
   return (

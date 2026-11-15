@@ -8,7 +8,7 @@ import { admiteEntradas } from '../utils/formOferta.js'
 
 // Panel lateral con las entradas del evento (ver, agregar, editar, quitar). Lee las entradas del evento en el store.
 // Sin "evento" (se está creando) todavía no se pueden cargar entradas.
-export default function PanelEntradas({ evento, token }) {
+export default function PanelEntradas({ evento }) {
   const dispatch = useDispatch()
   const { items: tipos, error: errorTipos, cargado: tiposCargados } = useSelector((state) => state.tiposEntrada)
   const [editor, setEditor] = useState(null) // null = cerrado; si no, { oferta } (con oferta null es un alta)
@@ -43,7 +43,7 @@ export default function PanelEntradas({ evento, token }) {
       {evento.ofertas.length > 0 ? (
         <ul className="panel-entradas__lista">
           {evento.ofertas.map((oferta) => (
-            <ResumenOferta key={oferta.id} oferta={oferta} eventoId={evento.id} token={token} onEditar={() => setEditor({ oferta })} />
+            <ResumenOferta key={oferta.id} oferta={oferta} eventoId={evento.id} onEditar={() => setEditor({ oferta })} />
           ))}
         </ul>
       ) : (
@@ -55,7 +55,6 @@ export default function PanelEntradas({ evento, token }) {
           evento={evento}
           oferta={editor.oferta}
           tipos={ofrecidos}
-          token={token}
           onClose={() => setEditor(null)}
         />
       ) : admiteEntradas(evento) ? (

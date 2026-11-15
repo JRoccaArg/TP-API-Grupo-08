@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import Boton from './Boton.jsx'
 import EdicionCategoria from './EdicionCategoria.jsx'
 import { eliminarCategoria } from '../redux/categoriasSlice'
 
 // Una categoría de la lista del admin. Eliminar pide segunda confirmación; si tiene eventos el back no la borra y la lista muestra el error
-export default function FilaCategoria({ categoria, token }) {
+export default function FilaCategoria({ categoria }) {
+  const { sesion } = useSelector((state) => state.usuario)
   const dispatch = useDispatch()
   const [editando, setEditando] = useState(false)
   const [confirmando, setConfirmando] = useState(false)
@@ -16,14 +17,14 @@ export default function FilaCategoria({ categoria, token }) {
       setConfirmando(true)
       return
     }
-    dispatch(eliminarCategoria({ token, id: categoria.id }))
+    dispatch(eliminarCategoria({ token: sesion.token, id: categoria.id }))
     setConfirmando(false)
   }
 
   if (editando) {
     return (
       <li className="fila-tipo fila-tipo--edicion">
-        <EdicionCategoria categoria={categoria} token={token} onClose={() => setEditando(false)} />
+        <EdicionCategoria categoria={categoria} onClose={() => setEditando(false)} />
       </li>
     )
   }
