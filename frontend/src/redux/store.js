@@ -4,6 +4,7 @@ import categoriasReducer from './categoriasSlice'
 import comprasReducer from './comprasSlice'
 import eventosReducer from './eventosSlice'
 import locacionesReducer from './locacionesSlice'
+import ticketsReducer from './ticketsSlice'
 import tiposEntradaReducer from './tiposEntradaSlice'
 
 export const store = configureStore({
@@ -14,5 +15,6 @@ export const store = configureStore({
     tiposEntrada: tiposEntradaReducer,
     carrito: carritoReducer,
     compras: comprasReducer,
+    tickets: ticketsReducer,
   },
 })

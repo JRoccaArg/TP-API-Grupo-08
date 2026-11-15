@@ -1,12 +1,12 @@
-import { after, afterEach, before, describe, test } from 'node:test'
+import { after, before, describe, test } from 'node:test'
 import assert from 'node:assert/strict'
 import { createElement } from 'react'
+import { Provider } from 'react-redux'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { QRCodeSVG } from 'qrcode.react'
 import { createServer } from 'vite'
-import { ErrorApi } from '../src/utils/apiEventos.js'
-import { consultarTicket, utilizarTicket } from '../src/utils/apiTickets.js'
+import ticketsReducer, { consultarTicket, utilizarTicket } from '../src/redux/ticketsSlice.js'
 import { datosDeTicket, resultadoDeTicket, urlVerificacion } from '../src/utils/verificacion.js'
 
 const CODIGO = '11111111-aaaa-bbbb-cccc-222222222222'
@@ -57,50 +57,34 @@ describe('qué se le dice al organizador', () => {
   })
 })
 
-describe('pedidos al back', () => {
-  const fetchOriginal = globalThis.fetch
-  function simularFetch(estado, cuerpo) {
-    const llamadas = []
-    globalThis.fetch = async (ruta, opciones) => {
-      llamadas.push({ ruta, opciones })
-      return new Response(JSON.stringify(cuerpo), { status: estado, headers: { 'Content-Type': 'application/json' } })
-    }
-    return llamadas
-  }
-  afterEach(() => { globalThis.fetch = fetchOriginal })
+// Los reducers son funciones puras: se les pasa un estado y la acción que despacha el middleware cuando responde el back.
+describe('el slice de la entrada que se verifica', () => {
+  const inicio = ticketsReducer(undefined, { type: 'inicio' })
+  const arg = { token: 'TOKEN', codigo: CODIGO }
 
-  test('consultar pide el ticket con el token del organizador y sin gastarlo (GET)', async () => {
-    const llamadas = simularFetch(200, ticket)
-    assert.deepEqual(await consultarTicket('TOKEN', CODIGO), ticket)
-    assert.equal(llamadas[0].ruta, `/api/tickets/qr/${CODIGO}`)
-    assert.equal(llamadas[0].opciones.method, 'GET')
-    assert.equal(llamadas[0].opciones.headers.Authorization, 'Bearer TOKEN')
+  test('consultar guarda la entrada; si falla, el error queda con su código y dice si no existe', () => {
+    assert.deepEqual(ticketsReducer(inicio, consultarTicket.fulfilled(ticket, 'pedido', arg)).ticket, ticket)
+    const fallo = ticketsReducer(inicio, consultarTicket.rejected(null, 'pedido', { token: 'TOKEN', codigo: 'no-existe' },
+      { mensaje: 'El ticket no existe', noExiste: true }))
+    assert.deepEqual(fallo.error, { codigo: 'no-existe', mensaje: 'El ticket no existe', noExiste: true })
   })
-  test('utilizar registra el ingreso (POST)', async () => {
-    const llamadas = simularFetch(200, { ...ticket, estado: 'UTILIZADO' })
-    assert.equal((await utilizarTicket('TOKEN', CODIGO)).estado, 'UTILIZADO')
-    assert.equal(llamadas[0].ruta, `/api/tickets/qr/${CODIGO}/utilizar`)
-    assert.equal(llamadas[0].opciones.method, 'POST')
+  test('registrar guarda la entrada usada y recuerda qué código se registró', () => {
+    const estado = ticketsReducer(inicio, utilizarTicket.fulfilled({ ...ticket, estado: 'UTILIZADO' }, 'pedido', arg))
+    assert.equal(estado.ticket.estado, 'UTILIZADO')
+    assert.equal(estado.ultimoRegistrado, CODIGO)
   })
-  test('un código que no existe falla con 404 y el mensaje del back', async () => {
-    simularFetch(404, { message: 'El ticket no existe' })
-    await assert.rejects(consultarTicket('TOKEN', 'no-existe'), (error) => {
-      assert.ok(error instanceof ErrorApi)
-      assert.equal(error.estado, 404)
-      assert.equal(error.message, 'El ticket no existe')
-      return true
-    })
-  })
-  test('una entrada ya usada falla con 409', async () => {
-    simularFetch(409, { message: 'El ticket no se puede utilizar (ya fue usado o esta cancelado)' })
-    await assert.rejects(utilizarTicket('TOKEN', CODIGO), (error) => error.estado === 409)
+  test('si ya la usaron (409), queda el mensaje del back y no se da por registrada', () => {
+    const estado = ticketsReducer(inicio, utilizarTicket.rejected(null, 'pedido', arg, 'El ticket no se puede utilizar (ya fue usado o esta cancelado)'))
+    assert.match(estado.errorRegistro, /ya fue usado/)
+    assert.equal(estado.ultimoRegistrado, null)
   })
 })
 
 describe('pantallas', () => {
-  let servidor, CodigoQR, TarjetaEntrada, VerificarEntrada
+  let servidor, store, CodigoQR, TarjetaEntrada, VerificarEntrada
   before(async () => {
     servidor = await createServer({ server: { middlewareMode: true, ws: false }, appType: 'custom' }) // sin WebSocket: evita chocar de puerto con otros tests
+    store = (await servidor.ssrLoadModule('/src/redux/store.js')).store
     CodigoQR = (await servidor.ssrLoadModule('/src/components/CodigoQR.jsx')).default
     TarjetaEntrada = (await servidor.ssrLoadModule('/src/components/TarjetaEntrada.jsx')).default
     VerificarEntrada = (await servidor.ssrLoadModule('/src/views/VerificarEntrada.jsx')).default
@@ -108,10 +92,11 @@ describe('pantallas', () => {
   after(async () => { await servidor?.close() })
 
   const mostrar = (elemento) => renderToStaticMarkup(createElement(MemoryRouter, null, elemento))
-  const verificar = (usuario) => renderToStaticMarkup(
+  // La verificación lee el store; al dibujarla en el test no corren sus efectos, así que no sale ningún pedido
+  const verificar = (usuario) => renderToStaticMarkup(createElement(Provider, { store },
     createElement(MemoryRouter, { initialEntries: [`/verificar/${CODIGO}`] },
       createElement(Routes, null,
-        createElement(Route, { path: '/verificar/:codigo', element: createElement(VerificarEntrada, { usuario }) }))),
+        createElement(Route, { path: '/verificar/:codigo', element: createElement(VerificarEntrada, { usuario }) })))),
   )
 
   test('el QR es un SVG real que guarda el link de verificación', () => {
