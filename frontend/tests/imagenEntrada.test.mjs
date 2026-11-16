@@ -7,5 +7,5 @@ test('el archivo descargado se llama con el evento (sin tildes ni espacios) y el
   assert.equal(nombreArchivo('After Palace: Edición ÚNICA', 'abcdef12-xyz'), 'zenoir-after-palace-edicion-unica-abcdef12.png')
 })
 test('si el navegador no puede compartir, avisa que se descargue', async () => {
-  assert.match(await compartirImagen('data:image/png;base64,AA', 'a.png', 'Mi entrada'), /descargá la entrada/)
+  assert.match(await compartirImagen(new Blob([], { type: 'image/png' }), 'a.png', 'Mi entrada'), /descargá la entrada/)
 })
