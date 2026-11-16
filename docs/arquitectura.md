@@ -1,5 +1,13 @@
 # Arquitectura
 
+## Estado del frontend y respuestas pendientes
+
+- El store mantiene los slices de Redux Toolkit. Al cambiar la sesión, reinicia los datos compartidos y el middleware descarta respuestas de pedidos iniciados en una sesión anterior. La sesión se persiste solo después de aceptar la respuesta de autenticación.
+- Las consultas y modificaciones del carrito, incluido iniciar y confirmar el pago, pasan por una cola por sesión. El siguiente pedido HTTP espera al anterior; un error no bloquea la cola. Los cambios que todavía no salieron se descartan si la sesión cambió. Esto no cancela operaciones que el servidor ya recibió.
+- El catálogo conserva los resultados por consulta y actualiza los campos recibidos de los eventos existentes. Los campos que no trae la respuesta, como fotos u ofertas cargadas por separado, se conservan.
+- Cada consulta tiene su estado de carga, error e identificador de pedido. La pantalla lee los de su consulta actual y las respuestas anteriores de una misma consulta se ignoran.
+- `frontend/tests/concurrenciaRedux.test.mjs` verifica estos escenarios con pedidos controlados y renderizado del catálogo, sin depender de demoras reales de red.
+
 ## Autenticacion
 
 1. `AuthenticationController` recibe el registro o el inicio de sesion.

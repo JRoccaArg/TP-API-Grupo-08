@@ -1,17 +1,19 @@
 import { useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import Boton from './Boton.jsx'
-import { reembolsarEvento } from '../utils/apiCompras.js'
+import { reembolsarEvento } from '../redux/comprasSlice'
 import { comprasDelEvento, eventoCancelado, resumenDelEvento } from '../utils/compras.js'
 import { diaYFecha, horario } from '../utils/fechas.js'
 import { precio } from '../utils/formatos.js'
 
 // Lo que se ve en "Mis entradas" de un evento cancelado o reprogramado: qué pasó y, por cada compra con entradas de ese evento, el reembolso.
 // Se reembolsan solo las de ESTE evento: quedan anuladas y vuelve el stock; las usadas no. El dinero es de demostración.
-// No se puede deshacer: el primer clic pide confirmación y el segundo reembolsa. onReembolsada recibe la compra que respondió el back.
-export default function AvisoEventoAfectado({ evento, compras, token, onReembolsada }) {
+// No se puede deshacer: el primer clic pide confirmación y el segundo despacha. La compra que responde el back reemplaza a la anterior en el store.
+export default function AvisoEventoAfectado({ evento, compras }) {
+  const { sesion } = useSelector((state) => state.usuario)
+  const dispatch = useDispatch()
+  const { reembolsando, errorReembolso } = useSelector((state) => state.compras)
   const [confirmando, setConfirmando] = useState(null)
-  const [pidiendo, setPidiendo] = useState(null)
-  const [error, setError] = useState('')
   const cancelado = eventoCancelado(evento)
   const resumenes = comprasDelEvento(compras, evento.id).map((compra) => ({ compra, ...resumenDelEvento(compra, evento.id) }))
   const hayVigentes = resumenes.some((resumen) => resumen.emitidas > 0)
@@ -22,12 +24,7 @@ export default function AvisoEventoAfectado({ evento, compras, token, onReembols
       return
     }
     setConfirmando(null)
-    setPidiendo(id)
-    setError('')
-    reembolsarEvento(token, id, evento.id)
-      .then(onReembolsada)
-      .catch((fallo) => setError(fallo.message))
-      .then(() => setPidiendo(null))
+    dispatch(reembolsarEvento({ token: sesion.token, compraId: id, eventoId: evento.id }))
   }
 
   return (
@@ -46,8 +43,8 @@ export default function AvisoEventoAfectado({ evento, compras, token, onReembols
               Compra N.º {compra.id} · {total} {total === 1 ? 'entrada' : 'entradas'} de este evento
             </span>
             {emitidas > 0 ? (
-              <Boton variante="contorno" clase="boton--chico" deshabilitado={pidiendo === compra.id} onClick={() => pedir(compra.id)}>
-                {pidiendo === compra.id ? 'Pidiendo…' : confirmando === compra.id ? `Confirmar: reembolsar ${precio(montoEmitidas)}` : `Pedir reembolso de ${precio(montoEmitidas)}`}
+              <Boton variante="contorno" clase="boton--chico" deshabilitado={reembolsando === compra.id} onClick={() => pedir(compra.id)}>
+                {reembolsando === compra.id ? 'Pidiendo…' : confirmando === compra.id ? `Confirmar: reembolsar ${precio(montoEmitidas)}` : `Pedir reembolso de ${precio(montoEmitidas)}`}
               </Boton>
             ) : reembolsadas > 0 ? (
               <b>Reembolso de {precio(montoReembolsadas)} pedido (demostración: no se mueve dinero)</b>
@@ -60,7 +57,7 @@ export default function AvisoEventoAfectado({ evento, compras, token, onReembols
           </li>
         ))}
       </ul>
-      {error && <p className="evento-cancelado__error" role="alert">{error}</p>}
+      {errorReembolso && <p className="evento-cancelado__error" role="alert">{errorReembolso}</p>}
     </section>
   )
 }

@@ -1,32 +1,28 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import Sitio from './Sitio.jsx'
-import { avisarSiVenceLaSesion } from './utils/pedir.js'
-import { borrarSesion, guardarSesion, leerSesion } from './utils/sesion.js'
+import { limpiarCarrito } from './redux/carritoSlice'
+import { limpiarCompras } from './redux/comprasSlice'
+import { sesionVencida } from './redux/usuarioSlice'
+import { borrarSesion, vencimientoDelToken } from './utils/sesion.js'
 
-// App guarda la sesión y se la pasa a Sitio. Arranca con la de localStorage (si sigue vigente), así sobrevive a recargar la página
+// La sesión vive en el store (usuarioSlice). App lleva su reloj, como Sitio lleva el del carrito
 export default function App() {
-  const [usuario, setUsuario] = useState(leerSesion)
-  const [sesionVencida, setSesionVencida] = useState(false)
+  const dispatch = useDispatch()
+  const { sesion } = useSelector((state) => state.usuario)
 
-  // Si el back responde 401 con la sesión iniciada, la sesión ya no sirve: se cierra y se avisa
+  // Cuando vence el token la sesión se cierra sola: se borra lo de esa persona y queda el aviso "Tu sesión venció"
   useEffect(() => {
-    avisarSiVenceLaSesion(() => {
+    if (!sesion) return undefined
+    const reloj = setTimeout(() => {
       borrarSesion()
-      setUsuario(null)
-      setSesionVencida(true)
-    })
-  }, [])
+      dispatch(sesionVencida())
+      dispatch(limpiarCarrito())
+      dispatch(limpiarCompras())
+    }, vencimientoDelToken(sesion.token) - Date.now())
+    return () => clearTimeout(reloj)
+  }, [dispatch, sesion])
 
-  const ingresar = (sesion) => {
-    guardarSesion(sesion)
-    setUsuario(sesion)
-    setSesionVencida(false)
-  }
-  const salir = () => {
-    borrarSesion()
-    setUsuario(null)
-  }
-
-  // Con otra sesión (o sin ninguna) Sitio empieza de cero, así el carrito de una persona nunca se ve en la de otra
-  return <Sitio key={usuario ? usuario.token : 'sin-sesion'} usuario={usuario} sesionVencida={sesionVencida} onIngresar={ingresar} onSalir={salir} />
+  // Con otra sesión (o sin ninguna) Sitio empieza de cero
+  return <Sitio key={sesion ? sesion.token : 'sin-sesion'} />
 }

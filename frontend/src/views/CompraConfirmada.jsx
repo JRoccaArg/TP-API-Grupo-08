@@ -1,45 +1,48 @@
-import { useEffect, useState } from 'react'
-import { useLocation, useParams } from 'react-router-dom'
+import { useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { useParams } from 'react-router-dom'
 import Aviso from '../components/Aviso.jsx'
 import AvisoAcceso from '../components/AvisoAcceso.jsx'
 import CompraOk from '../components/CompraOk.jsx'
-import { obtenerCompra } from '../utils/apiCompras.js'
-import { obtenerEventosPorId } from '../utils/apiEventos.js'
+import { obtenerCompra } from '../redux/comprasSlice'
+import { obtenerEvento, obtenerImagenes } from '../redux/eventosSlice'
 import { idsDeEventosDeCompras } from '../utils/compras.js'
+import { eventosConFotos } from '../utils/fotos.js'
 
-// Pantalla "/compra/:id": lo que se compró, con sus entradas. Al pagar se llega con la compra que respondió el back
-// (en el state del router, sin pedirla de nuevo); si se recarga la página o se entra por un link, se pide por su id.
-export default function CompraConfirmada({ usuario }) {
+// Pantalla "/compra/:id": lo que se compró, con sus entradas. Al pagar, la compra ya está en el store (no se pide de nuevo);
+// si se recarga la página o se entra por un link, se pide por su id.
+export default function CompraConfirmada() {
+  const { sesion } = useSelector((state) => state.usuario)
   const { id } = useParams()
-  const { state } = useLocation()
-  const token = usuario?.rol === 'USER' ? usuario.token : null
-  const [compra, setCompra] = useState(state?.compra?.id === Number(id) ? state.compra : null)
-  const [eventos, setEventos] = useState(null) // { id: evento } de cada entrada; null mientras se piden
-  const [error, setError] = useState('')
+  const dispatch = useDispatch()
+  const { items: compras, errorCompra } = useSelector((state) => state.compras)
+  const { items, pedidos } = useSelector((state) => state.eventos)
+  const token = sesion?.rol === 'USER' ? sesion.token : null
+  const compra = compras.find((otra) => otra.id === Number(id))
+  const fallo = errorCompra?.id === Number(id)
+  const hayCompra = Boolean(compra)
+  const ids = compra ? idsDeEventosDeCompras([compra]) : []
+  // De cada evento de la compra se pide solo lo que todavía no está en el store
+  const faltan = ids.filter((eventoId) => !items.some((evento) => evento.id === eventoId) && !pedidos.includes(eventoId))
+  const sinFotos = items.filter((evento) => ids.includes(evento.id) && !evento.imagenes).map((evento) => evento.id)
 
   useEffect(() => {
-    if (!token || compra) return undefined
-    let activo = true
-    obtenerCompra(token, id)
-      .then((encontrada) => { if (activo) setCompra(encontrada) })
-      .catch((fallo) => {
-        // Una compra ajena o inexistente se ve igual: el back responde 403 o 404.
-        if (activo) setError([400, 403, 404].includes(fallo.estado) ? 'No encontramos esta compra.' : fallo.message)
-      })
-    return () => { activo = false }
-  }, [token, id, compra])
+    if (token && !hayCompra && !fallo) dispatch(obtenerCompra({ token, id: Number(id) }))
+  }, [dispatch, token, hayCompra, fallo, id])
 
   useEffect(() => {
-    if (!compra) return undefined
-    let activo = true
-    obtenerEventosPorId(idsDeEventosDeCompras([compra])).then((pedidos) => { if (activo) setEventos(pedidos) })
-    return () => { activo = false }
-  }, [compra])
+    faltan.forEach((eventoId) => dispatch(obtenerEvento({ id: eventoId })))
+  }, [dispatch, faltan])
 
-  if (!token) return <AvisoAcceso usuario={usuario} para="USER" sinSesion="Ingresá para ver tu compra." />
-  if (error) return <Aviso mensaje={error} boton="Ver mis entradas" to="/mis-entradas" />
-  if (!compra || !eventos) {
+  useEffect(() => {
+    sinFotos.forEach((eventoId) => dispatch(obtenerImagenes({ eventoId })))
+  }, [dispatch, sinFotos])
+
+  if (!token) return <AvisoAcceso usuario={sesion} para="USER" sinSesion="Ingresá para ver tu compra." />
+  // Una compra ajena o inexistente se ve igual: el back responde 403 o 404
+  if (fallo) return <Aviso mensaje="No encontramos esta compra." boton="Ver mis entradas" to="/mis-entradas" />
+  if (!compra) {
     return <main className="pagina compra"><p className="admin__cargando" role="status">Cargando tu compra…</p></main>
   }
-  return <CompraOk compra={compra} eventos={eventos} />
+  return <CompraOk compra={compra} eventos={eventosConFotos(items, ids)} />
 }

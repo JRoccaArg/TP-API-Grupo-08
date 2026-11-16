@@ -15,6 +15,13 @@ export const ofertaAFormulario = (oferta) => ({
   estado: oferta.estado,
 })
 
+// Lo que espera el back del precio, el descuento y el cupo
+export const formularioAOferta = (datos) => ({
+  precio: Number(datos.precio),
+  porcentajeDescuento: Number(datos.descuento.trim() === '' ? 0 : datos.descuento),
+  cantidadTotal: Number(datos.cantidad),
+})
+
 export const vendidas = (oferta) => oferta.cantidadTotal - oferta.cantidadDisponible
 
 // Un evento terminado, finalizado o cancelado no acepta entradas nuevas (el back también lo rechaza).

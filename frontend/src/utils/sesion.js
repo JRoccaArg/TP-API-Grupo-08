@@ -13,9 +13,15 @@ const datosDelToken = (token) => {
   }
 }
 
-export const tokenVencido = (token, ahora = Date.now()) => {
+// Cuándo vence el token, en milisegundos como Date.now(). El reloj de la sesión la cierra a esa hora
+export const vencimientoDelToken = (token) => {
   const datos = datosDelToken(token)
-  return !datos || typeof datos.exp !== 'number' || datos.exp * 1000 <= ahora
+  return datos && typeof datos.exp === 'number' ? datos.exp * 1000 : null
+}
+
+export const tokenVencido = (token, ahora = Date.now()) => {
+  const vence = vencimientoDelToken(token)
+  return vence === null || vence <= ahora
 }
 
 export const leerSesion = () => {

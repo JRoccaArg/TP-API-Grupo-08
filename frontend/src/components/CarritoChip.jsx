@@ -1,10 +1,15 @@
 import { useState } from 'react'
+import { useSelector } from 'react-redux'
 import Icono from './Icono.jsx'
 import MiniCarrito from './MiniCarrito.jsx'
 import Reloj from './Reloj.jsx'
-import { cantidadItems, vencimientoMs } from '../utils/carrito.js'
+import { cantidadItems, idsDeEventos, vencimientoMs } from '../utils/carrito.js'
+import { eventosConFotos } from '../utils/fotos.js'
 
-export default function CarritoChip({ carrito, eventos, onIrAPagar }) {
+// El carrito del header: lee el carrito y sus eventos del store, así se actualiza solo cuando se agrega o se quita algo
+export default function CarritoChip() {
+  const { carrito } = useSelector((state) => state.carrito)
+  const { items } = useSelector((state) => state.eventos)
   const [abierto, setAbierto] = useState(false)
   const cantidad = cantidadItems(carrito)
 
@@ -25,7 +30,9 @@ export default function CarritoChip({ carrito, eventos, onIrAPagar }) {
           </span>
         )}
       </button>
-      {abierto && <MiniCarrito carrito={carrito} eventos={eventos} onCerrar={() => setAbierto(false)} onIrAPagar={onIrAPagar} />}
+      {abierto && (
+        <MiniCarrito carrito={carrito} eventos={eventosConFotos(items, idsDeEventos(carrito))} onCerrar={() => setAbierto(false)} />
+      )}
     </div>
   )
 }

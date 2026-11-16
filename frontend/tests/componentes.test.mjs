@@ -2,27 +2,31 @@ import { after, before, test } from 'node:test'
 import assert from 'node:assert/strict'
 import { createElement } from 'react'
 import { MemoryRouter } from 'react-router-dom'
+import { Provider } from 'react-redux'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { createServer } from 'vite'
 
-let servidor, FuerzaClave, AvisoEventoAfectado, formatos, fechas, Cinta, BarraProximaFecha, FilaEntrada, BarraCompra, ResumenCompra, FlyerEvento, TarjetaFlyer, FiltrosEventos
+let servidor, store, FuerzaClave, AvisoEventoAfectado, formatos, fechas, Cinta, BarraProximaFecha, FilaEntrada, ListaEntradas, ResumenCompra, FlyerEvento, TarjetaFlyer, FiltrosEventos
+// La tarjeta del catálogo usa el store; al dibujarla en el test no corren sus efectos, así que no sale ningún pedido
+const conStore = (elemento) => createElement(Provider, { store }, elemento)
 const evento = { id: 1, titulo: 'Noche de prueba', estado: 'ACTIVO', imagenes: [] }
 const oferta = {
   id: 1, tipoEntradaNombre: 'General', estado: 'ACTIVO', cantidadDisponible: 3,
   precio: 10000, porcentajeDescuento: 10, precioFinal: 9000,
 }
 const ahora = new Date('2026-10-17T12:00:00Z').getTime()
-const mostrarFila = (cambios = {}, cambiosEvento = {}) => renderToStaticMarkup(
+const mostrarFila = (cambios = {}, cambiosEvento = {}, props = {}) => renderToStaticMarkup(
   createElement(FilaEntrada, { oferta: { ...oferta, ...cambios }, evento: { ...evento, ...cambiosEvento },
-    cantidad: 0, ahora, onCambiar: () => {} }),
+    ahora, onAgregar: () => {}, ...props }),
 )
 
 before(async () => {
   servidor = await createServer({ server: { middlewareMode: true }, appType: 'custom' })
+  store = (await servidor.ssrLoadModule('/src/redux/store.js')).store
   TarjetaFlyer = (await servidor.ssrLoadModule('/src/components/TarjetaFlyer.jsx')).default
   FiltrosEventos = (await servidor.ssrLoadModule('/src/components/FiltrosEventos.jsx')).default
   FilaEntrada = (await servidor.ssrLoadModule('/src/components/FilaEntrada.jsx')).default
-  BarraCompra = (await servidor.ssrLoadModule('/src/components/BarraCompra.jsx')).default
+  ListaEntradas = (await servidor.ssrLoadModule('/src/components/ListaEntradas.jsx')).default
   ResumenCompra = (await servidor.ssrLoadModule('/src/components/ResumenCompra.jsx')).default
   formatos = await servidor.ssrLoadModule('/src/utils/formatos.js')
   FuerzaClave = (await servidor.ssrLoadModule('/src/components/FuerzaClave.jsx')).default
@@ -55,17 +59,22 @@ test('precio original, descuento y precioFinal del backend se muestran juntos', 
   assert.match(html, /10%/)
   assert.match(html, /\$10\.000/)
   assert.match(html, /\$9\.000/)
-  assert.match(html, /3 disponibles/)
   assert.match(html, /class="selector"/)
 })
-test('sin integración la barra informa total real y no ofrece una compra habilitada', () => {
-  const html = renderToStaticMarkup(createElement(BarraCompra, {
-    seleccion: [{ ofertaId: 1, cantidad: 2 }], ofertas: [oferta], conectado: false,
-  }))
-  assert.match(html, /\$18\.000/)
-  assert.match(html, /disabled=""/)
-  assert.match(html, /Compra no disponible/)
-  assert.match(html, /no reserva stock/)
+test('no se muestra el stock exacto: solo se avisa cuando quedan pocas', () => {
+  assert.match(mostrarFila({ cantidadDisponible: 3 }), /Quedan las últimas/)
+  assert.match(mostrarFila({ cantidadDisponible: 10 }), /Quedan las últimas/)
+  const muchas = mostrarFila({ cantidadDisponible: 150 })
+  assert.doesNotMatch(muchas, /Quedan las últimas/)
+  assert.doesNotMatch(muchas, /disponibles/)
+})
+test('cada entrada tiene su botón Agregar, dice cuántas ya están en el carrito y muestra su error', () => {
+  const html = mostrarFila({}, {}, { enCarrito: 2, error: 'No hay stock suficiente' })
+  assert.match(html, />Agregar</)
+  assert.match(html, /Tenés 2 en tu carrito/)
+  assert.match(html, /role="alert">No hay stock suficiente/)
+  assert.match(mostrarFila({}, {}, { agregando: true }), /Agregando…/)
+  assert.doesNotMatch(mostrarFila(), /en tu carrito/)
 })
 test('la galería presenta todas las imágenes y tiene una alternativa cuando está vacía', () => {
   const imagenes = [1, 2, 3].map(id => ({ id, url: `/api/eventos/1/imagenes/${id}/archivo` }))
@@ -85,8 +94,8 @@ test('la galería presenta todas las imágenes y tiene una alternativa cuando es
 
 test('la tarjeta identifica el precio dentro del rango sin cambiar el precio general del evento', () => {
   const e = { ...evento, ofertas: [{ ...oferta, precioFinal: 0 }, { ...oferta, id: 2, precioFinal: 42499.99 }] }
-  const mostrar = (filtroPrecio) => renderToStaticMarkup(createElement(MemoryRouter, null,
-    createElement(TarjetaFlyer, { evento: e, ahora, filtroPrecio })))
+  const mostrar = (filtroPrecio) => renderToStaticMarkup(conStore(createElement(MemoryRouter, null,
+    createElement(TarjetaFlyer, { evento: e, ahora, filtroPrecio }))))
   assert.match(mostrar({ precioMin: '18000' }), /EN TU RANGO/)
   assert.match(mostrar({ precioMin: '18000' }), /42\.499,99/)
   assert.doesNotMatch(mostrar({ precioMin: '18000' }), /oro-texto">\$0</)
@@ -104,15 +113,17 @@ test('el rango señala los importes inválidos de la URL y muestra el motivo de 
   assert.match(html, /aria-invalid="true"/)
   assert.match(html, /role="alert">Los precios no pueden ser negativos/)
 })
-test('la barra de compra aclara que el tiempo de reserva es uno solo para todo el carrito', () => {
-  const html = renderToStaticMarkup(createElement(BarraCompra, {
-    seleccion: [{ ofertaId: 1, cantidad: 1 }], ofertas: [oferta], conectado: true,
+test('la lista de entradas aclara que el tiempo de reserva es uno solo para todo el carrito', () => {
+  const html = renderToStaticMarkup(createElement(ListaEntradas, {
+    evento: { ...evento, ofertas: [oferta, { ...oferta, id: 2, tipoEntradaNombre: 'VIP' }] }, ahora,
+    enCarrito: {}, agregando: null, errorAgregar: null, onAgregar: () => {},
   }))
   assert.match(html, /mismo para todo el carrito/)
+  assert.equal((html.match(/>Agregar</g) || []).length, 2)
 })
 test('el resumen del carrito avisa que el reloj del pago no se reinicia si ya se abrió', () => {
   const mostrarResumen = (estado) => renderToStaticMarkup(createElement(MemoryRouter, null,
-    createElement(ResumenCompra, { carrito: { id: 1, estado, items: [], total: 0 }, onIrAPagar: () => {} })))
+    createElement(ResumenCompra, { carrito: { id: 1, estado, items: [], total: 0 } })))
   assert.match(mostrarResumen('ACTIVO'), /15 minutos más/)
   assert.match(mostrarResumen('EN_PAGO'), /no se reinicia/)
   assert.doesNotMatch(mostrarResumen('EN_PAGO'), /15 minutos más/)
@@ -158,9 +169,9 @@ test('finalizados, cancelados y agotados muestran su etiqueta y sólo permiten v
     [{ estado: 'FINALIZADO' }, 'Finalizado'], [{ estado: 'CANCELADO' }, 'Cancelado'],
     [{ ofertas: [{ ...oferta, cantidadDisponible: 0 }] }, 'Agotado'],
   ]) {
-    const html = renderToStaticMarkup(createElement(MemoryRouter, null, createElement(TarjetaFlyer, {
+    const html = renderToStaticMarkup(conStore(createElement(MemoryRouter, null, createElement(TarjetaFlyer, {
       evento: { ...evento, ofertas: [oferta], ...cambios }, ahora,
-    })))
+    }))))
     assert.match(html, new RegExp(`flyer__estado[^>]*>${etiqueta}`))
     assert.doesNotMatch(html, /aria-label="Comprar entradas/)
     assert.match(html, /Ver detalle/)
@@ -181,8 +192,8 @@ test('la barra de precios tiene dos tiradores y usa el máximo real del catálog
 test('el aviso de un evento cancelado ofrece reembolsar solo sus entradas, con el importe, y avisa de las usadas', () => {
   const detalle = (eventoId, estados) => ({ eventoId, precioUnitario: 4000, tickets: estados.map((estado, id) => ({ id, estado })) })
   const compras = [{ id: 7, estado: 'CONFIRMADA', total: 20000, detalles: [detalle(1, ['EMITIDO', 'EMITIDO', 'UTILIZADO']), detalle(2, ['EMITIDO'])] }]
-  const mostrar = (lista) => renderToStaticMarkup(createElement(AvisoEventoAfectado,
-    { evento: { id: 1, estado: 'CANCELADO' }, compras: lista, token: 't', onReembolsada: () => {} }))
+  const mostrar = (lista) => renderToStaticMarkup(conStore(createElement(AvisoEventoAfectado,
+    { evento: { id: 1, estado: 'CANCELADO' }, compras: lista })))
   const html = mostrar(compras)
   assert.match(html, /Este evento fue cancelado/)
   assert.match(html, /3 entradas de este evento/)

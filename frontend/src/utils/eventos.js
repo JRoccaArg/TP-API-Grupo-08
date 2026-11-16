@@ -47,28 +47,3 @@ export function resumenEntradas(evento, ahora = Date.now()) {
   }
 }
 
-export function ajustarSeleccion(seleccion, ofertas, evento, ahora = Date.now()) {
-  return seleccion.map((item) => {
-    const oferta = ofertas.find((actual) => actual.id === item.ofertaId)
-    const cantidad = oferta && estadoOferta(oferta, evento, ahora) === 'EN_VENTA'
-      ? Math.min(Math.max(0, Number.isFinite(item.cantidad) ? Math.floor(item.cantidad) : 0), oferta.cantidadDisponible) : 0
-    return { ofertaId: item.ofertaId, cantidad }
-  }).filter((item) => item.cantidad > 0)
-}
-
-export function totalSeleccion(seleccion, ofertas) {
-  // Operar en centavos evita acumular errores de coma flotante.
-  return seleccion.reduce((total, item) => {
-    const oferta = ofertas.find((actual) => actual.id === item.ofertaId)
-    return total + Math.round((oferta?.precioFinal || 0) * 100) * item.cantidad
-  }, 0) / 100
-}
-
-// El evento con las entradas elegidas ya descontadas del stock: es lo que queda después de apartarlas en el carrito.
-export const descontarStock = (evento, seleccion) => ({
-  ...evento,
-  ofertas: evento.ofertas.map((oferta) => ({
-    ...oferta,
-    cantidadDisponible: oferta.cantidadDisponible - (seleccion.find((item) => item.ofertaId === oferta.id)?.cantidad ?? 0),
-  })),
-})

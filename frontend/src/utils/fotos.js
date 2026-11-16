@@ -1,9 +1,40 @@
-// Operaciones sobre la lista de fotos de una pantalla de administración. Se hacen en el navegador con lo que
-// responde el back, así no hace falta volver a pedir la lista después de cada alta, cambio o baja.
-export const reemplazarFoto = (fotos, actualizada) =>
-  fotos.map((foto) => (foto.id === actualizada.id ? { ...foto, ...actualizada } : foto))
+// Ayudas para mostrar y ordenar fotos en pantalla. No hacen pedidos: el <img> pide el archivo solo con su ruta,
+// que pasa por el proxy de Vite igual que los pedidos de los slices ("/api" + la ruta del back).
 
-export const sinFoto = (fotos, id) => fotos.filter((foto) => foto.id !== id)
+// Las fotos de un evento llegan sin la ruta del archivo: se la agrega acá. La portada va primero y después, por orden.
+const urlImagen = (eventoId, imagen) => ({ ...imagen, url: `/api/eventos/${eventoId}/imagenes/${imagen.id}/archivo` })
+
+const ordenarImagenes = (imagenes) => [...imagenes].sort((a, b) =>
+  Number(b.tipoImagenEvento === 'PORTADA') - Number(a.tipoImagenEvento === 'PORTADA') ||
+  (a.orden ?? 0) - (b.orden ?? 0) || a.id - b.id)
+
+// Las fotos de una locación no tienen tipo (no hay portada): solo un orden. "descripcion" es el texto alternativo.
+export const urlFotoLocacion = (locacionId, foto) => ({
+  ...foto,
+  descripcion: foto.textoAlternativo,
+  url: `/api/locaciones/${locacionId}/imagenes/${foto.id}/archivo`,
+})
+
+export const ordenarFotosLocacion = (fotos) => [...fotos].sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0) || a.id - b.id)
+
+// Las fotos de un evento del store con la ruta de cada archivo, la portada primero
+export const fotosDelEvento = (evento) => ordenarImagenes((evento.imagenes || []).map((imagen) => urlImagen(evento.id, imagen)))
+
+// { id: evento } con las fotos listas para mostrar, de los eventos de "ids" que ya están en el store
+export function eventosConFotos(eventos, ids) {
+  const porId = {}
+  eventos.filter((evento) => ids.includes(evento.id)).forEach((evento) => {
+    porId[evento.id] = { ...evento, imagenes: fotosDelEvento(evento) }
+  })
+  return porId
+}
+
+// La galería del detalle: las fotos del evento y, al final, las del lugar (con otro id, para no pisarse con las del evento)
+export const galeriaDelDetalle = (evento, lugar) => [
+  ...fotosDelEvento(evento),
+  ...ordenarFotosLocacion((lugar?.imagenes || []).map((foto) => urlFotoLocacion(lugar.id, foto)))
+    .map((foto) => ({ ...foto, id: `lugar-${foto.id}`, tipoImagenEvento: 'GALERIA' })),
+]
 
 // La lista con la foto de la posición "indice" movida "salto" lugares (-1 sube, 1 baja).
 export function moverFoto(fotos, indice, salto) {

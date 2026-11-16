@@ -1,13 +1,15 @@
 import { useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import Boton from './Boton.jsx'
 import FormTipoEntrada from './FormTipoEntrada.jsx'
-import { actualizarTipoEntrada } from '../utils/apiAdmin.js'
+import { actualizarTipoEntrada } from '../redux/tiposEntradaSlice'
 import { tipoAFormulario, validarTipo } from '../utils/formTipoEntrada.js'
 
-export default function EdicionTipoEntrada({ tipo, token, onGuardado, onCancelar }) {
+export default function EdicionTipoEntrada({ tipo, onClose }) {
+  const { sesion } = useSelector((state) => state.usuario)
+  const dispatch = useDispatch()
   const [datos, setDatos] = useState(tipoAFormulario(tipo))
   const [aviso, setAviso] = useState('')
-  const [ocupado, setOcupado] = useState(false)
 
   const cambiar = (campo, valor) => {
     setDatos({ ...datos, [campo]: valor })
@@ -20,13 +22,10 @@ export default function EdicionTipoEntrada({ tipo, token, onGuardado, onCancelar
       setAviso(problema)
       return
     }
-    setOcupado(true)
-    actualizarTipoEntrada(token, tipo.id, datos)
-      .then(onGuardado)
-      .catch((fallo) => {
-        setAviso(fallo.estado === 409 ? 'Ya existe otro tipo de entrada con ese nombre.' : fallo.message)
-        setOcupado(false)
-      })
+    dispatch(actualizarTipoEntrada({
+      token: sesion.token, id: tipo.id, nombre: datos.nombre.trim(), descripcionBase: datos.descripcion.trim(), activo: datos.activo === 'true',
+    }))
+    onClose()
   }
 
   return (
@@ -34,11 +33,11 @@ export default function EdicionTipoEntrada({ tipo, token, onGuardado, onCancelar
       <FormTipoEntrada datos={datos} onCambiar={cambiar} conEstado />
       {aviso && <p className="admin__aviso admin__aviso--error" role="alert">{aviso}</p>}
       <div className="nuevo-tipo__acciones">
-        <Boton variante="contorno" clase="boton--chico" deshabilitado={ocupado} onClick={onCancelar}>
+        <Boton variante="contorno" clase="boton--chico" onClick={onClose}>
           Cancelar
         </Boton>
-        <Boton clase="boton--chico" deshabilitado={ocupado} onClick={guardar}>
-          {ocupado ? 'Guardando…' : 'Guardar'}
+        <Boton clase="boton--chico" onClick={guardar}>
+          Guardar
         </Boton>
       </div>
     </li>

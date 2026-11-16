@@ -17,19 +17,19 @@ const abriendo = <main className="pagina admin"><p className="admin__cargando" r
 
 // Las pantallas del administrador, todas bajo "/admin". Cada una vuelve a revisar que el usuario sea ADMIN.
 // Un evento: "/admin/:id" es su resumen (ventas y acciones), "/admin/:id/editar" su edición y "/admin/:id/escanear" el escáner de QR.
-export default function RutasAdmin({ usuario }) {
+export default function RutasAdmin() {
   return (
     <Routes>
-      <Route index element={<GestionarEventos usuario={usuario} />} />
-      <Route path="nuevo" element={<NuevoEvento usuario={usuario} />} />
-      <Route path="locaciones" element={<GestionarLocaciones usuario={usuario} />} />
-      <Route path="locaciones/nueva" element={<NuevaLocacion usuario={usuario} />} />
-      <Route path="locaciones/:id" element={<EditarLocacion usuario={usuario} />} />
-      <Route path="categorias" element={<GestionarCategorias usuario={usuario} />} />
-      <Route path="tipos-entrada" element={<GestionarTiposEntrada usuario={usuario} />} />
-      <Route path=":id" element={<ResumenEvento usuario={usuario} />} />
-      <Route path=":id/editar" element={<EditarEvento usuario={usuario} />} />
-      <Route path=":id/escanear" element={<Suspense fallback={abriendo}><EscanearQR usuario={usuario} /></Suspense>} />
+      <Route index element={<GestionarEventos />} />
+      <Route path="nuevo" element={<NuevoEvento />} />
+      <Route path="locaciones" element={<GestionarLocaciones />} />
+      <Route path="locaciones/nueva" element={<NuevaLocacion />} />
+      <Route path="locaciones/:id" element={<EditarLocacion />} />
+      <Route path="categorias" element={<GestionarCategorias />} />
+      <Route path="tipos-entrada" element={<GestionarTiposEntrada />} />
+      <Route path=":id" element={<ResumenEvento />} />
+      <Route path=":id/editar" element={<EditarEvento />} />
+      <Route path=":id/escanear" element={<Suspense fallback={abriendo}><EscanearQR /></Suspense>} />
       <Route path="*" element={<Aviso mensaje="Esta página no existe." boton="Ir al inicio" to="/" />} />
     </Routes>
   )

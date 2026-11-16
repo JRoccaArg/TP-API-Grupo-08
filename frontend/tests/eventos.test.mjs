@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { ajustarSeleccion, estadoOferta, resumenEntradas, totalSeleccion, detalleDisponible} from '../src/utils/eventos.js'
+import { estadoOferta, resumenEntradas, detalleDisponible } from '../src/utils/eventos.js'
 import {
   leerFiltrosCatalogo, normalizarImporteFiltro, precioDesdeEnRango, validarRangoPrecios,
 } from '../src/utils/filtrosCatalogo.js'
@@ -82,39 +82,10 @@ test('rechaza rangos negativos, invertidos o que no sean números', () => {
   ]) assert.equal(precioDesdeEnRango(e, filtros, AHORA), null)
 })
 
-test('ajusta cantidades a enteros y stock real, sin imponer un límite de diez', () => {
-  const ofertas = [oferta({ id: 1, cantidadDisponible: 137 }), oferta({ id: 2, cantidadDisponible: 8 })]
-  const seleccion = [
-    { ofertaId: 1, cantidad: 200 }, { ofertaId: 2, cantidad: 3.9 },
-    { ofertaId: 3, cantidad: 1 }, { ofertaId: 1, cantidad: -2 }, { ofertaId: 2, cantidad: NaN },
-  ]
-  assert.deepEqual(ajustarSeleccion(seleccion, ofertas, evento(), AHORA), [
-    { ofertaId: 1, cantidad: 137 }, { ofertaId: 2, cantidad: 3 },
-  ])
-  assert.deepEqual(ajustarSeleccion([{ ofertaId: 1, cantidad: 20 }], ofertas, evento(), AHORA), [
-    { ofertaId: 1, cantidad: 20 },
-  ])
-})
-
-test('descarta selecciones si el stock baja a cero o deja de estar a la venta', () => {
-  const seleccion = [{ ofertaId: 1, cantidad: 12 }]
-  assert.deepEqual(ajustarSeleccion(seleccion, [oferta({ cantidadDisponible: 4 })], evento(), AHORA), [
-    { ofertaId: 1, cantidad: 4 },
-  ])
-  for (const entrada of [oferta({ cantidadDisponible: 0 }), oferta({ estado: 'PAUSADO' })]) {
-    assert.deepEqual(ajustarSeleccion(seleccion, [entrada], evento(), AHORA), [])
-  }
-  assert.deepEqual(ajustarSeleccion(seleccion, [oferta()], evento({ estado: 'CANCELADO' }), AHORA), [])
-})
-
-test('usa precioFinal del backend y suma los importes en centavos', () => {
+test('usa el precioFinal del backend sin recalcular el descuento', () => {
   // El backend redondea 0,005 de descuento a 0,01 antes de restarlo a 0,05.
   const entrada = oferta({ precio: 0.05, porcentajeDescuento: 10, precioFinal: 0.04 })
   assert.equal(resumenEntradas(evento({ ofertas: [entrada] }), AHORA).precioDesde, 0.04)
-  assert.equal(totalSeleccion([{ ofertaId: 1, cantidad: 3 }], [entrada]), 0.12)
-  const ofertas = [oferta({ id: 1, precioFinal: 0.1 }), oferta({ id: 2, precioFinal: 0.2 })]
-  assert.equal(totalSeleccion([{ ofertaId: 1, cantidad: 3 }, { ofertaId: 2, cantidad: 1 }], ofertas), 0.5)
-  assert.equal(totalSeleccion([], ofertas), 0)
 })
 
 test('el resumen informa ausencia de entradas o error sin inventar un precio', () => {
@@ -130,12 +101,6 @@ test('distingue venta cerrada de evento finalizado y conserva cancelación aunqu
   assert.equal(resumenEntradas(cerrado, AHORA).estado, 'VENTA_FINALIZADA')
   assert.equal(resumenEntradas({ ...cerrado, estado: 'FINALIZADO' }, AHORA).estado, 'FINALIZADO')
   assert.equal(resumenEntradas(evento({ estado: 'CANCELADO', errorOfertas: 'Sin red' }), AHORA).estado, 'CANCELADO')
-})
-
-test('descarta cantidades no finitas en lugar de convertirlas en toda la disponibilidad', () => {
-  for (const cantidad of [Infinity, -Infinity, NaN, undefined, '3']) {
-    assert.deepEqual(ajustarSeleccion([{ ofertaId: 1, cantidad }], [oferta()], evento(), AHORA), [])
-  }
 })
 
 

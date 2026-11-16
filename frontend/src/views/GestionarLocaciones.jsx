@@ -1,29 +1,27 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import AvisoAcceso from '../components/AvisoAcceso.jsx'
-import AvisoGuardado from '../components/AvisoGuardado.jsx'
 import Boton from '../components/Boton.jsx'
 import FilaLocacionAdmin from '../components/FilaLocacionAdmin.jsx'
 import Icono from '../components/Icono.jsx'
 import TituloAdmin from '../components/TituloAdmin.jsx'
-import { obtenerLocacionesConFotos } from '../utils/apiAdmin.js'
+import { obtenerLocaciones } from '../redux/locacionesSlice'
 
 // Pantalla "/admin/locaciones": los lugares donde se hacen los eventos, para editarlos o crear uno nuevo. Solo ADMIN.
-export default function GestionarLocaciones({ usuario }) {
-  const [lista, setLista] = useState(null)
-  const [error, setError] = useState('')
-  const esAdmin = usuario?.rol === 'ADMIN'
+export default function GestionarLocaciones() {
+  const { sesion } = useSelector((state) => state.usuario)
+  const dispatch = useDispatch()
+  const { items, loading, error, cargado } = useSelector((state) => state.locaciones)
+  const esAdmin = sesion?.rol === 'ADMIN'
+  const lista = [...items].sort((a, b) => a.nombre.localeCompare(b.nombre))
 
+  // Si ya están en el store (por ejemplo, desde el inicio) no se vuelven a pedir
   useEffect(() => {
-    if (!esAdmin) return undefined
-    let activo = true
-    obtenerLocacionesConFotos()
-      .then((locaciones) => { if (activo) setLista(locaciones) })
-      .catch((fallo) => { if (activo) setError(fallo.message) })
-    return () => { activo = false }
-  }, [esAdmin])
+    if (esAdmin && !cargado) dispatch(obtenerLocaciones())
+  }, [dispatch, esAdmin, cargado])
 
   if (!esAdmin) {
-    return <AvisoAcceso usuario={usuario} para="ADMIN" sinSesion="Esta sección es solo para administradores." />
+    return <AvisoAcceso usuario={sesion} para="ADMIN" sinSesion="Esta sección es solo para administradores." />
   }
 
   return (
@@ -34,10 +32,9 @@ export default function GestionarLocaciones({ usuario }) {
           <Icono nombre="mas" tamano={18} grosor={2.4} /> Nueva locación
         </Boton>
       </div>
-      <AvisoGuardado />
       {error && <p className="admin__aviso admin__aviso--error" role="alert">{error}</p>}
-      {!lista && !error && <p className="admin__cargando" role="status">Cargando locaciones…</p>}
-      {lista && (
+      {loading && <p className="admin__cargando" role="status">Cargando locaciones…</p>}
+      {cargado && (
         <>
           <ul className="admin__lista">
             {lista.map((locacion) => (

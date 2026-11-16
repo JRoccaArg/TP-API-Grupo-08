@@ -11,36 +11,21 @@ import Pago from './views/Pago.jsx'
 import Registro from './views/Registro.jsx'
 import VerificarEntrada from './views/VerificarEntrada.jsx'
 
-// Todas las rutas del sitio. No tiene estado: recibe de Sitio la sesión, el carrito y lo que se puede hacer con él.
-export default function RutasSitio({ usuario, onIngresar, carrito, carga, vencido, eventos, acciones }) {
+// Todas las rutas del sitio. No tiene estado ni props: cada pantalla lee del store lo que necesita, también la sesión.
+export default function RutasSitio() {
   return (
     <Routes>
       <Route path="/" element={<Inicio />} />
-      <Route path="/eventos/:id" element={<EventoDetalle cargaCarrito={carga} usuario={usuario} onConfirmarSeleccion={acciones.agregar} />} />
-      <Route
-        path="/carrito"
-        element={
-          <Carrito
-            usuario={usuario}
-            carrito={carrito}
-            carga={carga}
-            vencido={vencido}
-            eventos={eventos}
-            onCambiar={acciones.cambiar}
-            onVaciar={acciones.vaciar}
-            onIrAPagar={acciones.irAPagar}
-            onReintentar={acciones.reintentar}
-          />
-        }
-      />
-      <Route path="/pago" element={<Pago usuario={usuario} carrito={carrito} carga={carga} vencido={vencido} onPagar={acciones.pagar} />} />
-      <Route path="/compra/:id" element={<CompraConfirmada usuario={usuario} />} />
-      <Route path="/mis-entradas" element={<MisEntradas usuario={usuario} />} />
-      <Route path="/mis-entradas/:eventoId" element={<MisEntradas usuario={usuario} />} />
-      <Route path="/verificar/:codigo" element={<VerificarEntrada usuario={usuario} />} />
-      <Route path="/login" element={<Login onIngresar={onIngresar} />} />
-      <Route path="/registro" element={<Registro onIngresar={onIngresar} />} />
-      <Route path="/admin/*" element={<RutasAdmin usuario={usuario} />} />
+      <Route path="/eventos/:id" element={<EventoDetalle />} />
+      <Route path="/carrito" element={<Carrito />} />
+      <Route path="/pago" element={<Pago />} />
+      <Route path="/compra/:id" element={<CompraConfirmada />} />
+      <Route path="/mis-entradas" element={<MisEntradas />} />
+      <Route path="/mis-entradas/:eventoId" element={<MisEntradas />} />
+      <Route path="/verificar/:codigo" element={<VerificarEntrada />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/registro" element={<Registro />} />
+      <Route path="/admin/*" element={<RutasAdmin />} />
       <Route path="*" element={<Aviso mensaje="Esta página no existe." boton="Ir al inicio" to="/" />} />
     </Routes>
   )

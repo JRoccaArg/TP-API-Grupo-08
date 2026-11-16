@@ -1,8 +1,9 @@
+import Boton from './Boton.jsx'
 import Icono from './Icono.jsx'
-import IrAPagar from './IrAPagar.jsx'
 import { precio } from '../utils/formatos.js'
 
-export default function ResumenCompra({ carrito, onIrAPagar }) {
+// "Ir a pagar" solo lleva a /pago: esa pantalla le pide al back que abra el pago
+export default function ResumenCompra({ carrito }) {
   return (
     <aside className="resumen" aria-label="Resumen">
       <p className="rotulo">RESUMEN</p>
@@ -24,9 +25,9 @@ export default function ResumenCompra({ carrito, onIrAPagar }) {
         <span className="rotulo">TOTAL</span>
         <strong className="oro-texto">{precio(carrito.total)}</strong>
       </p>
-      <IrAPagar onIrAPagar={onIrAPagar} clase="boton--ancho boton--grande">
+      <Boton to="/pago" clase="boton--ancho boton--grande">
         Ir a pagar <Icono nombre="flecha" />
-      </IrAPagar>
+      </Boton>
       <p className="resumen__nota">
         {carrito.estado === 'EN_PAGO'
           ? 'Ya abriste el pago: el tiempo sigue corriendo desde la primera vez y no se reinicia.'
