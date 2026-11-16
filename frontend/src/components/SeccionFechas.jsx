@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import FiltrosEventos from './FiltrosEventos.jsx'
 import ResultadosCatalogo from './ResultadosCatalogo.jsx'
 import { obtenerCategorias } from '../redux/categoriasSlice'
-import { obtenerCatalogo, obtenerImagenes, obtenerOfertas, obtenerRangoPrecios } from '../redux/eventosSlice'
+import { obtenerCatalogo, obtenerImagenes, obtenerOfertas, obtenerRangoPrecios, seleccionarConsultaCatalogo } from '../redux/eventosSlice'
 import { conParametros, consultaCatalogo, hayFiltros, leerFiltrosCatalogo } from '../utils/filtrosCatalogo.js'
 import '../styles/catalogo.css'
 
@@ -15,12 +15,13 @@ export default function SeccionFechas() {
   const seccion = useRef(null)
   const resultados = useRef(null)
   const [ahora, setAhora] = useState(() => Date.now())
-  const { items, paginas, error, rangoPrecios, errorRango } = useSelector((state) => state.eventos)
+  const { items, paginas, rangoPrecios, errorRango } = useSelector((state) => state.eventos)
   const { items: categorias, error: errorCategorias, cargado: categoriasCargadas } = useSelector((state) => state.categorias)
 
   const filtros = leerFiltrosCatalogo(new URLSearchParams(search))
   const { errorPrecio, pagina } = filtros
   const consulta = consultaCatalogo(filtros)
+  const { error } = useSelector((state) => seleccionarConsultaCatalogo(state, consulta))
   // La página que se está mirando, si ya se pidió antes (se busca por su consulta)
   const actual = paginas.find((guardada) => guardada.consulta === consulta)
   const eventos = actual ? actual.ids.map((id) => items.find((evento) => evento.id === id)) : []

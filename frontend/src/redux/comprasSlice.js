@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import axios from 'axios'
+import { enOrdenCarrito } from './pedidosSesion.js'
 
 const URL = '/api/compras'
 
@@ -16,12 +17,12 @@ export const obtenerCompra = createAsyncThunk('compras/obtenerCompra', async (pe
 })
 
 // Pagar no manda nada: el back compra el carrito abierto, que tiene que estar en la pantalla de pago (EN_PAGO)
-export const pagarCarrito = createAsyncThunk('compras/pagarCarrito', async (token, { rejectWithValue }) => {
+export const pagarCarrito = createAsyncThunk('compras/pagarCarrito', async (token, api) => {
   try {
-    const { data } = await axios.post(URL, null, { headers: { Authorization: `Bearer ${token}` } })
+    const { data } = await enOrdenCarrito(api, token, () => axios.post(URL, null, { headers: { Authorization: `Bearer ${token}` } }))
     return data
   } catch (error) {
-    return rejectWithValue(error.response?.data?.message || 'No pudimos completar el pago.')
+    return api.rejectWithValue(error.response?.data?.message || 'No pudimos completar el pago.')
   }
 })
 

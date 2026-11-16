@@ -162,8 +162,7 @@ const eventosSlice = createSlice({
   initialState: {
     items: [],
     paginas: [],
-    loading: false,
-    error: null,
+    consultas: {},
     proximos: null,
     rangoPrecios: null,
     errorRango: null,
@@ -177,21 +176,26 @@ const eventosSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(obtenerCatalogo.pending, (state) => {
-        state.loading = true
-        state.error = null
+      .addCase(obtenerCatalogo.pending, (state, action) => {
+        state.consultas[action.meta.arg] = { requestId: action.meta.requestId, loading: true, error: null }
       })
       .addCase(obtenerCatalogo.fulfilled, (state, action) => {
-        state.loading = false
-        // Un evento se guarda una sola vez aunque aparezca en varias páginas
+        const consulta = state.consultas[action.meta.arg]
+        if (consulta?.requestId !== action.meta.requestId) return
+        consulta.loading = false
+        consulta.error = null
+        // Se conserva una sola copia, pero se actualizan los campos recibidos.
+        // Fotos y ofertas ya cargadas se mantienen si el catálogo no las trae.
         action.payload.content.forEach((evento) => {
           const index = state.items.findIndex((item) => item.id === evento.id)
           if (index === -1) {
             state.items = [...state.items, evento]
+          } else {
+            state.items[index] = { ...state.items[index], ...evento }
           }
         })
         // Cada página queda guardada con su consulta (action.meta.arg): si se vuelve a ella, no se pide de nuevo
-        state.paginas = [...state.paginas, {
+        state.paginas = [...state.paginas.filter((pagina) => pagina.consulta !== action.meta.arg), {
           consulta: action.meta.arg,
           ids: action.payload.content.map((evento) => evento.id),
           total: action.payload.totalElements,
@@ -199,8 +203,10 @@ const eventosSlice = createSlice({
         }]
       })
       .addCase(obtenerCatalogo.rejected, (state, action) => {
-        state.loading = false
-        state.error = action.error.message
+        const consulta = state.consultas[action.meta.arg]
+        if (consulta?.requestId !== action.meta.requestId) return
+        consulta.loading = false
+        consulta.error = action.error.message
       })
       .addCase(obtenerProximos.fulfilled, (state, action) => {
         state.proximos = action.payload
@@ -501,3 +507,6 @@ const eventosSlice = createSlice({
 })
 
 export default eventosSlice.reducer
+
+const consultaInicial = { loading: false, error: null }
+export const seleccionarConsultaCatalogo = (state, consulta) => state.eventos.consultas[consulta] || consultaInicial

@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import axios from 'axios'
-import { guardarSesion, leerSesion } from '../utils/sesion.js'
+import { leerSesion } from '../utils/sesion.js'
 
 // El back tiene el login en /api/v1/auth y el proxy de Vite le saca el primer "/api": por eso va dos veces
 const URL = '/api/api/v1/auth'
@@ -18,7 +18,7 @@ export const login = createAsyncThunk('usuario/login', async (credenciales, { re
     const { email, password } = credenciales
     const { data } = await axios.post(`${URL}/authenticate`, { email: email.trim(), password })
     const sesion = armarSesion(data)
-    guardarSesion(sesion) // va en el thunk: el reducer tiene que ser una función pura
+    // El middleware guarda la sesión solo si este pedido sigue vigente.
     return sesion
   } catch (error) {
     return rejectWithValue(error.response?.data?.message || 'No pudimos iniciar sesión.')
@@ -38,7 +38,6 @@ export const registrar = createAsyncThunk('usuario/registrar', async (datos, { r
       password,
     })
     const sesion = armarSesion(data)
-    guardarSesion(sesion)
     return sesion
   } catch (error) {
     return rejectWithValue(error.response?.data?.message || 'No pudimos crear tu cuenta.')
