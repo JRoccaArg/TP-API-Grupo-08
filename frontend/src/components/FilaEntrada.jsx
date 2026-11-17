@@ -16,9 +16,11 @@ const POCAS = 10
 
 // Una entrada a la venta. Cada una tiene su botón "Agregar", porque el back agrega un tipo de entrada por pedido.
 // La cantidad elegida es estado local; lo que ya está en el carrito (enCarrito) viene del store.
-export default function FilaEntrada({ oferta, evento, ahora, enCarrito = 0, agregando = false, error = '', onAgregar }) {
+export default function FilaEntrada({ oferta, evento, ahora, enCarrito = 0, agregando = false, ocupado = false, error = '', onAgregar }) {
   const [cantidad, setCantidad] = useState(0)
   const estadoVenta = estadoOferta(oferta, evento, ahora)
+  // Mientras se agrega cualquier entrada, ninguna fila deja agregar otra: el carrito recibe un pedido a la vez
+  const bloqueado = agregando || ocupado
   const conPrecio = Number.isFinite(oferta.precioFinal)
   const conDescuento = oferta.porcentajeDescuento > 0 && Number.isFinite(oferta.precio)
 
@@ -46,8 +48,8 @@ export default function FilaEntrada({ oferta, evento, ahora, enCarrito = 0, agre
       {estadoVenta === 'EN_VENTA' ? (
         <div className="fila-entrada__comprar">
           <SelectorCantidad cantidad={cantidad} nombre={oferta.tipoEntradaNombre} maximo={oferta.cantidadDisponible}
-            deshabilitado={agregando} onCambiar={setCantidad} />
-          <Boton clase="boton--chico" deshabilitado={cantidad === 0 || agregando} onClick={agregar}>
+            deshabilitado={bloqueado} onCambiar={setCantidad} />
+          <Boton clase="boton--chico" deshabilitado={cantidad === 0 || bloqueado} onClick={agregar}>
             {agregando ? 'Agregando…' : 'Agregar'}
           </Boton>
         </div>

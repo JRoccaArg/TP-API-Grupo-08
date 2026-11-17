@@ -1,7 +1,7 @@
 import FilaEntrada from './FilaEntrada.jsx'
 
 // Las entradas del evento, cada una con su botón "Agregar". "enCarrito" dice cuántas de cada una ya están en el carrito
-export default function ListaEntradas({ evento, ahora, enCarrito, agregando, errorAgregar, onAgregar }) {
+export default function ListaEntradas({ evento, ahora, enCarrito, agregando = null, errorAgregar, onAgregar }) {
   return (
     <section className="entradas">
       <div className="entradas__cabecera">
@@ -16,6 +16,7 @@ export default function ListaEntradas({ evento, ahora, enCarrito, agregando, err
             ahora={ahora}
             enCarrito={enCarrito[oferta.id] || 0}
             agregando={agregando === oferta.id}
+            ocupado={agregando !== null}
             error={errorAgregar?.ofertaId === oferta.id ? errorAgregar.mensaje : ''}
             onAgregar={(cantidad) => onAgregar(oferta, cantidad)}
           />

@@ -164,6 +164,8 @@ const eventosSlice = createSlice({
     paginas: [],
     loading: false,
     error: null,
+    // La búsqueda que se está mirando (action.meta.arg): la respuesta o el error de una anterior no la pisan
+    consultaActual: null,
     proximos: null,
     rangoPrecios: null,
     errorRango: null,
@@ -177,16 +179,22 @@ const eventosSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(obtenerCatalogo.pending, (state) => {
+      .addCase(obtenerCatalogo.pending, (state, action) => {
         state.loading = true
         state.error = null
+        state.consultaActual = action.meta.arg
       })
       .addCase(obtenerCatalogo.fulfilled, (state, action) => {
-        state.loading = false
-        // Un evento se guarda una sola vez aunque aparezca en varias páginas
+        if (action.meta.arg === state.consultaActual) {
+          state.loading = false
+        }
+        // Un evento se guarda una sola vez aunque aparezca en varias páginas. Si ya estaba, se actualiza como en el PUT,
+        // y se conservan sus fotos y entradas, que se piden aparte
         action.payload.content.forEach((evento) => {
           const index = state.items.findIndex((item) => item.id === evento.id)
-          if (index === -1) {
+          if (index !== -1) {
+            state.items[index] = { ...state.items[index], ...evento }
+          } else {
             state.items = [...state.items, evento]
           }
         })
@@ -199,8 +207,10 @@ const eventosSlice = createSlice({
         }]
       })
       .addCase(obtenerCatalogo.rejected, (state, action) => {
-        state.loading = false
-        state.error = action.error.message
+        if (action.meta.arg === state.consultaActual) {
+          state.loading = false
+          state.error = action.error.message
+        }
       })
       .addCase(obtenerProximos.fulfilled, (state, action) => {
         state.proximos = action.payload

@@ -43,6 +43,8 @@ const comprasSlice = createSlice({
     loading: false,
     error: null,
     cargado: false,
+    // Con qué token se pidió la lista (action.meta.arg): la respuesta de otra sesión no se guarda
+    tokenPedido: null,
     ultimaCompra: null,
     pagando: false,
     errorPago: null,
@@ -57,6 +59,7 @@ const comprasSlice = createSlice({
       state.loading = false
       state.error = null
       state.cargado = false
+      state.tokenPedido = null
       state.ultimaCompra = null
       state.pagando = false
       state.errorPago = null
@@ -67,18 +70,24 @@ const comprasSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(obtenerMisCompras.pending, (state) => {
+      .addCase(obtenerMisCompras.pending, (state, action) => {
         state.loading = true
         state.error = null
+        state.tokenPedido = action.meta.arg
       })
+      // Si mientras tanto se salió o entró otra cuenta, el token ya no coincide y la respuesta se ignora
       .addCase(obtenerMisCompras.fulfilled, (state, action) => {
-        state.loading = false
-        state.items = action.payload
-        state.cargado = true
+        if (action.meta.arg === state.tokenPedido) {
+          state.loading = false
+          state.items = action.payload
+          state.cargado = true
+        }
       })
       .addCase(obtenerMisCompras.rejected, (state, action) => {
-        state.loading = false
-        state.error = action.error.message
+        if (action.meta.arg === state.tokenPedido) {
+          state.loading = false
+          state.error = action.error.message
+        }
       })
       // Una compra suelta (por ejemplo, al recargar su pantalla) se suma a la lista una sola vez
       .addCase(obtenerCompra.pending, (state) => {
