@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useLocation, useNavigate } from 'react-router-dom'
 import FiltrosEventos from './FiltrosEventos.jsx'
@@ -14,7 +14,6 @@ export default function SeccionFechas() {
   const dispatch = useDispatch()
   const seccion = useRef(null)
   const resultados = useRef(null)
-  const [ahora, setAhora] = useState(() => Date.now())
   const { items, paginas, error, rangoPrecios, errorRango } = useSelector((state) => state.eventos)
   const { items: categorias, error: errorCategorias, cargado: categoriasCargadas } = useSelector((state) => state.categorias)
 
@@ -28,11 +27,6 @@ export default function SeccionFechas() {
   const categoriasOrdenadas = [...categorias].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'))
   // El error de categorías también puede venir del admin (por ejemplo, un nombre repetido): acá importa solo si no se cargaron
   const fallaronCategorias = Boolean(errorCategorias) && !categoriasCargadas
-
-  useEffect(() => {
-    const intervalo = setInterval(() => setAhora(Date.now()), 1000)
-    return () => clearInterval(intervalo)
-  }, [])
 
   // Lo que ya está en el store no se vuelve a pedir
   useEffect(() => {
@@ -99,7 +93,6 @@ export default function SeccionFechas() {
           total={actual ? actual.total : 0}
           pagina={pagina}
           paginas={Math.max(1, actual ? actual.totalPaginas : 0)}
-          ahora={ahora}
           cargando={cargando}
           error={error}
           referencia={resultados}

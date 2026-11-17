@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import EstadoCatalogo from './EstadoCatalogo.jsx'
 import OrdenEventos from './OrdenEventos.jsx'
 import PaginacionEventos from './PaginacionEventos.jsx'
@@ -7,9 +8,16 @@ import { EVENTOS_POR_PAGINA } from '../utils/filtrosCatalogo.js'
 // Lo que va debajo de los filtros: la carga (cargando, error o sin eventos) o los resultados con su orden y paginación.
 // "referencia" es el div de resultados al que se baja al cambiar de página.
 export default function ResultadosCatalogo({
-  eventos, filtros, total, pagina, paginas, ahora, cargando, error, referencia, onReintentar, onLimpiar, onOrden, onPagina,
+  eventos, filtros, total, pagina, paginas, cargando, error, referencia, onReintentar, onLimpiar, onOrden, onPagina,
 }) {
+  const [ahora, setAhora] = useState(() => Date.now())
   const { errorPrecio } = filtros
+
+  // Las tarjetas muestran si la venta ya cerró: el reloj está acá, donde se usa
+  useEffect(() => {
+    const intervalo = setInterval(() => setAhora(Date.now()), 1000)
+    return () => clearInterval(intervalo)
+  }, [])
   const inicio = (pagina - 1) * EVENTOS_POR_PAGINA
   const fallosOfertas = eventos.some((evento) => evento.errorOfertas)
   const fallosImagenes = eventos.some((evento) => evento.errorImagenes)

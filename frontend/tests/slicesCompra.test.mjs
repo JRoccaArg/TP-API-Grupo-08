@@ -49,8 +49,11 @@ describe('eventos sueltos', () => {
   test('un evento ya pedido no se vuelve a pedir y su error queda con su id', () => {
     const pidiendo = eventosReducer(inicio(eventosReducer), obtenerEvento.pending('pedido', { id: 4 }))
     assert.deepEqual(pidiendo.pedidos, [4])
-    const fallo = eventosReducer(pidiendo, obtenerEvento.rejected(new Error('Network Error'), 'pedido', { id: 4 }))
-    assert.deepEqual(fallo.errorEvento, { id: 4, mensaje: 'Network Error' })
+    // rejectWithValue: el 404 llega marcado, así el detalle dice "No encontramos este evento" en lugar de ofrecer "Reintentar"
+    const noExiste = eventosReducer(pidiendo, obtenerEvento.rejected(null, 'pedido', { id: 4 }, { mensaje: 'El evento no existe', noExiste: true }))
+    assert.deepEqual(noExiste.errorEvento, { id: 4, mensaje: 'El evento no existe', noExiste: true })
+    const sinConexion = eventosReducer(pidiendo, obtenerEvento.rejected(null, 'pedido', { id: 4 }, { mensaje: 'No pudimos cargar el evento.', noExiste: false }))
+    assert.equal(sinConexion.errorEvento.noExiste, false)
     const llego = eventosReducer(pidiendo, obtenerEvento.fulfilled({ id: 4, titulo: 'Gala' }, 'pedido', { id: 4 }))
     assert.equal(llego.items[0].titulo, 'Gala')
   })

@@ -128,8 +128,10 @@ const locacionesSlice = createSlice({
       .addCase(crearLocacion.rejected, (state, action) => {
         state.error = action.payload
       })
-      // Los errores de lo que se hace sobre una locación (guardar, borrar, fotos) se guardan en esa locación
+      // Los errores de lo que se hace sobre una locación (guardar, borrar, fotos) se guardan en esa locación.
+      // Al guardar o borrar también se borra el error de un alta anterior, como en categorías: el error se resetea en el pending
       .addCase(actualizarLocacion.pending, (state, action) => {
+        state.error = null
         const index = state.items.findIndex((locacion) => locacion.id === action.meta.arg.id)
         if (index !== -1) {
           state.items[index].errorEdicion = null
@@ -148,6 +150,7 @@ const locacionesSlice = createSlice({
         }
       })
       .addCase(eliminarLocacion.pending, (state, action) => {
+        state.error = null
         const index = state.items.findIndex((locacion) => locacion.id === action.meta.arg.id)
         if (index !== -1) {
           state.items[index].errorEdicion = null

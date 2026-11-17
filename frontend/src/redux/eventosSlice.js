@@ -34,11 +34,19 @@ export const obtenerImagenes = createAsyncThunk('eventos/obtenerImagenes', async
   return data.content
 })
 
-// Un evento suelto (el detalle, o uno que está en el carrito o en una compra). Con el token del admin se ve también un borrador
-export const obtenerEvento = createAsyncThunk('eventos/obtenerEvento', async (pedido) => {
-  const { id, token } = pedido
-  const { data } = await axios.get(`${URL}/${id}`, token ? { headers: { Authorization: `Bearer ${token}` } } : {})
-  return data
+// Un evento suelto (el detalle, o uno que está en el carrito o en una compra). Con el token del admin se ve también un borrador.
+// Usa rejectWithValue porque el 404 ("el evento no existe") se muestra distinto de un error de conexión, como en la verificación de entradas
+export const obtenerEvento = createAsyncThunk('eventos/obtenerEvento', async (pedido, { rejectWithValue }) => {
+  try {
+    const { id, token } = pedido
+    const { data } = await axios.get(`${URL}/${id}`, token ? { headers: { Authorization: `Bearer ${token}` } } : {})
+    return data
+  } catch (error) {
+    return rejectWithValue({
+      mensaje: error.response?.data?.message || 'No pudimos cargar el evento.',
+      noExiste: error.response?.status === 404,
+    })
+  }
 })
 
 // Con el token del admin el back devuelve también los borradores
@@ -281,7 +289,7 @@ const eventosSlice = createSlice({
         }
       })
       .addCase(obtenerEvento.rejected, (state, action) => {
-        state.errorEvento = { id: action.meta.arg.id, mensaje: action.error.message }
+        state.errorEvento = { id: action.meta.arg.id, ...action.payload }
       })
       .addCase(obtenerEventosAdmin.pending, (state) => {
         state.errorAdmin = null
@@ -326,8 +334,10 @@ const eventosSlice = createSlice({
       .addCase(crearEvento.rejected, (state, action) => {
         state.errorAdmin = action.payload
       })
-      // Los errores de lo que se hace sobre un evento (guardar, borrar, fotos, entradas) se guardan en ese evento
+      // Los errores de lo que se hace sobre un evento (guardar, borrar, fotos, entradas) se guardan en ese evento.
+      // Al guardar o borrar también se borra el error de un alta anterior: el error se resetea en el pending
       .addCase(actualizarEvento.pending, (state, action) => {
+        state.errorAdmin = null
         const index = state.items.findIndex((evento) => evento.id === action.meta.arg.id)
         if (index !== -1) {
           state.items[index].errorEdicion = null
@@ -354,6 +364,7 @@ const eventosSlice = createSlice({
         }
       })
       .addCase(eliminarEvento.pending, (state, action) => {
+        state.errorAdmin = null
         const index = state.items.findIndex((evento) => evento.id === action.meta.arg.id)
         if (index !== -1) {
           state.items[index].errorEdicion = null

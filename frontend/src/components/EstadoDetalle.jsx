@@ -5,7 +5,8 @@ import Boton from './Boton.jsx'
 export default function EstadoDetalle({ idValido, cargando, error, evento, volverA, onReintentar }) {
   if (!idValido) return <Aviso mensaje="No encontramos este evento." boton="Volver al catálogo" to={volverA} />
   if (cargando) return <main className="pagina aviso detalle-catalogo" role="status"><h1>Cargando evento…</h1></main>
-  if (error?.estado === 404 || evento?.estado?.toUpperCase() === 'BORRADOR') {
+  // Si no existe (o es un borrador), "Reintentar" no sirve: se avisa y se vuelve al catálogo
+  if (error?.noExiste || evento?.estado?.toUpperCase() === 'BORRADOR') {
     return <Aviso mensaje="No encontramos este evento." boton="Volver al catálogo" to={volverA} />
   }
   if (error) {

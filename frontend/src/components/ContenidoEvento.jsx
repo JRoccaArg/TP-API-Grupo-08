@@ -11,8 +11,8 @@ const ESTADOS = {
   BORRADOR: 'Vista previa: este evento es un borrador y todavía no lo ve el público.',
 }
 
-// La página de un evento ya cargado. Sin estado propio: recibe lo que se ve y avisa lo que hace el usuario (agregar, reintentar)
-export default function ContenidoEvento({ evento, ahora, volverA, aviso, enCarrito, agregando, errorAgregar, onAgregar, onReintentar }) {
+// La página de un evento ya cargado. Las entradas y el agregado al carrito los maneja ListaEntradas con el store
+export default function ContenidoEvento({ evento, volverA, onReintentar }) {
   const estado = evento.estado?.toUpperCase()
   return (
     <div className="detalle-catalogo">
@@ -33,10 +33,8 @@ export default function ContenidoEvento({ evento, ahora, volverA, aviso, enCarri
                 </Boton>
               </>
             ) : (
-              <ListaEntradas evento={evento} ahora={ahora} enCarrito={enCarrito} agregando={agregando}
-                errorAgregar={errorAgregar} onAgregar={onAgregar} />
+              <ListaEntradas evento={evento} volverA={volverA} />
             )}
-            {aviso && <p className="catalogo-nota" role="status">{aviso}</p>}
           </div>
         </div>
       </main>

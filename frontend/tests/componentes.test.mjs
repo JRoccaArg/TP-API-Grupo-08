@@ -114,10 +114,10 @@ test('el rango señala los importes inválidos de la URL y muestra el motivo de 
   assert.match(html, /role="alert">Los precios no pueden ser negativos/)
 })
 test('la lista de entradas aclara que el tiempo de reserva es uno solo para todo el carrito', () => {
-  const html = renderToStaticMarkup(createElement(ListaEntradas, {
-    evento: { ...evento, ofertas: [oferta, { ...oferta, id: 2, tipoEntradaNombre: 'VIP' }] }, ahora,
-    enCarrito: {}, agregando: null, errorAgregar: null, onAgregar: () => {},
-  }))
+  // La lista lee el carrito del store y usa el router (para mandar a ingresar): se dibuja con los dos
+  const html = renderToStaticMarkup(conStore(createElement(MemoryRouter, null, createElement(ListaEntradas, {
+    evento: { ...evento, ofertas: [oferta, { ...oferta, id: 2, tipoEntradaNombre: 'VIP' }] }, volverA: '/',
+  }))))
   assert.match(html, /mismo para todo el carrito/)
   assert.equal((html.match(/>Agregar</g) || []).length, 2)
 })

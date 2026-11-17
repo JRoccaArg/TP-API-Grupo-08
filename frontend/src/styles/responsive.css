@@ -36,4 +36,5 @@
   .navbar__cuenta { max-width: 150px; }
   .cuenta { gap: 8px; }
   .cuenta__nombre { display: none; } /* en celular queda el avatar con las iniciales: el menú del admin necesita el lugar */
+  .form-evento__doble { grid-template-columns: 1fr; } /* las fechas del evento no entran de a dos: van una abajo de la otra */
 }

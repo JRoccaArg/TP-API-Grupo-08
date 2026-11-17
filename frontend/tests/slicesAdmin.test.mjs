@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import eventosReducer, {
   actualizarEvento, cambiarImagen, crearEvento, crearOferta, eliminarEvento, subirImagen,
 } from '../src/redux/eventosSlice.js'
-import locacionesReducer, { crearLocacion, eliminarLocacion } from '../src/redux/locacionesSlice.js'
+import locacionesReducer, { actualizarLocacion, crearLocacion, eliminarLocacion } from '../src/redux/locacionesSlice.js'
 
 // Los reducers son funciones puras: se les pasa un estado y la acción que despacha el middleware cuando responde el back.
 // thunk.fulfilled(payload, idDelPedido, arg) arma esa acción; el arg es lo que despachó el componente (action.meta.arg).
@@ -42,6 +42,12 @@ describe('eventos del admin', () => {
     assert.deepEqual(borrado.items.map((evento) => evento.id), [1])
     assert.deepEqual(borrado.todos, [1])
   })
+  test('el error de un alta fallida se borra cuando se guarda o se borra otro evento (se resetea en el pending)', () => {
+    const fallo = eventosReducer(conEventos(), crearEvento.rejected(null, 'pedido', { token: 'T' }, 'Ya existe un evento con ese título'))
+    assert.equal(fallo.errorAdmin, 'Ya existe un evento con ese título')
+    assert.equal(eventosReducer(fallo, actualizarEvento.pending('pedido', { token: 'T', id: 1 })).errorAdmin, null)
+    assert.equal(eventosReducer(fallo, eliminarEvento.pending('pedido', { token: 'T', id: 2 })).errorAdmin, null)
+  })
   test('cada foto es su acción: la subida marca el evento y el cambio reemplaza solo esa foto', () => {
     const subiendo = eventosReducer(conEventos(), subirImagen.pending('pedido', { token: 'T', eventoId: 1 }))
     assert.equal(subiendo.items[0].guardandoFotos, true)
@@ -71,5 +77,11 @@ describe('locaciones del admin', () => {
     const estado = locacionesReducer(conLocaciones(), eliminarLocacion.rejected(null, 'pedido', { token: 'T', id: 1 }, 'Está en uso'))
     assert.equal(estado.items[0].errorEdicion, 'Está en uso')
     assert.equal(estado.error, null)
+  })
+  test('el error de un alta fallida no queda pegado: guardar o borrar otra locación lo borra', () => {
+    const fallo = locacionesReducer(conLocaciones(), crearLocacion.rejected(null, 'pedido', { token: 'T' }, 'Ya existe una locación con ese nombre'))
+    assert.equal(fallo.error, 'Ya existe una locación con ese nombre')
+    assert.equal(locacionesReducer(fallo, actualizarLocacion.pending('pedido', { token: 'T', id: 1 })).error, null)
+    assert.equal(locacionesReducer(fallo, eliminarLocacion.pending('pedido', { token: 'T', id: 1 })).error, null)
   })
 })
