@@ -48,7 +48,9 @@ export default function Pago() {
 
   const cambiar = (campo, texto) => setTarjeta({ ...tarjeta, [campo]: limpiarCampo(campo, texto, tarjeta.numero) })
 
-  const pagar = () => {
+  // Como el formulario de la profe: se frena el envío del navegador y se despacha. Con Enter en la tarjeta también paga
+  const pagar = (e) => {
+    e.preventDefault()
     if (pagando) return
     if (!tarjetaValida(errores)) {
       setIntento(true)
@@ -61,7 +63,7 @@ export default function Pago() {
     <main className="pagina compra">
       <PasosCompra paso={3} />
       <BannerPago vencimiento={vencimientoMs(carrito)} />
-      <div className="compra__grilla">
+      <form className="compra__grilla" onSubmit={pagar}>
         <section>
           <h1 className="titulo-pagina aparece">Pago</h1>
           <p className="rotulo pago__metodo">MÉTODO DE PAGO · TARJETA</p>
@@ -78,8 +80,8 @@ export default function Pago() {
             <Icono nombre="flechaIzq" tamano={16} /> Volver al carrito
           </Boton>
         </section>
-        <TotalPago carrito={carrito} pagando={pagando} onPagar={pagar} />
-      </div>
+        <TotalPago carrito={carrito} pagando={pagando} />
+      </form>
     </main>
   )
 }

@@ -1,11 +1,13 @@
 import { Link } from 'react-router-dom'
 
-// Con "to" navega (Link); sin "to" ejecuta onClick. "variante": oro (relleno dorado), contorno u oscuro
+// Con "to" navega (Link); sin "to" ejecuta onClick. "variante": oro (relleno dorado), contorno u oscuro.
+// "formulario" es el id del <form> que envía, cuando el botón está fuera de él (atributo form de HTML)
 export default function Boton({
   to,
   state,
   onClick,
   tipo = 'button',
+  formulario,
   variante = 'oro',
   clase = '',
   deshabilitado = false,
@@ -22,7 +24,7 @@ export default function Boton({
     )
   }
   return (
-    <button type={tipo} onClick={onClick} disabled={deshabilitado} className={clases}>
+    <button type={tipo} form={formulario} onClick={onClick} disabled={deshabilitado} className={clases}>
       {children}
     </button>
   )

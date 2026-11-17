@@ -1,6 +1,8 @@
 import Boton from './Boton.jsx'
 
-export default function BarraAcciones({ textoGuardar, textoEliminar = 'Eliminar evento', volverA = '/admin', ocupado = false, onGuardar, onEliminar }) {
+// El botón de guardar queda en esta barra, fuera del <form>: "formulario" es el id de ese form.
+// Así el clic y el Enter envían el mismo formulario, y es su onSubmit el que despacha.
+export default function BarraAcciones({ textoGuardar, textoEliminar = 'Eliminar evento', volverA = '/admin', formulario, ocupado = false, onEliminar }) {
   return (
     <div className="acciones-admin">
       {onEliminar ? (
@@ -14,7 +16,7 @@ export default function BarraAcciones({ textoGuardar, textoEliminar = 'Eliminar 
         <Boton to={volverA} variante="contorno">
           Cancelar
         </Boton>
-        <Boton onClick={onGuardar} deshabilitado={ocupado} clase="boton--grande">
+        <Boton tipo="submit" formulario={formulario} deshabilitado={ocupado} clase="boton--grande">
           {textoGuardar}
         </Boton>
       </div>

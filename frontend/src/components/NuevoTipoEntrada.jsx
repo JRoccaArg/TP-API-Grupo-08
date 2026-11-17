@@ -17,7 +17,8 @@ export default function NuevoTipoEntrada({ onCreado, onCancelar }) {
     setAviso('')
   }
 
-  const crear = () => {
+  const crear = (e) => {
+    e.preventDefault()
     const problema = validarTipo(datos)
     if (problema) {
       setAviso(problema)
@@ -28,7 +29,7 @@ export default function NuevoTipoEntrada({ onCreado, onCancelar }) {
   }
 
   return (
-    <div className="nuevo-tipo">
+    <form className="nuevo-tipo" onSubmit={crear}>
       <p className="admin__seccion">NUEVO TIPO DE ENTRADA</p>
       <FormTipoEntrada datos={datos} onCambiar={cambiar} />
       {aviso && <p className="admin__aviso admin__aviso--error" role="alert">{aviso}</p>}
@@ -36,10 +37,10 @@ export default function NuevoTipoEntrada({ onCreado, onCancelar }) {
         <Boton variante="contorno" clase="boton--chico" onClick={onCancelar}>
           Cancelar
         </Boton>
-        <Boton clase="boton--chico" onClick={crear}>
+        <Boton tipo="submit" clase="boton--chico">
           Crear tipo
         </Boton>
       </div>
-    </div>
+    </form>
   )
 }

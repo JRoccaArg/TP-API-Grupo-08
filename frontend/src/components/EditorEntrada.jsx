@@ -27,7 +27,8 @@ export default function EditorEntrada({ evento, oferta, tipos, onClose }) {
     setDatos({ ...datos, tipoEntradaId: '' })
   }
 
-  const guardar = () => {
+  const guardar = (e) => {
+    e.preventDefault()
     const problema = validarOferta({ ...datos, tipoEntradaId }, { edicion: Boolean(oferta), vendidas: oferta ? vendidas(oferta) : 0 })
     if (problema) {
       setAviso(problema)

@@ -25,8 +25,9 @@ export default function NuevaLocacion() {
     setAviso('')
   }
 
-  // Se despacha y se vuelve a la lista: si el back la rechaza, la lista muestra el error
-  const guardar = () => {
+  // Se frena el envío del navegador, se despacha y se vuelve a la lista: si el back la rechaza, la lista muestra el error
+  const guardar = (e) => {
+    e.preventDefault()
     const problema = validarLocacion(datos)
     if (problema) {
       setAviso(problema)
@@ -44,11 +45,11 @@ export default function NuevaLocacion() {
         resaltado="locación"
       />
       <div className="admin__columna admin__columna--sola">
-        <FormularioLocacion datos={datos} onCambiar={cambiar} />
+        <FormularioLocacion datos={datos} onCambiar={cambiar} onGuardar={guardar} />
         <p className="fotos-admin__nota">Las fotos se suben después de crear la locación, entrando a editarla desde la lista.</p>
       </div>
       {aviso && <p className="admin__aviso admin__aviso--error" role="alert">{aviso}</p>}
-      <BarraAcciones textoGuardar="Crear locación" volverA="/admin/locaciones" onGuardar={guardar} />
+      <BarraAcciones textoGuardar="Crear locación" volverA="/admin/locaciones" formulario="form-locacion" />
     </main>
   )
 }

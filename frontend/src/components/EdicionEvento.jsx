@@ -22,9 +22,10 @@ export default function EdicionEvento({ evento, locaciones, categorias }) {
     setAviso('')
   }
 
-  // Se despacha y se vuelve al resumen del evento; si el back lo rechaza, el resumen muestra el error.
+  // Se frena el envío del navegador, se despacha y se vuelve al resumen del evento; si el back lo rechaza, el resumen muestra el error.
   // Si cambió el fin, el back corre solo el cierre de venta de sus entradas.
-  const guardar = () => {
+  const guardar = (e) => {
+    e.preventDefault()
     const problema = validarEvento(datos, { locaciones, categorias })
     if (problema) {
       setAviso(problema)
@@ -54,7 +55,7 @@ export default function EdicionEvento({ evento, locaciones, categorias }) {
       />
       <div className="admin__dos-columnas">
         <div className="admin__columna">
-          <FormularioEvento datos={datos} onCambiar={cambiar} locaciones={locaciones} categorias={categorias} />
+          <FormularioEvento datos={datos} onCambiar={cambiar} onGuardar={guardar} locaciones={locaciones} categorias={categorias} />
           <ImagenesEvento evento={evento} />
         </div>
         <PanelEntradas evento={evento} />
@@ -65,7 +66,7 @@ export default function EdicionEvento({ evento, locaciones, categorias }) {
       <BarraAcciones
         textoGuardar="Guardar cambios"
         textoEliminar={confirmando ? 'Confirmar: eliminar evento' : 'Eliminar evento'}
-        onGuardar={guardar}
+        formulario="form-evento"
         onEliminar={eliminar}
       />
     </main>

@@ -48,8 +48,10 @@ export default function NuevoEvento() {
     if (!categoriasCargadas) dispatch(obtenerCategorias())
   }
 
-  // Se despacha y se vuelve a la lista: el evento aparece ahí cuando llega, y si el back lo rechaza la lista muestra el error
-  const guardar = () => {
+  // Como el formulario de la profe: se frena el envío del navegador, se despacha y se vuelve a la lista.
+  // El evento aparece ahí cuando llega, y si el back lo rechaza la lista muestra el error
+  const guardar = (e) => {
+    e.preventDefault()
     const problema = validarEvento(datos, { locaciones, categorias })
     if (problema) {
       setAviso(problema)
@@ -69,7 +71,7 @@ export default function NuevoEvento() {
       <div className="admin__dos-columnas">
         <div className="admin__columna">
           {listo ? (
-            <FormularioEvento datos={datos} onCambiar={cambiar} locaciones={locaciones} categorias={categorias} />
+            <FormularioEvento datos={datos} onCambiar={cambiar} onGuardar={guardar} locaciones={locaciones} categorias={categorias} />
           ) : falloCarga ? (
             <div role="alert">
               <p className="admin__aviso admin__aviso--error">{falloCarga}</p>
@@ -83,7 +85,7 @@ export default function NuevoEvento() {
         <PanelEntradas />
       </div>
       {aviso && <p className="admin__aviso admin__aviso--error" role="alert">{aviso}</p>}
-      <BarraAcciones textoGuardar="Crear evento" ocupado={!listo} onGuardar={guardar} />
+      <BarraAcciones textoGuardar="Crear evento" formulario="form-evento" ocupado={!listo} />
     </main>
   )
 }

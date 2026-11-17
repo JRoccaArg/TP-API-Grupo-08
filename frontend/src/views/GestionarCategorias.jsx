@@ -40,11 +40,7 @@ export default function GestionarCategorias() {
       {loading && <p className="admin__cargando" role="status">Cargando categorías…</p>}
       {cargado && (
         <>
-          {creando && (
-            <div className="nuevo-tipo">
-              <EdicionCategoria onClose={() => setCreando(false)} />
-            </div>
-          )}
+          {creando && <EdicionCategoria onClose={() => setCreando(false)} />}
           <ul className="admin__lista">
             {lista.map((categoria) => (
               <FilaCategoria key={categoria.id} categoria={categoria} />

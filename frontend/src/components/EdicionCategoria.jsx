@@ -20,7 +20,8 @@ export default function EdicionCategoria({ categoria, onClose }) {
     setAviso('')
   }
 
-  const guardar = () => {
+  const guardar = (e) => {
+    e.preventDefault()
     if (!datos.nombre.trim()) {
       setAviso('Escribí el nombre de la categoría.')
       return
@@ -33,8 +34,9 @@ export default function EdicionCategoria({ categoria, onClose }) {
     onClose()
   }
 
+  // Nueva: el recuadro de alta arriba de la lista. Al editar va adentro de la fila
   return (
-    <>
+    <form className={esNueva ? 'nuevo-tipo' : 'form-tipo'} onSubmit={guardar}>
       {esNueva && <p className="admin__seccion">NUEVA CATEGORÍA</p>}
       <div className="form-tipo">
         <CampoLinea etiqueta="NOMBRE" nombre="categoria-nombre" valor={datos.nombre} onChange={cambiar('nombre')} placeholder="Fiesta, Recital, After…" />
@@ -45,10 +47,10 @@ export default function EdicionCategoria({ categoria, onClose }) {
         <Boton variante="contorno" clase="boton--chico" onClick={onClose}>
           Cancelar
         </Boton>
-        <Boton clase="boton--chico" onClick={guardar}>
+        <Boton tipo="submit" clase="boton--chico">
           {esNueva ? 'Crear categoría' : 'Guardar'}
         </Boton>
       </div>
-    </>
+    </form>
   )
 }

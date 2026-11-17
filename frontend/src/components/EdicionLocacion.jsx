@@ -22,7 +22,8 @@ export default function EdicionLocacion({ locacion }) {
     setAviso('')
   }
 
-  const guardar = () => {
+  const guardar = (e) => {
+    e.preventDefault()
     const problema = validarLocacion(datos)
     if (problema) {
       setAviso(problema)
@@ -50,7 +51,7 @@ export default function EdicionLocacion({ locacion }) {
         resaltado="locación"
       />
       <div className="admin__columna admin__columna--sola">
-        <FormularioLocacion datos={datos} onCambiar={cambiar} />
+        <FormularioLocacion datos={datos} onCambiar={cambiar} onGuardar={guardar} />
         <FotosLocacion locacion={locacion} />
       </div>
       {(aviso || locacion.errorEdicion) && (
@@ -60,7 +61,7 @@ export default function EdicionLocacion({ locacion }) {
         textoGuardar="Guardar cambios"
         textoEliminar={confirmando ? 'Confirmar: eliminar locación' : 'Eliminar locación'}
         volverA="/admin/locaciones"
-        onGuardar={guardar}
+        formulario="form-locacion"
         onEliminar={eliminar}
       />
     </main>

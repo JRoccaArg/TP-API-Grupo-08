@@ -6,8 +6,8 @@ import { precio } from '../utils/formatos.js'
 // El tamaño del total baja con la cantidad de cifras para que un importe grande entre en el cuadro sin partirse en dos líneas.
 const tamanoDelTotal = (texto) => (texto.length <= 8 ? 80 : texto.length <= 10 ? 64 : texto.length <= 13 ? 48 : 36)
 
-// Sin onPagar el cobro todavía no está conectado al backend: el botón queda deshabilitado (no se simula un pago).
-export default function TotalPago({ carrito, pagando = false, onPagar }) {
+// Va adentro del formulario del pago: "Pagar" es su botón de enviar
+export default function TotalPago({ carrito, pagando = false }) {
   const total = precio(carrito.total)
 
   return (
@@ -25,8 +25,8 @@ export default function TotalPago({ carrito, pagando = false, onPagar }) {
           </li>
         ))}
       </ul>
-      <Boton onClick={onPagar} deshabilitado={pagando || !onPagar} clase="boton--ancho boton--grande">
-        {!onPagar ? 'El cobro todavía no está habilitado' : pagando ? 'Procesando...' : `Pagar ${total}`}
+      <Boton tipo="submit" deshabilitado={pagando} clase="boton--ancho boton--grande">
+        {pagando ? 'Procesando...' : `Pagar ${total}`}
       </Boton>
       <p className="resumen__nota resumen__nota--icono">
         <Icono nombre="candado" tamano={16} />

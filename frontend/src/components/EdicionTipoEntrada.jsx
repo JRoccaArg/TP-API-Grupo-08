@@ -16,7 +16,8 @@ export default function EdicionTipoEntrada({ tipo, onClose }) {
     setAviso('')
   }
 
-  const guardar = () => {
+  const guardar = (e) => {
+    e.preventDefault()
     const problema = validarTipo(datos)
     if (problema) {
       setAviso(problema)
@@ -30,16 +31,18 @@ export default function EdicionTipoEntrada({ tipo, onClose }) {
 
   return (
     <li className="fila-tipo fila-tipo--edicion">
-      <FormTipoEntrada datos={datos} onCambiar={cambiar} conEstado />
-      {aviso && <p className="admin__aviso admin__aviso--error" role="alert">{aviso}</p>}
-      <div className="nuevo-tipo__acciones">
-        <Boton variante="contorno" clase="boton--chico" onClick={onClose}>
-          Cancelar
-        </Boton>
-        <Boton clase="boton--chico" onClick={guardar}>
-          Guardar
-        </Boton>
-      </div>
+      <form className="form-tipo" onSubmit={guardar}>
+        <FormTipoEntrada datos={datos} onCambiar={cambiar} conEstado />
+        {aviso && <p className="admin__aviso admin__aviso--error" role="alert">{aviso}</p>}
+        <div className="nuevo-tipo__acciones">
+          <Boton variante="contorno" clase="boton--chico" onClick={onClose}>
+            Cancelar
+          </Boton>
+          <Boton tipo="submit" clase="boton--chico">
+            Guardar
+          </Boton>
+        </div>
+      </form>
     </li>
   )
 }
