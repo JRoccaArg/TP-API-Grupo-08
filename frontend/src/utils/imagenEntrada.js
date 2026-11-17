@@ -9,11 +9,14 @@ const SIN_COMPARTIR = 'Tu navegador no permite compartir imágenes: descargá la
 
 // Abre el menú de compartir del celular (WhatsApp, mail, etc.) con la imagen del QR (Web Share API: navigator.share).
 // La imagen es el Blob que da el canvas con toBlob. Devuelve el mensaje que hay que mostrar, o '' si se compartió o se cerró el menú.
-export function compartirImagen(imagen, nombre, texto) {
-  if (!navigator.share || !navigator.canShare) return Promise.resolve(SIN_COMPARTIR)
+export async function compartirImagen(imagen, nombre, texto) {
+  if (!navigator.share || !navigator.canShare) return SIN_COMPARTIR
   const archivo = new File([imagen], nombre, { type: 'image/png' })
-  if (!navigator.canShare({ files: [archivo] })) return Promise.resolve(SIN_COMPARTIR)
-  return navigator.share({ files: [archivo], title: texto, text: texto })
-    .then(() => '')
-    .catch((fallo) => (fallo.name === 'AbortError' ? '' : 'No se pudo compartir la entrada. Probá descargarla.'))
+  if (!navigator.canShare({ files: [archivo] })) return SIN_COMPARTIR
+  try {
+    await navigator.share({ files: [archivo], title: texto, text: texto })
+    return ''
+  } catch (fallo) {
+    return fallo.name === 'AbortError' ? '' : 'No se pudo compartir la entrada. Probá descargarla.'
+  }
 }

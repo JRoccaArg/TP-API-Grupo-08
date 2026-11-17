@@ -18,9 +18,9 @@ export default function AccionesEntrada({ entrada, titulo }) {
     lienzo.current.toBlob(setImagen, 'image/png')
   }, [entrada.codigoQr])
 
-  const compartir = () => {
+  const compartir = async () => {
     setAviso('')
-    compartirImagen(imagen, archivo, `Mi entrada para ${titulo}`).then(setAviso)
+    setAviso(await compartirImagen(imagen, archivo, `Mi entrada para ${titulo}`))
   }
 
   return (
