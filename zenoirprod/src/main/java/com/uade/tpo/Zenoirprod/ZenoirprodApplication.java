@@ -39,7 +39,6 @@ public class ZenoirprodApplication {
 				|| Files.exists(CONFIG_EN_ZENOIRPROD) || Files.exists(CONFIG_EN_LA_RAIZ);
 		if (!perfilElegido && !sqlServerConfigurado) {
 			System.setProperty("spring.profiles.active", "dev");
-			System.setProperty("zenoir.datos-demo", "true"); // carga el catálogo de ejemplo (DatosDemo)
 			System.out.println("*** Sin configuración de SQL Server: se usa la base en memoria (perfil dev), los datos se pierden al apagar. "
 					+ "Para SQL Server copiá la carpeta config dentro de zenoirprod (ver README). ***");
 		}

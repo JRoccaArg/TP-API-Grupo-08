@@ -8,7 +8,6 @@ Un visitante mira el catálogo y el detalle de cada evento. Con su cuenta arma u
 
 - `zenoirprod/`: el back (Java 17, Spring Boot, JWT, SQL Server).
 - `frontend/`: el front (React, Vite, JavaScript).
-- `docs/arquitectura.md`: cómo funcionan la autenticación y la reserva de entradas.
 - `ENTIDAD - RELACION.txt`: el modelo de datos.
 
 ## Cómo levantarlo
@@ -22,9 +21,9 @@ spring.datasource.password=la_clave_de_sa
 zenoir.mail.activo=false
 ```
 
-Por defecto se conecta a `localhost:1433`, base `Zenoir_Prod`, usuario `sa`. Para otros valores se agregan `spring.datasource.url` y `spring.datasource.username`, o las variables `DB_HOST`, `DB_PORT`, `DB_NAME` y `DB_USER`. Para una instancia con nombre (por ejemplo `SQLEXPRESS`) se pasa la URL completa en `spring.datasource.url`. Sin ese archivo (y sin `DB_PASSWORD`) el back arranca con una base en memoria, vacía de datos propios.
+Por defecto se conecta a `localhost:1433`, base `Zenoir_Prod`, usuario `sa`. Para otros valores se agregan `spring.datasource.url` y `spring.datasource.username`, o las variables `DB_HOST`, `DB_PORT`, `DB_NAME` y `DB_USER`. Para una instancia con nombre (por ejemplo `SQLEXPRESS`) se pasa la URL completa en `spring.datasource.url`.
 
-**Back.** Desde VS Code: abrí la carpeta `zenoirprod` y ejecutá `ZenoirprodApplication` (o "Zenoir back" en Run and Debug). Desde la terminal, en `zenoirprod`: `./mvnw spring-boot:run` (en Windows `.\mvnw.cmd spring-boot:run`). Queda en `http://localhost:8080`.
+**Back.** Desde VS Code: abrí la carpeta `zenoirprod` y ejecutá `ZenoirprodApplication`. Desde la terminal, en `zenoirprod`: `./mvnw spring-boot:run` (en Windows `.\mvnw.cmd spring-boot:run`). Queda en `http://localhost:8080`.
 
 **Front** (desde `frontend`):
 
@@ -37,7 +36,7 @@ Se abre en `http://localhost:5173` y le habla al back por el proxy `/api`.
 
 ## Datos de ejemplo
 
-Hay un catálogo listo para cargar (eventos, locaciones, entradas y fotos). Se carga una sola vez en una base vacía: ver [zenoirprod/database/seed](zenoirprod/database/seed/README.md).
+Hay un catálogo listo para cargar (eventos, locaciones, entradas y fotos). Se carga una sola vez en una base vacía, con las tablas ya creadas por el back: se abre `zenoirprod/database/seed/catalogo.sql` en SSMS, se elige la base y se ejecuta.
 
 ## Usuarios
 
@@ -78,7 +77,7 @@ Los de lectura del catálogo son públicos; el resto pide el token y, según el 
 ## Tests
 
 ```bash
-cd zenoirprod && ./mvnw test      # back (usa una base en memoria)
+cd zenoirprod && ./mvnw test      # back
 ```
 
 ## Si algo falla

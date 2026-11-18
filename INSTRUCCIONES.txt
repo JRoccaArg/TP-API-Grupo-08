@@ -32,7 +32,7 @@ Hace falta Java 17 o más, Node 20.19 o más y SQL Server.
 
    Para tener el catálogo con eventos, lugares, entradas y fotos: con el back levantado al menos
    una vez, abrir zenoirprod/database/seed/catalogo.sql en SSMS, elegir la base Zenoir_Prod y
-   ejecutarlo con F5. Los pasos completos están en zenoirprod/database/seed/README.md.
+   ejecutarlo con F5.
 
 
 4) FRONT (carpeta frontend)
