@@ -21,6 +21,9 @@ PREPARAR LA BASE (una sola vez)
       spring.datasource.password=la_clave
       zenoir.mail.activo=false
 
+   Este archivo no viene en el zip (git no lo sube) y sin él el back arranca con una base en memoria
+   de prueba, sin fotos ni compras. Si en la consola aparece "Datos de ejemplo cargados", falta este archivo.
+
 3. Levantar el back (ver abajo) para que cree las tablas. Esperar a que diga "Started ZenoirprodApplication".
 
 4. En SSMS, abrir zenoirprod/database/seed/expo.sql, elegir la base Zenoir_Expo arriba a la izquierda
