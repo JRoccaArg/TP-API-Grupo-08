@@ -1,0 +1,48 @@
+ZENOIR - CÓMO LEVANTAR EL PROYECTO
+
+Hace falta Java 17 o más y Node 20.19 o más. No hace falta instalar ninguna base de datos.
+
+
+1) BACK (carpeta zenoirprod)
+
+   En VS Code: abrir la carpeta zenoirprod y ejecutar ZenoirprodApplication.
+   O en una terminal, dentro de zenoirprod:
+      .\mvnw.cmd spring-boot:run        (en Mac o Linux: ./mvnw spring-boot:run)
+
+   Queda en http://localhost:8080. Como no tiene configurada una base, arranca solo
+   con una base en memoria y datos de ejemplo (eventos, lugares y entradas).
+   Esos datos vuelven a quedar como al principio cada vez que se apaga el back.
+
+
+2) FRONT (carpeta frontend)
+
+   En otra terminal, dentro de frontend:
+      npm install
+      npm run dev
+
+   Abrir http://localhost:5173
+
+
+CUENTAS DE EJEMPLO (base en memoria)
+
+   Administrador:  admin@zenoir.com    /  Admin#2026ok
+   Comprador:      usuario@zenoir.com  /  Usuario#2026ok
+
+   También se puede crear una cuenta nueva desde "Ingresar" > "Creá una".
+   El pago es de prueba: en la pantalla de pago está el botón "Usar tarjeta de prueba".
+
+
+CON SQL SERVER (opcional)
+
+   1. Crear una base vacía, por ejemplo Zenoir_Prod. Las tablas las crea el back al arrancar.
+   2. Crear el archivo zenoirprod/config/application.properties con los datos de la base:
+         DB_NAME=Zenoir_Prod
+         DB_USER=sa
+         DB_PASSWORD=la_clave
+   3. Levantar el back igual que antes. Si existe ese archivo, usa SQL Server en vez de la base en memoria.
+
+   Para tener un administrador, registrarse desde el front y correr en la base:
+      UPDATE usuarios SET rol = 'ADMIN' WHERE email = 'tu_email';
+
+   El catálogo con fotos se carga con zenoirprod/database/seed (los pasos están en su README).
+   Más detalle en README.md.
