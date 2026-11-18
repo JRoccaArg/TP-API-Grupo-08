@@ -26,8 +26,6 @@ export const eventoAfectado = (evento) => eventoCancelado(evento) || eventoRepro
 const ESTADOS_CON_REEMBOLSO = ['CANCELADO', 'REPROGRAMADO']
 export const permiteReembolso = (evento) => ESTADOS_CON_REEMBOLSO.includes(estadoDe(evento))
 
-export const cantidadDeEntradas = (compra) => compra.detalles.reduce((total, detalle) => total + detalle.tickets.length, 0)
-
 export const comprasDelEvento = (compras, eventoId) =>
   compras.filter((compra) => compra.detalles.some((detalle) => detalle.eventoId === eventoId))
 
@@ -45,10 +43,6 @@ export function resumenDelEvento(compra, eventoId) {
   })
   return resumen
 }
-
-export const sePuedeReembolsar = (compra, evento) => permiteReembolso(evento) && resumenDelEvento(compra, evento.id).emitidas > 0
-
-export const reemplazarCompra = (compras, nueva) => compras.map((compra) => (compra.id === nueva.id ? nueva : compra))
 
 // Agrupa las entradas por evento: [{ id, titulo, evento, entradas }]. Primero los eventos que todavía no terminaron
 // (del más próximo al más lejano) y después los que ya pasaron (del más reciente al más viejo).

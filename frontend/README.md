@@ -13,7 +13,7 @@ npm run dev
 
 Se abre en `http://localhost:5173`. Las llamadas a `/api` las reenvía Vite al back, que por defecto está en `http://127.0.0.1:8080`. Para usar otro destino se copia `.env.example` a `.env.local` y se cambia `ZENOIR_API_TARGET`.
 
-Otros comandos: `npm run build`, `npm run lint` y `npm test`.
+Otros comandos: `npm run build` y `npm run lint`.
 
 ## Pantallas
 

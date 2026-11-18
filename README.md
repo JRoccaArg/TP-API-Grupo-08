@@ -79,7 +79,6 @@ Los de lectura del catálogo son públicos; el resto pide el token y, según el 
 
 ```bash
 cd zenoirprod && ./mvnw test      # back (usa una base en memoria)
-cd frontend && npm test           # front
 ```
 
 ## Si algo falla
