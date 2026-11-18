@@ -6,9 +6,8 @@ import TarjetaFlyer from './TarjetaFlyer.jsx'
 import { EVENTOS_POR_PAGINA } from '../utils/filtrosCatalogo.js'
 
 // Lo que va debajo de los filtros: la carga (cargando, error o sin eventos) o los resultados con su orden y paginación.
-// "referencia" es el div de resultados al que se baja al cambiar de página.
 export default function ResultadosCatalogo({
-  eventos, filtros, total, pagina, paginas, cargando, error, referencia, onReintentar, onLimpiar, onOrden, onPagina,
+  eventos, filtros, total, pagina, paginas, cargando, error, onReintentar, onLimpiar, onOrden, onPagina,
 }) {
   const [ahora, setAhora] = useState(() => Date.now())
   const { errorPrecio } = filtros
@@ -36,7 +35,7 @@ export default function ResultadosCatalogo({
         </div>
       )}
       <div className="catalogo-eventos__barra">
-        <div ref={referencia} id="catalogo-resultados" className="catalogo-eventos__resultados" aria-live="polite" aria-atomic="true">
+        <div id="catalogo-resultados" className="catalogo-eventos__resultados" aria-live="polite" aria-atomic="true">
           {!errorPrecio && <p><strong>{total}</strong> {total === 1 ? 'evento encontrado' : 'eventos encontrados'}{total > 0 && <span> · Mostrando {inicio + 1}–{Math.min(inicio + eventos.length, total)}</span>}</p>}
         </div>
         {!errorPrecio && <OrdenEventos orden={filtros.orden} onCambiar={onOrden} />}

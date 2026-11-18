@@ -15,14 +15,13 @@ export default function TarjetaLugar({ lugar }) {
 
   const foto = ordenarFotosLocacion((lugar.imagenes || []).map((imagen) => urlFotoLocacion(lugar.id, imagen)))[0]
 
+  // Un lugar sin fotos no se muestra en el inicio (en el admin sí). Mientras llegan tampoco, así no aparece y desaparece
+  if (!foto) return null
+
   return (
     <article className="lugar">
       <a href="#fechas" className="lugar__foto" aria-label={`Ver fechas en ${lugar.nombre}`}>
-        {foto ? (
-          <img className="ken" src={foto.url} alt={foto.descripcion || `Foto de ${lugar.nombre}`} />
-        ) : (
-          <span className="lugar__sin-foto">Sin foto</span>
-        )}
+        <img className="ken" src={foto.url} alt={foto.descripcion || `Foto de ${lugar.nombre}`} />
       </a>
       <div className="lugar__pie">
         <div>

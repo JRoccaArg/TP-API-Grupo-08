@@ -6,7 +6,7 @@ import { Provider } from 'react-redux'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { createServer } from 'vite'
 
-let servidor, store, FuerzaClave, AvisoEventoAfectado, formatos, fechas, Cinta, BarraProximaFecha, FilaEntrada, ListaEntradas, ResumenCompra, FlyerEvento, TarjetaFlyer, FiltrosEventos
+let servidor, store, FuerzaClave, AvisoEventoAfectado, formatos, fechas, Cinta, BarraProximaFecha, FilaEntrada, ListaEntradas, ResumenCompra, FlyerEvento, TarjetaFlyer, FiltrosEventos, TarjetaEntrada
 // La tarjeta del catálogo usa el store; al dibujarla en el test no corren sus efectos, así que no sale ningún pedido
 const conStore = (elemento) => createElement(Provider, { store }, elemento)
 const evento = { id: 1, titulo: 'Noche de prueba', estado: 'ACTIVO', imagenes: [] }
@@ -35,6 +35,7 @@ before(async () => {
   Cinta = (await servidor.ssrLoadModule('/src/components/Cinta.jsx')).default
   BarraProximaFecha = (await servidor.ssrLoadModule('/src/components/BarraProximaFecha.jsx')).default
   FlyerEvento = (await servidor.ssrLoadModule('/src/components/FlyerEvento.jsx')).default
+  TarjetaEntrada = (await servidor.ssrLoadModule('/src/components/TarjetaEntrada.jsx')).default
 })
 after(async () => { await servidor?.close() })
 
@@ -120,6 +121,18 @@ test('la lista de entradas aclara que el tiempo de reserva es uno solo para todo
   }))))
   assert.match(html, /mismo para todo el carrito/)
   assert.equal((html.match(/>Agregar</g) || []).length, 2)
+})
+test('una entrada sin usar deja vacía la línea de estado, así mide lo mismo que una usada', () => {
+  const tarjeta = (estado) => renderToStaticMarkup(createElement(MemoryRouter, null, createElement(TarjetaEntrada, {
+    entrada: { id: 1, tipo: 'General', estado, codigoQr: 'abc123def456', eventoTitulo: 'Gala' },
+    evento: { titulo: 'Gala', estado: 'ACTIVO', fechaHoraInicio: '2026-12-05T23:00:00', locacionNombre: 'Palacio' },
+    comprador: 'Ana', numero: 1, total: 2,
+  })))
+  const lineas = (html) => (html.match(/tarjeta-entrada__estado/g) || []).length
+  assert.equal(lineas(tarjeta('EMITIDO')), 1)
+  assert.equal(lineas(tarjeta('UTILIZADO')), 1)
+  assert.match(tarjeta('UTILIZADO'), /ENTRADA UTILIZADA/)
+  assert.doesNotMatch(tarjeta('EMITIDO'), /ENTRADA UTILIZADA/)
 })
 test('el resumen del carrito avisa que el reloj del pago no se reinicia si ya se abrió', () => {
   const mostrarResumen = (estado) => renderToStaticMarkup(createElement(MemoryRouter, null,

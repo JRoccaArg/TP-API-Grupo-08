@@ -13,7 +13,6 @@ export default function SeccionFechas() {
   const navigate = useNavigate()
   const dispatch = useDispatch()
   const seccion = useRef(null)
-  const resultados = useRef(null)
   const { items, paginas, error, rangoPrecios, errorRango } = useSelector((state) => state.eventos)
   const { items: categorias, error: errorCategorias, cargado: categoriasCargadas } = useSelector((state) => state.categorias)
 
@@ -22,8 +21,12 @@ export default function SeccionFechas() {
   const consulta = consultaCatalogo(filtros)
   // La página que se está mirando, si ya se pidió antes (se busca por su consulta)
   const actual = paginas.find((guardada) => guardada.consulta === consulta)
-  const eventos = actual ? actual.ids.map((id) => items.find((evento) => evento.id === id)) : []
-  const cargando = !errorPrecio && !actual && !error
+  // Mientras llega una página nueva se sigue viendo la de al lado, que ya está guardada:
+  // así la sección no cambia de alto y la vista no salta al tocar «Siguiente» o «Anterior»
+  const vecinas = [consultaCatalogo({ ...filtros, pagina: pagina - 1 }), consultaCatalogo({ ...filtros, pagina: pagina + 1 })]
+  const mostrada = actual || paginas.find((guardada) => vecinas.includes(guardada.consulta))
+  const eventos = mostrada ? mostrada.ids.map((id) => items.find((evento) => evento.id === id)) : []
+  const cargando = !errorPrecio && !mostrada && !error
   const categoriasOrdenadas = [...categorias].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'))
   // El error de categorías también puede venir del admin (por ejemplo, un nombre repetido): acá importa solo si no se cargaron
   const fallaronCategorias = Boolean(errorCategorias) && !categoriasCargadas
@@ -72,9 +75,9 @@ export default function SeccionFechas() {
     irA({ q: '', categoria: '', min: '', max: '', estado: '', periodo: '', fecha: '', orden: '', pagina: '' })
   }
 
+  // La vista no se mueve: así se puede seguir tocando «Siguiente» o «Anterior» sin volver a bajar
   function cambiarPagina(nuevaPagina) {
     irA({ pagina: nuevaPagina > 1 ? String(nuevaPagina) : '' })
-    resultados.current?.scrollIntoView({ block: 'start' })
   }
 
   return (
@@ -90,12 +93,11 @@ export default function SeccionFechas() {
         <ResultadosCatalogo
           eventos={eventos}
           filtros={filtros}
-          total={actual ? actual.total : 0}
+          total={mostrada ? mostrada.total : 0}
           pagina={pagina}
-          paginas={Math.max(1, actual ? actual.totalPaginas : 0)}
+          paginas={Math.max(1, mostrada ? mostrada.totalPaginas : 0)}
           cargando={cargando}
           error={error}
-          referencia={resultados}
           onReintentar={reintentar}
           onLimpiar={limpiarFiltros}
           onOrden={(valor) => cambiarFiltro('orden', valor)}

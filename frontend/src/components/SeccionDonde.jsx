@@ -8,6 +8,8 @@ export default function SeccionDonde({ listo }) {
   const dispatch = useDispatch()
   const { items, error, cargado } = useSelector((state) => state.locaciones)
   const lugares = [...items].sort((a, b) => a.nombre.localeCompare(b.nombre))
+  // Cada tarjeta se muestra solo si su lugar tiene fotos. Si ya llegaron las de todos y ninguno tiene, se avisa como si no hubiera lugares
+  const ningunoConFotos = lugares.every((lugar) => lugar.imagenes?.length === 0)
 
   // Si ya están en el store no se vuelven a pedir
   useEffect(() => {
@@ -39,7 +41,7 @@ export default function SeccionDonde({ listo }) {
           <span className="catalogo-eventos__pulso" aria-hidden="true" />
           <p>Cargando lugares…</p>
         </div>
-      ) : lugares.length === 0 ? (
+      ) : ningunoConFotos ? (
         <div className="catalogo-eventos__estado" role="status">
           <h3>Todavía no hay lugares cargados</h3>
         </div>

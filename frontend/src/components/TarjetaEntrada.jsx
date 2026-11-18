@@ -30,6 +30,10 @@ export default function TarjetaEntrada({ entrada, evento, comprador, numero, tot
         {entrada.estado === 'EMITIDO' && eventoReprogramado(evento) && (
           <p className="tarjeta-entrada__estado tarjeta-entrada__estado--aviso">EVENTO REPROGRAMADO</p>
         )}
+        {/* Sin usar, la línea queda vacía: así todas las tarjetas miden lo mismo */}
+        {entrada.estado === 'EMITIDO' && !eventoCancelado(evento) && !eventoReprogramado(evento) && (
+          <p className="tarjeta-entrada__estado" aria-hidden="true">&nbsp;</p>
+        )}
         <div className="tarjeta-entrada__qr">
           {reembolsada ? <span className="tarjeta-entrada__sin-qr">Sin validez</span> : <CodigoQR codigoQr={entrada.codigoQr} />}
         </div>
