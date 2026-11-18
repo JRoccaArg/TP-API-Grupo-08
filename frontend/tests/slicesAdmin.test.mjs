@@ -21,12 +21,38 @@ const conEventos = (cambios) => ({
 })
 
 describe('eventos del admin', () => {
-  test('crear suma el evento sin entradas ni fotos (así no se piden) y vacía lo guardado del catálogo', () => {
-    const estado = eventosReducer(conEventos(), crearEvento.fulfilled({ id: 3, titulo: 'Nuevo' }, 'pedido', { token: 'T' }))
-    assert.deepEqual(estado.items[2], { id: 3, titulo: 'Nuevo', ofertas: [], imagenes: [] })
+  test('crear un borrador lo suma sin entradas ni fotos (así no se piden) y no toca el catálogo, donde no sale', () => {
+    const estado = eventosReducer(conEventos(), crearEvento.fulfilled({ id: 3, titulo: 'Nuevo', estado: 'BORRADOR' }, 'pedido', { token: 'T' }))
+    assert.deepEqual(estado.items[2], { id: 3, titulo: 'Nuevo', estado: 'BORRADOR', ofertas: [], imagenes: [] })
     assert.deepEqual(estado.todos, [1, 2, 3])
+    assert.deepEqual(estado.paginas, [{ consulta: 'page=0', ids: [1, 2] }])
+    assert.deepEqual(estado.proximos, [{ id: 1 }])
+  })
+  test('crear un evento publicado vacía las páginas: en cuál va lo decide el back', () => {
+    const estado = eventosReducer(conEventos(), crearEvento.fulfilled({ id: 3, titulo: 'Nuevo', estado: 'ACTIVO' }, 'pedido', { token: 'T' }))
     assert.deepEqual(estado.paginas, [])
     assert.equal(estado.proximos, null)
+  })
+  test('editar no vacía el catálogo: el evento se actualiza en items y en los próximos, y se ve en el momento', () => {
+    const estado = eventosReducer(conEventos(), actualizarEvento.fulfilled({ id: 1, titulo: 'Gala Nueva' }, 'pedido', { token: 'T', id: 1 }))
+    assert.equal(estado.items[0].titulo, 'Gala Nueva')
+    assert.deepEqual(estado.paginas, [{ consulta: 'page=0', ids: [1, 2] }])
+    assert.deepEqual(estado.proximos, [{ id: 1, titulo: 'Gala Nueva' }])
+  })
+  test('publicar un borrador vacía las páginas; pasar un evento a borrador lo saca del catálogo', () => {
+    const conBorrador = conEventos()
+    conBorrador.items[1] = { ...conBorrador.items[1], estado: 'BORRADOR' }
+    const publicado = eventosReducer(conBorrador, actualizarEvento.fulfilled({ id: 2, estado: 'ACTIVO' }, 'pedido', { token: 'T', id: 2 }))
+    assert.deepEqual(publicado.paginas, [])
+    assert.equal(publicado.proximos, null)
+    const despublicado = eventosReducer(conEventos(), actualizarEvento.fulfilled({ id: 1, estado: 'BORRADOR' }, 'pedido', { token: 'T', id: 1 }))
+    assert.deepEqual(despublicado.paginas[0].ids, [2])
+    assert.deepEqual(despublicado.proximos, [])
+  })
+  test('borrar saca el evento de las páginas y de los próximos con filter, sin pedir nada', () => {
+    const estado = eventosReducer(conEventos(), eliminarEvento.fulfilled(1, 'pedido', { token: 'T', id: 1 }))
+    assert.deepEqual(estado.paginas[0].ids, [2])
+    assert.deepEqual(estado.proximos, [])
   })
   test('si cambia el fin, las entradas guardadas cierran la venta en el nuevo fin (como hace el back)', () => {
     const estado = eventosReducer(conEventos(), actualizarEvento.fulfilled(
@@ -56,10 +82,15 @@ describe('eventos del admin', () => {
     assert.deepEqual(estado.items[0].imagenes, [{ id: 10, tipoImagenEvento: 'GALERIA', orden: 2 }])
     assert.equal(estado.items[0].guardandoFotos, false)
   })
-  test('una entrada nueva se suma a su evento y el precio más alto se vuelve a pedir', () => {
-    const estado = eventosReducer(conEventos({ rangoPrecios: 9000 }), crearOferta.fulfilled({ id: 21 }, 'pedido', { token: 'T', eventoId: 2 }))
-    assert.deepEqual(estado.items[1].ofertas, [{ id: 21 }])
-    assert.equal(estado.rangoPrecios, null)
+  test('una entrada nueva se suma a su evento y, si es más cara, sube el máximo del filtro; el catálogo y las ventas no se vacían', () => {
+    const inicio = conEventos({ rangoPrecios: 9000, estadisticas: { eventoId: 2, vendidas: 0 } })
+    const cara = eventosReducer(inicio, crearOferta.fulfilled({ id: 21, precioFinal: 12000 }, 'pedido', { token: 'T', eventoId: 2 }))
+    assert.deepEqual(cara.items[1].ofertas, [{ id: 21, precioFinal: 12000 }])
+    assert.equal(cara.rangoPrecios, 12000)
+    assert.deepEqual(cara.paginas, [{ consulta: 'page=0', ids: [1, 2] }])
+    assert.deepEqual(cara.estadisticas, { eventoId: 2, vendidas: 0 })
+    const barata = eventosReducer(cara, crearOferta.fulfilled({ id: 22, precioFinal: 5000 }, 'pedido', { token: 'T', eventoId: 2 }))
+    assert.equal(barata.rangoPrecios, 12000)
   })
 })
 

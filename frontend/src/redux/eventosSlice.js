@@ -165,6 +165,14 @@ export const eliminarOferta = createAsyncThunk('eventos/eliminarOferta', async (
   }
 })
 
+// Saca un evento de las páginas guardadas del catálogo y de los próximos, como el DELETE de una lista (sin volver a pedir)
+const sacarDelCatalogo = (state, id) => {
+  state.paginas = state.paginas.map((pagina) => ({ ...pagina, ids: pagina.ids.filter((otro) => otro !== id) }))
+  if (state.proximos) {
+    state.proximos = state.proximos.filter((evento) => evento.id !== id)
+  }
+}
+
 const eventosSlice = createSlice({
   name: 'eventos',
   initialState: {
@@ -322,14 +330,17 @@ const eventosSlice = createSlice({
         state.errorAdmin = null
       })
       // Un evento nuevo todavía no tiene entradas ni fotos: así no se piden.
-      // Las páginas del catálogo y los próximos que estaban guardados quedaron viejos: se piden al volver al inicio.
+      // Un borrador no sale en el catálogo. Uno publicado sí, pero en qué página va lo decide el back:
+      // solo entonces se vacían las páginas y los próximos, y se piden recién al volver al inicio
       .addCase(crearEvento.fulfilled, (state, action) => {
         state.items = [...state.items, { ...action.payload, ofertas: [], imagenes: [] }]
         if (state.todos) {
           state.todos = [...state.todos, action.payload.id]
         }
-        state.paginas = []
-        state.proximos = null
+        if (action.payload.estado !== 'BORRADOR') {
+          state.paginas = []
+          state.proximos = null
+        }
       })
       .addCase(crearEvento.rejected, (state, action) => {
         state.errorAdmin = action.payload
@@ -343,8 +354,11 @@ const eventosSlice = createSlice({
           state.items[index].errorEdicion = null
         }
       })
+      // El cambio se ve en el momento, como dijo la profe: las tarjetas leen el evento de items y no se pide nada.
+      // Solo si un borrador se publica no está en ninguna página guardada, y en qué página va lo decide el back
       .addCase(actualizarEvento.fulfilled, (state, action) => {
         const index = state.items.findIndex((evento) => evento.id === action.payload.id)
+        const antes = index !== -1 ? state.items[index].estado : null
         if (index !== -1) {
           // Si cambió el fin, el back corrió el cierre de venta de sus entradas: acá se hace lo mismo
           if (state.items[index].ofertas && state.items[index].fechaHoraFin !== action.payload.fechaHoraFin) {
@@ -354,8 +368,19 @@ const eventosSlice = createSlice({
           }
           state.items[index] = { ...state.items[index], ...action.payload }
         }
-        state.paginas = []
-        state.proximos = null
+        // Los próximos guardan una copia del evento: se reemplaza con findIndex, como en el PUT
+        if (state.proximos) {
+          const indexProximo = state.proximos.findIndex((evento) => evento.id === action.payload.id)
+          if (indexProximo !== -1) {
+            state.proximos[indexProximo] = { ...state.proximos[indexProximo], ...action.payload }
+          }
+        }
+        if (antes === 'BORRADOR' && action.payload.estado !== 'BORRADOR') {
+          state.paginas = []
+          state.proximos = null
+        } else if (antes !== 'BORRADOR' && action.payload.estado === 'BORRADOR') {
+          sacarDelCatalogo(state, action.payload.id)
+        }
       })
       .addCase(actualizarEvento.rejected, (state, action) => {
         const index = state.items.findIndex((evento) => evento.id === action.meta.arg.id)
@@ -375,8 +400,7 @@ const eventosSlice = createSlice({
         if (state.todos) {
           state.todos = state.todos.filter((id) => id !== action.payload)
         }
-        state.paginas = []
-        state.proximos = null
+        sacarDelCatalogo(state, action.payload)
       })
       .addCase(eliminarEvento.rejected, (state, action) => {
         const index = state.items.findIndex((evento) => evento.id === action.meta.arg.id)
@@ -451,7 +475,9 @@ const eventosSlice = createSlice({
           state.items[index].errorEdicion = action.payload
         }
       })
-      // Entradas: cambian el precio más alto, el catálogo y las ventas, así que eso se vuelve a pedir cuando se vea
+      // Entradas: se guardan en su evento y la tarjeta del catálogo las lee de ahí, así que el cambio se ve en el momento.
+      // Si una es más cara que el máximo del filtro de precio, el máximo sube con la respuesta.
+      // Las ventas del resumen no se tocan: se actualizan con «Actualizar ventas»
       .addCase(crearOferta.pending, (state, action) => {
         const index = state.items.findIndex((evento) => evento.id === action.meta.arg.eventoId)
         if (index !== -1) {
@@ -463,9 +489,9 @@ const eventosSlice = createSlice({
         if (index !== -1) {
           state.items[index].ofertas = [...state.items[index].ofertas, action.payload]
         }
-        state.rangoPrecios = null
-        state.paginas = []
-        state.estadisticas = null
+        if (state.rangoPrecios !== null && action.payload.precioFinal > state.rangoPrecios) {
+          state.rangoPrecios = action.payload.precioFinal
+        }
       })
       .addCase(crearOferta.rejected, (state, action) => {
         const index = state.items.findIndex((evento) => evento.id === action.meta.arg.eventoId)
@@ -487,9 +513,9 @@ const eventosSlice = createSlice({
             state.items[index].ofertas[indexOferta] = action.payload
           }
         }
-        state.rangoPrecios = null
-        state.paginas = []
-        state.estadisticas = null
+        if (state.rangoPrecios !== null && action.payload.precioFinal > state.rangoPrecios) {
+          state.rangoPrecios = action.payload.precioFinal
+        }
       })
       .addCase(actualizarOferta.rejected, (state, action) => {
         const index = state.items.findIndex((evento) => evento.id === action.meta.arg.eventoId)
@@ -508,9 +534,6 @@ const eventosSlice = createSlice({
         if (index !== -1) {
           state.items[index].ofertas = state.items[index].ofertas.filter((oferta) => oferta.id !== action.payload)
         }
-        state.rangoPrecios = null
-        state.paginas = []
-        state.estadisticas = null
       })
       .addCase(eliminarOferta.rejected, (state, action) => {
         const index = state.items.findIndex((evento) => evento.id === action.meta.arg.eventoId)
