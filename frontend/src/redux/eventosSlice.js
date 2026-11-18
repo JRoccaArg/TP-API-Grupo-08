@@ -173,6 +173,12 @@ const sacarDelCatalogo = (state, id) => {
   }
 }
 
+// Una fila de «Ventas por entrada» armada con la respuesta: los mismos datos que manda el back en las ventas
+const filaDeVentas = (oferta, vendidas, recaudado) => ({
+  eventoTipoEntradaId: oferta.id, tipoEntradaNombre: oferta.tipoEntradaNombre, estado: oferta.estado,
+  cupo: oferta.cantidadTotal, disponibles: oferta.cantidadDisponible, vendidas, recaudado,
+})
+
 const eventosSlice = createSlice({
   name: 'eventos',
   initialState: {
@@ -477,7 +483,7 @@ const eventosSlice = createSlice({
       })
       // Entradas: se guardan en su evento y la tarjeta del catálogo las lee de ahí, así que el cambio se ve en el momento.
       // Si una es más cara que el máximo del filtro de precio, el máximo sube con la respuesta.
-      // Las ventas del resumen no se tocan: se actualizan con «Actualizar ventas»
+      // Si las ventas guardadas son de ese evento, su fila también se agrega, se cambia o se saca, y el cupo total se ajusta
       .addCase(crearOferta.pending, (state, action) => {
         const index = state.items.findIndex((evento) => evento.id === action.meta.arg.eventoId)
         if (index !== -1) {
@@ -488,6 +494,11 @@ const eventosSlice = createSlice({
         const index = state.items.findIndex((evento) => evento.id === action.meta.arg.eventoId)
         if (index !== -1) {
           state.items[index].ofertas = [...state.items[index].ofertas, action.payload]
+        }
+        // Una entrada nueva todavía no vendió nada
+        if (state.estadisticas?.eventoId === action.meta.arg.eventoId) {
+          state.estadisticas.porEntrada = [...state.estadisticas.porEntrada, filaDeVentas(action.payload, 0, 0)]
+          state.estadisticas.cupoTotal += action.payload.cantidadTotal
         }
         if (state.rangoPrecios !== null && action.payload.precioFinal > state.rangoPrecios) {
           state.rangoPrecios = action.payload.precioFinal
@@ -513,6 +524,15 @@ const eventosSlice = createSlice({
             state.items[index].ofertas[indexOferta] = action.payload
           }
         }
+        // Lo vendido y lo recaudado no cambian al editar la entrada: salen de las compras
+        if (state.estadisticas?.eventoId === action.meta.arg.eventoId) {
+          const indexFila = state.estadisticas.porEntrada.findIndex((fila) => fila.eventoTipoEntradaId === action.payload.id)
+          if (indexFila !== -1) {
+            const fila = state.estadisticas.porEntrada[indexFila]
+            state.estadisticas.cupoTotal += action.payload.cantidadTotal - fila.cupo
+            state.estadisticas.porEntrada[indexFila] = filaDeVentas(action.payload, fila.vendidas, fila.recaudado)
+          }
+        }
         if (state.rangoPrecios !== null && action.payload.precioFinal > state.rangoPrecios) {
           state.rangoPrecios = action.payload.precioFinal
         }
@@ -533,6 +553,13 @@ const eventosSlice = createSlice({
         const index = state.items.findIndex((evento) => evento.id === action.meta.arg.eventoId)
         if (index !== -1) {
           state.items[index].ofertas = state.items[index].ofertas.filter((oferta) => oferta.id !== action.payload)
+        }
+        if (state.estadisticas?.eventoId === action.meta.arg.eventoId) {
+          const fila = state.estadisticas.porEntrada.find((otra) => otra.eventoTipoEntradaId === action.payload)
+          if (fila) {
+            state.estadisticas.cupoTotal -= fila.cupo
+            state.estadisticas.porEntrada = state.estadisticas.porEntrada.filter((otra) => otra.eventoTipoEntradaId !== action.payload)
+          }
         }
       })
       .addCase(eliminarOferta.rejected, (state, action) => {

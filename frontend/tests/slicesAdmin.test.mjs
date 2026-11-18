@@ -1,7 +1,7 @@
 import { describe, test } from 'node:test'
 import assert from 'node:assert/strict'
 import eventosReducer, {
-  actualizarEvento, cambiarImagen, crearEvento, crearOferta, eliminarEvento, subirImagen,
+  actualizarEvento, actualizarOferta, cambiarImagen, crearEvento, crearOferta, eliminarEvento, eliminarOferta, subirImagen,
 } from '../src/redux/eventosSlice.js'
 import locacionesReducer, { actualizarLocacion, crearLocacion, eliminarLocacion } from '../src/redux/locacionesSlice.js'
 
@@ -82,15 +82,38 @@ describe('eventos del admin', () => {
     assert.deepEqual(estado.items[0].imagenes, [{ id: 10, tipoImagenEvento: 'GALERIA', orden: 2 }])
     assert.equal(estado.items[0].guardandoFotos, false)
   })
-  test('una entrada nueva se suma a su evento y, si es más cara, sube el máximo del filtro; el catálogo y las ventas no se vacían', () => {
-    const inicio = conEventos({ rangoPrecios: 9000, estadisticas: { eventoId: 2, vendidas: 0 } })
+  test('una entrada nueva se suma a su evento y, si es más cara, sube el máximo del filtro; el catálogo no se vacía', () => {
+    const inicio = conEventos({ rangoPrecios: 9000 })
     const cara = eventosReducer(inicio, crearOferta.fulfilled({ id: 21, precioFinal: 12000 }, 'pedido', { token: 'T', eventoId: 2 }))
     assert.deepEqual(cara.items[1].ofertas, [{ id: 21, precioFinal: 12000 }])
     assert.equal(cara.rangoPrecios, 12000)
     assert.deepEqual(cara.paginas, [{ consulta: 'page=0', ids: [1, 2] }])
-    assert.deepEqual(cara.estadisticas, { eventoId: 2, vendidas: 0 })
     const barata = eventosReducer(cara, crearOferta.fulfilled({ id: 22, precioFinal: 5000 }, 'pedido', { token: 'T', eventoId: 2 }))
     assert.equal(barata.rangoPrecios, 12000)
+  })
+  test('las ventas del resumen se actualizan con la respuesta de cada entrada (agregar, editar y quitar), sin volver a pedirlas', () => {
+    const general = { id: 21, tipoEntradaNombre: 'General', estado: 'ACTIVO', cantidadTotal: 100, cantidadDisponible: 100, precioFinal: 1000 }
+    const inicio = conEventos({ estadisticas: { eventoId: 2, vendidas: 0, cupoTotal: 0, recaudado: 0, compras: 0, ingresados: 0, porEntrada: [] } })
+    const creada = eventosReducer(inicio, crearOferta.fulfilled(general, 'pedido', { token: 'T', eventoId: 2 }))
+    assert.equal(creada.estadisticas.cupoTotal, 100)
+    assert.deepEqual(creada.estadisticas.porEntrada, [{
+      eventoTipoEntradaId: 21, tipoEntradaNombre: 'General', estado: 'ACTIVO', cupo: 100, disponibles: 100, vendidas: 0, recaudado: 0,
+    }])
+    // Con ventas: editar cambia el cupo y deja lo vendido como estaba
+    const conVentas = { ...creada, estadisticas: { ...creada.estadisticas, porEntrada: [{ ...creada.estadisticas.porEntrada[0], vendidas: 3, recaudado: 3000 }] } }
+    const editada = eventosReducer(conVentas, actualizarOferta.fulfilled(
+      { ...general, cantidadTotal: 150, cantidadDisponible: 147 }, 'pedido', { token: 'T', eventoId: 2, id: 21 }))
+    assert.equal(editada.estadisticas.cupoTotal, 150)
+    assert.deepEqual(editada.estadisticas.porEntrada[0], {
+      eventoTipoEntradaId: 21, tipoEntradaNombre: 'General', estado: 'ACTIVO', cupo: 150, disponibles: 147, vendidas: 3, recaudado: 3000,
+    })
+    const quitada = eventosReducer(creada, eliminarOferta.fulfilled(21, 'pedido', { token: 'T', eventoId: 2, id: 21 }))
+    assert.equal(quitada.estadisticas.cupoTotal, 0)
+    assert.deepEqual(quitada.estadisticas.porEntrada, [])
+    // Las ventas de otro evento no se tocan
+    const deOtro = eventosReducer(conEventos({ estadisticas: { eventoId: 1, cupoTotal: 50, porEntrada: [] } }),
+      crearOferta.fulfilled(general, 'pedido', { token: 'T', eventoId: 2 }))
+    assert.deepEqual(deOtro.estadisticas, { eventoId: 1, cupoTotal: 50, porEntrada: [] })
   })
 })
 
