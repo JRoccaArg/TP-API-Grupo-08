@@ -1,20 +1,41 @@
 ZENOIR - CÓMO LEVANTAR EL PROYECTO
 
-Hace falta Java 17 o más y Node 20.19 o más. No hace falta instalar ninguna base de datos.
+Hace falta Java 17 o más, Node 20.19 o más y SQL Server.
 
 
-1) BACK (carpeta zenoirprod)
+1) BASE DE DATOS
+
+   En SQL Server Management Studio, crear una base vacía:
+      CREATE DATABASE Zenoir_Prod;
+
+   Las tablas las crea el back solo la primera vez que arranca.
+
+   Crear el archivo zenoirprod/config/application.properties con la clave de SQL Server:
+      spring.datasource.password=la_clave_de_sa
+
+   Por defecto se conecta a localhost:1433, a la base Zenoir_Prod y con el usuario sa.
+   Si la base o el usuario son otros, agregar en el mismo archivo:
+      DB_NAME=nombre_de_la_base
+      spring.datasource.username=tu_usuario
+
+
+2) BACK (carpeta zenoirprod)
 
    En VS Code: abrir la carpeta zenoirprod y ejecutar ZenoirprodApplication.
    O en una terminal, dentro de zenoirprod:
       .\mvnw.cmd spring-boot:run        (en Mac o Linux: ./mvnw spring-boot:run)
 
-   Queda en http://localhost:8080. Como no tiene configurada una base, arranca solo
-   con una base en memoria y datos de ejemplo (eventos, lugares y entradas).
-   Esos datos vuelven a quedar como al principio cada vez que se apaga el back.
+   Queda en http://localhost:8080
 
 
-2) FRONT (carpeta frontend)
+3) DATOS DE EJEMPLO (opcional)
+
+   Para tener el catálogo con eventos, lugares, entradas y fotos: con el back levantado al menos
+   una vez, abrir zenoirprod/database/seed/catalogo.sql en SSMS, elegir la base Zenoir_Prod y
+   ejecutarlo con F5. Los pasos completos están en zenoirprod/database/seed/README.md.
+
+
+4) FRONT (carpeta frontend)
 
    En otra terminal, dentro de frontend:
       npm install
@@ -23,26 +44,10 @@ Hace falta Java 17 o más y Node 20.19 o más. No hace falta instalar ninguna ba
    Abrir http://localhost:5173
 
 
-CUENTAS DE EJEMPLO (base en memoria)
+USUARIOS
 
-   Administrador:  admin@zenoir.com    /  Admin#2026ok
-   Comprador:      usuario@zenoir.com  /  Usuario#2026ok
-
-   También se puede crear una cuenta nueva desde "Ingresar" > "Creá una".
-   El pago es de prueba: en la pantalla de pago está el botón "Usar tarjeta de prueba".
-
-
-CON SQL SERVER (opcional)
-
-   1. Crear una base vacía, por ejemplo Zenoir_Prod. Las tablas las crea el back al arrancar.
-   2. Crear el archivo zenoirprod/config/application.properties con los datos de la base:
-         DB_NAME=Zenoir_Prod
-         DB_USER=sa
-         DB_PASSWORD=la_clave
-   3. Levantar el back igual que antes. Si existe ese archivo, usa SQL Server en vez de la base en memoria.
-
-   Para tener un administrador, registrarse desde el front y correr en la base:
+   Cualquiera se registra desde "Ingresar" > "Creá una" y queda como comprador.
+   Para tener un administrador, registrar la cuenta y correr en la base:
       UPDATE usuarios SET rol = 'ADMIN' WHERE email = 'tu_email';
 
-   El catálogo con fotos se carga con zenoirprod/database/seed (los pasos están en su README).
-   Más detalle en README.md.
+   El pago es de prueba: en la pantalla de pago está el botón "Usar tarjeta de prueba".
