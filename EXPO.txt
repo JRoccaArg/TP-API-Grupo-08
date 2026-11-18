@@ -31,12 +31,18 @@ CUENTAS
 
 QUÉ TRAE
 
-   - 14 eventos con flyer y galería, con la fecha y el lugar que dice cada flyer. Para el 25/11 quedan
-     5 próximos (Velvet Ritual, Ambra Night, Ivory Reverie, Emerald Room y Garden Soirée), 8 ya hechos
-     y After Society, que está cancelado.
+   - 14 eventos con flyer y galería. El día, el horario y el lugar son los que dice cada flyer.
+     Ninguno cae entre el 18 y el 26 de noviembre, así el día de la expo todo se ve igual:
+       · 5 próximos: Ambra Night (12/12), Velvet Ritual (reprogramado del 5 al 19/12), Ivory Reverie,
+         Emerald Room y Garden Soirée.
+       · 8 ya hechos, entre ellos Moonlit Garden (22/11/2025).
+       · After Society (marzo), cancelado.
    - 4 lugares con fotos: Palacio Balcarce, Círculo Italiano, Palacio Duhau y Mansión Álzaga Unzué.
-   - 10 compras. El comprador tiene entradas para Moonlit Garden (una ya usada en la puerta), Velvet Ritual
-     y Ambra Night, y dos de After Society para pedir el reembolso.
+   - 10 compras de distintos días. El comprador tiene:
+       · Moonlit Garden: 2 entradas, una usada en la puerta.
+       · Velvet Ritual: 2 entradas. Como se reprogramó, puede pedir el reembolso.
+       · Ambra Night: 1 VIP, para escanear el QR en vivo.
+       · After Society: 2 entradas del evento cancelado, para pedir el reembolso.
    - En el admin, cada evento muestra sus ventas, lo recaudado y cuántos entraron.
 
 
