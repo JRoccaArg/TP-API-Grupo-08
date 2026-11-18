@@ -1,0 +1,71 @@
+ZENOIR - VERSIÓN PARA LA EXPO
+
+Esta versión trae una base de SQL Server con todo cargado: cuentas, eventos con flyers y fotos,
+lugares, entradas vendidas, QR usados y un evento cancelado. Así se puede mostrar todo sin cargar nada antes.
+Hace falta Java 17 o más, Node 20.19 o más y SQL Server.
+
+
+PREPARAR LA BASE (una sola vez)
+
+1. En SQL Server Management Studio, crear una base vacía:
+      CREATE DATABASE Zenoir_Expo;
+
+   Si te conectás con un usuario que no es sa, dale permiso en esa base:
+      USE Zenoir_Expo;
+      CREATE USER tu_usuario FOR LOGIN tu_usuario;
+      ALTER ROLE db_owner ADD MEMBER tu_usuario;
+
+2. Crear el archivo zenoirprod/config/application.properties con los datos de conexión:
+      DB_NAME=Zenoir_Expo
+      spring.datasource.username=sa
+      spring.datasource.password=la_clave
+      zenoir.mail.activo=false
+
+3. Levantar el back (ver abajo) para que cree las tablas. Esperar a que diga "Started ZenoirprodApplication".
+
+4. En SSMS, abrir zenoirprod/database/seed/expo.sql, elegir la base Zenoir_Expo arriba a la izquierda
+   y ejecutarlo con F5. Tarda unos segundos y tiene que decir "Seed de la expo cargado correctamente."
+   No hace falta reiniciar el back.
+
+
+LEVANTARLO
+
+   Back: en VS Code, abrir la carpeta zenoirprod y ejecutar ZenoirprodApplication.
+         O en una terminal dentro de zenoirprod:  .\mvnw.cmd spring-boot:run
+         Queda en http://localhost:8080
+
+   Front: en otra terminal, dentro de frontend:
+            npm install
+            npm run dev
+          Abrir http://localhost:5173
+
+
+CUENTAS
+
+   Administrador:  admin@zenoir.com    /  Admin#2026ok
+   Comprador:      usuario@zenoir.com  /  Usuario#2026ok
+
+   Hay tres compradores más, con la misma clave que el comprador:
+   sofia.gomez@zenoir.test, martin.lopez@zenoir.test y lucia.fernandez@zenoir.test
+
+
+QUÉ TRAE
+
+   - 14 eventos con flyer y galería, con la fecha y el lugar que dice cada flyer. Para el 25/11 quedan
+     5 próximos (Velvet Ritual, Ambra Night, Ivory Reverie, Emerald Room y Garden Soirée), 8 ya hechos
+     y After Society, que está cancelado.
+   - 4 lugares con fotos: Palacio Balcarce, Círculo Italiano, Palacio Duhau y Mansión Álzaga Unzué.
+   - 10 compras. El comprador tiene entradas para Moonlit Garden (una ya usada en la puerta), Velvet Ritual
+     y Ambra Night, y dos de After Society para pedir el reembolso.
+   - En el admin, cada evento muestra sus ventas, lo recaudado y cuántos entraron.
+
+
+PARA PROBAR EN VIVO
+
+   - En la carpeta materialParaProbar está el flyer de Pórtico Nights (9 de mayo, 23:30 a 5:30, en la
+     Mansión Álzaga Unzué) y una foto más de la mansión. No están cargados: sirven para crear el evento
+     y sumar la foto al lugar desde el admin.
+   - Las entradas de los eventos próximos se pueden escanear con "Escanear QR".
+   - El pago es de prueba: en la pantalla de pago está el botón "Usar tarjeta de prueba".
+
+Para dejar todo como al principio: crear otra base vacía y repetir los pasos.
