@@ -1,46 +1,23 @@
 ZENOIR - VERSIÓN PARA LA EXPO
 
-Esta versión trae una base de SQL Server con todo cargado: cuentas, eventos con flyers y fotos,
-lugares, entradas vendidas, QR usados y un evento cancelado. Así se puede mostrar todo sin cargar nada antes.
-Hace falta Java 17 o más, Node 20.19 o más y SQL Server.
-
-
-PREPARAR LA BASE (una sola vez)
-
-1. En SQL Server Management Studio, crear una base vacía:
-      CREATE DATABASE Zenoir_Expo;
-
-   Si te conectás con un usuario que no es sa, dale permiso en esa base:
-      USE Zenoir_Expo;
-      CREATE USER tu_usuario FOR LOGIN tu_usuario;
-      ALTER ROLE db_owner ADD MEMBER tu_usuario;
-
-2. Crear el archivo zenoirprod/config/application.properties con los datos de conexión:
-      DB_NAME=Zenoir_Expo
-      spring.datasource.username=sa
-      spring.datasource.password=la_clave
-      zenoir.mail.activo=false
-
-   Este archivo no viene en el zip (git no lo sube) y sin él el back arranca con una base en memoria
-   de prueba, sin fotos ni compras. Si en la consola aparece "Datos de ejemplo cargados", falta este archivo.
-
-3. Levantar el back (ver abajo) para que cree las tablas. Esperar a que diga "Started ZenoirprodApplication".
-
-4. En SSMS, abrir zenoirprod/database/seed/expo.sql, elegir la base Zenoir_Expo arriba a la izquierda
-   y ejecutarlo con F5. Tarda unos segundos y tiene que decir "Seed de la expo cargado correctamente."
-   No hace falta reiniciar el back.
+Esta versión arranca con todo cargado: cuentas, eventos con flyers y fotos, lugares, entradas vendidas,
+QR usados y un evento cancelado. No hace falta instalar ninguna base ni configurar nada.
+Hace falta Java 17 o más y Node 20.19 o más.
 
 
 LEVANTARLO
 
    Back: en VS Code, abrir la carpeta zenoirprod y ejecutar ZenoirprodApplication.
          O en una terminal dentro de zenoirprod:  .\mvnw.cmd spring-boot:run
-         Queda en http://localhost:8080
+         Queda en http://localhost:8080. Tarda unos segundos más que lo normal porque carga las fotos.
 
    Front: en otra terminal, dentro de frontend:
             npm install
             npm run dev
           Abrir http://localhost:5173
+
+   Los datos viven en memoria: cada vez que se reinicia el back, todo vuelve a quedar como al principio.
+   Sirve para ensayar la expo las veces que haga falta.
 
 
 CUENTAS
@@ -71,4 +48,17 @@ PARA PROBAR EN VIVO
    - Las entradas de los eventos próximos se pueden escanear con "Escanear QR".
    - El pago es de prueba: en la pantalla de pago está el botón "Usar tarjeta de prueba".
 
-Para dejar todo como al principio: crear otra base vacía y repetir los pasos.
+
+CON SQL SERVER (opcional, para que los datos queden guardados)
+
+   1. Crear una base vacía: CREATE DATABASE Zenoir_Expo;
+   2. Crear zenoirprod/config/application.properties con:
+         DB_NAME=Zenoir_Expo
+         spring.datasource.username=sa
+         spring.datasource.password=la_clave
+         zenoir.mail.activo=false
+   3. Levantar el back para que cree las tablas.
+   4. En SSMS, abrir zenoirprod/database/seed/expo.sql, elegir la base Zenoir_Expo y ejecutarlo con F5.
+      Tiene que decir "Seed de la expo cargado correctamente."
+
+   Con ese archivo el back usa SQL Server; sin él, la base en memoria con todo cargado.
